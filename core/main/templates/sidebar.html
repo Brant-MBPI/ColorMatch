@@ -33,7 +33,10 @@
                 </a>
                 <div class="collapse" id="appsMenu">
                     <ul class="nav flex-column submenu" style="padding-left: 2rem;">
-                        <li><a class="nav-link" href="#">CMF Records</a></li> 
+                        <li><a  href="{% url 'cmf_records' %}"
+                            class="nav-link {% if request.resolver_match.url_name == 'cmf_records' %}active{% endif %}">
+                            CMF Records
+                        </a></li> 
                         <li><a class="nav-link" href="#">CMF Entry</a></li>
                         <li><a class="nav-link" href="#">RS Entry</a></li>
                         <li><a class="nav-link" href="#">MB Formula</a></li>

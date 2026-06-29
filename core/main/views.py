@@ -10,3 +10,6 @@ def dashboard(request):
 
 def otherPage(request):
     return render(request, "other.html")
+
+def cmf_records(request):
+    return render(request, "cmf/cmf_records.html")
