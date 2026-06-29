@@ -3,7 +3,7 @@ from django.http import HttpResponse
 # Create your views here.
 
 def index(request):
-    return HttpResponse("<h1>Hello, World!</h1>")
+    return render(request, "base.html")
 
-def v1(request):
-    return HttpResponse("<h1>View 1!</h1>")
+def otherPage(request):
+    return render(request, "other.html")
