@@ -1,99 +1,240 @@
 {% load static %}
-<nav class="mnb navbar navbar-default navbar-fixed-top">
-  <div class="container-fluid">
-    <div class="navbar-header">
-      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-        <span class="sr-only">Toggle navigation</span>
-        <i class="ic fa fa-bars"></i>
-      </button>
-      <div style="padding: 15px 0;">
-         <a href="#" id="msbo"><i class="ic fa fa-bars"></i></a>
-      </div>
-    </div>
-    <div id="navbar" class="navbar-collapse collapse">
-      <ul class="nav navbar-nav navbar-right">
-        <li><a href="#">En</a></li>
-        <li class="dropdown">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Draude Oba <span class="caret"></span></a>
-          <ul class="dropdown-menu">
-            <li><a href="#">Settings</a></li>
-            <li><a href="#">Upgrade</a></li>
-            <li><a href="#">Help</a></li>
-            <li role="separator" class="divider"></li>
-            <li><a href="#">Logout</a></li>
-          </ul>
-        </li>
-        <li><a href="#"><i class="fa fa-bell-o"></i></a></li>
-        <li><a href="#"><i class="fa fa-comment-o"></i></a></li>
-      </ul>
-      <form class="navbar-form navbar-right">
-        <input type="text" class="form-control" placeholder="Search...">
-      </form>
-    </div>
-  </div>
-</nav>
-<!--msb: main sidebar-->
-<div class="msb" id="msb">
-		<nav class="navbar navbar-default" role="navigation">
-			<!-- Brand and toggle get grouped for better mobile display -->
-			<div class="navbar-header">
-				<div class="brand-wrapper">
-					<!-- Brand -->
-					<div class="brand-name-wrapper">
-						<a class="navbar-brand" href="#">
-							SAITAMA
-						</a>
-					</div>
+<aside class="sidebar" id="sidebar">
 
-				</div>
+        <div class="sidebar-header">
 
-			</div>
+            <h4 class="mb-0">
 
-			<!-- Main Menu -->
-			<div class="side-menu-container">
-				<ul class="nav navbar-nav">
+                SAITAMA
 
-					<li><a href="#"><i class="fa fa-dashboard"></i> Dashboard</a></li>
-					<li class="active"><a href="#"><i class="fa fa-puzzle-piece"></i> Components</a></li>
-					<li><a href="#"><i class="fa fa-heart"></i> Extras</a></li>
+            </h4>
 
-					<!-- Dropdown-->
-					<li class="panel panel-default" id="dropdown">
-						<a data-toggle="collapse" href="#dropdown-lvl1">
-							<i class="fa fa-diamond"></i> Apps
-						  <span class="caret"></span>
-            </a>
-						<!-- Dropdown level 1 -->
-						<div id="dropdown-lvl1" class="panel-collapse collapse">
-							<div class="panel-body">
-								<ul class="nav navbar-nav">
-									<li><a href="#">Mail</a></li>
-									<li><a href="#">Calendar</a></li>
-									<li><a href="#">Ecommerce</a></li>
-									<li><a href="#">User</a></li>
-									<li><a href="#">Social</a></li>
+        </div>
 
-									<!-- Dropdown level 2 -->
-									<li class="panel panel-default" id="dropdown">
-										<a data-toggle="collapse" href="#dropdown-lvl2">
-											<i class="glyphicon glyphicon-off"></i> Sub Level <span class="caret"></span>
-										</a>
-										<div id="dropdown-lvl2" class="panel-collapse collapse">
-											<div class="panel-body">
-												<ul class="nav navbar-nav">
-													<li><a href="#">Link</a></li>
-													<li><a href="#">Link</a></li>
-													<li><a href="#">Link</a></li>
-												</ul>
-											</div>
-										</div>
-									</li>
-								</ul>
-							</div>
-						</div>
-					</li>
-					<li><a href="#"><span class="glyphicon glyphicon-signal"></span> Link</a></li>
-				</ul>
-			</div><!-- /.navbar-collapse -->
-		</nav>  
-</div>
+        <ul class="nav flex-column mt-3">
+
+            <li class="nav-item">
+
+                <a class="nav-link active" href="#">
+
+                    <i class="bi bi-speedometer2"></i>
+
+                    <span>Dashboard</span>
+
+                </a>
+
+            </li>
+
+            <li class="nav-item">
+
+                <a class="nav-link" href="#">
+
+                    <i class="bi bi-puzzle"></i>
+
+                    <span>Components</span>
+
+                </a>
+
+            </li>
+
+            <li class="nav-item">
+
+                <a class="nav-link" href="#">
+
+                    <i class="bi bi-heart"></i>
+
+                    <span>Extras</span>
+
+                </a>
+
+            </li>
+
+            <!-- Apps -->
+
+            <li class="nav-item">
+
+                <a class="nav-link d-flex justify-content-between align-items-center"
+
+                    data-bs-toggle="collapse"
+
+                    href="#appsMenu">
+
+                    <div>
+
+                        <i class="bi bi-grid"></i>
+
+                        <span>Apps</span>
+
+                    </div>
+
+                    <i class="bi bi-chevron-down"></i>
+
+                </a>
+
+                <div class="collapse" id="appsMenu">
+
+                    <ul class="nav flex-column submenu">
+
+                        <li>
+
+                            <a class="nav-link" href="#">Mail</a>
+
+                        </li>
+
+                        <li>
+
+                            <a class="nav-link" href="#">Calendar</a>
+
+                        </li>
+
+                        <li>
+
+                            <a class="nav-link" href="#">Ecommerce</a>
+
+                        </li>
+
+                        <li>
+
+                            <a class="nav-link" href="#">User</a>
+
+                        </li>
+
+                        <li>
+
+                            <a class="nav-link" href="#">Social</a>
+
+                        </li>
+
+                        <!-- Nested Menu -->
+
+                        <li>
+
+                            <a class="nav-link d-flex justify-content-between"
+
+                                data-bs-toggle="collapse"
+
+                                href="#subMenu">
+
+                                <span>Sub Level</span>
+
+                                <i class="bi bi-chevron-down"></i>
+
+                            </a>
+
+                            <div class="collapse" id="subMenu">
+
+                                <ul class="nav flex-column submenu">
+
+                                    <li><a class="nav-link" href="#">Link</a></li>
+
+                                    <li><a class="nav-link" href="#">Link</a></li>
+
+                                    <li><a class="nav-link" href="#">Link</a></li>
+
+                                </ul>
+
+                            </div>
+
+                        </li>
+
+                    </ul>
+
+                </div>
+
+            </li>
+
+            <li class="nav-item">
+
+                <a class="nav-link" href="#">
+
+                    <i class="bi bi-bar-chart"></i>
+
+                    <span>Reports</span>
+
+                </a>
+
+            </li>
+
+        </ul>
+
+    </aside>
+
+    <!-- ===================== -->
+    <!-- Content -->
+    <!-- ===================== -->
+
+    <div class="main">
+
+        <!-- Navbar -->
+
+        <nav class="navbar navbar-expand-lg bg-white border-bottom shadow-sm px-3">
+
+            <button class="btn btn-outline-secondary"
+
+                id="toggleSidebar">
+
+                <i class="bi bi-list"></i>
+
+            </button>
+
+            <form class="ms-3 d-none d-md-block">
+
+                <input class="form-control"
+
+                    placeholder="Search...">
+
+            </form>
+
+            <ul class="navbar-nav ms-auto">
+
+                <li class="nav-item">
+
+                    <a class="nav-link" href="#">
+
+                        <i class="bi bi-bell"></i>
+
+                    </a>
+
+                </li>
+
+                <li class="nav-item">
+
+                    <a class="nav-link" href="#">
+
+                        <i class="bi bi-chat"></i>
+
+                    </a>
+
+                </li>
+
+                <li class="nav-item dropdown">
+
+                    <a class="nav-link dropdown-toggle"
+
+                        data-bs-toggle="dropdown"
+
+                        href="#">
+
+                        Draude Oba
+
+                    </a>
+
+                    <ul class="dropdown-menu dropdown-menu-end">
+
+                        <li><a class="dropdown-item" href="#">Settings</a></li>
+
+                        <li><a class="dropdown-item" href="#">Upgrade</a></li>
+
+                        <li><a class="dropdown-item" href="#">Help</a></li>
+
+                        <li><hr class="dropdown-divider"></li>
+
+                        <li><a class="dropdown-item" href="#">Logout</a></li>
+
+                    </ul>
+
+                </li>
+
+            </ul>
+
+        </nav>
