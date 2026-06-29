@@ -1,16 +1,10 @@
-/* Layout Base */
-body {
-    overflow-x: hidden;
-    background: #f8f9fa;
-}
-
+/* Layout */
 .wrapper {
     display: flex;
     width: 100%;
-    align-items: stretch;
 }
 
-/* Sidebar Styles */
+/* Sidebar */
 .sidebar {
     width: 250px;
     background: #ffffff;
@@ -25,16 +19,11 @@ body {
     z-index: 1040;
 }
 
-.sidebar-menu {
-    flex: 1;
-    overflow-y: auto;
-}
-
 .sidebar-header {
     height: 64px;
     padding: 0 15px;
     border-bottom: 1px solid #dee2e6;
-    background: #0d6efd; /* Added color to make toggle button visible */
+    background: #0d6efd;
     color: white;
 }
 
@@ -44,74 +33,53 @@ body {
     display: flex;
     align-items: center;
     gap: 12px;
-    white-space: nowrap;
+    white-space: nowrap; /* Prevents text wrapping during collapse */
 }
 
-.sidebar .nav-link:hover {
-    background: #f1f3f5;
-    color: #0d6efd;
-}
-
-.sidebar .nav-link.active {
-    background: #0d6efd;
-    color: white;
-}
-
-/* Main Content Area */
+/* Content Area */
 .main {
     flex: 1;
-    width: 100%;
-    margin-left: 250px; /* Matches sidebar width */
+    margin-left: 250px; /* Same as sidebar width */
     transition: all 0.3s ease;
-    min-height: 100vh;
+    width: calc(100% - 250px);
 }
 
-/* ===================================
-   COLLAPSED STATE (Desktop)
-=================================== */
+/* COLLAPSED STATE (Desktop) */
 .sidebar.collapsed {
     width: 70px;
 }
 
 .sidebar.collapsed .logo-text,
 .sidebar.collapsed span,
-.sidebar.collapsed .arrow-icon,
-.sidebar.collapsed .sidebar-footer .user-name {
+.sidebar.collapsed .arrow-icon {
     display: none !important;
 }
 
 .sidebar.collapsed .nav-link {
     justify-content: center;
-    padding: 15px 0;
 }
 
-/* This fixes the main content when sidebar is collapsed */
+/* Move main content when sidebar is collapsed */
 .sidebar.collapsed ~ .main {
     margin-left: 70px;
+    width: calc(100% - 70px);
 }
 
-/* ===================================
-   MOBILE STATE
-=================================== */
+/* MOBILE STATE */
 @media (max-width: 992px) {
     .sidebar {
         transform: translateX(-100%);
     }
-
     .sidebar.show {
         transform: translateX(0);
     }
-
     .main {
-        margin-left: 0 !important;
+        margin-left: 0;
+        width: 100%;
     }
-}
-
-/* Custom Scrollbar for Sidebar */
-.sidebar-menu::-webkit-scrollbar {
-    width: 4px;
-}
-.sidebar-menu::-webkit-scrollbar-thumb {
-    background: #ccc;
-    border-radius: 10px;
+    /* Stop main content from moving on mobile */
+    .sidebar.collapsed ~ .main {
+        margin-left: 0;
+        width: 100%;
+    }
 }
