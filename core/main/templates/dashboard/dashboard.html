@@ -6,6 +6,143 @@ Dashboard
 {% endblock navigation %}
 
 {% block content %} 
-<h2>this is dashboard</h2>
+<div class="container-fluid p-0">
+    
+    <!-- ROW 1: TOP SUMMARY CARD -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h6 class="text-uppercase fw-bold text-muted small mb-1" style="letter-spacing: 0.05rem;">
+                                Completed Samples This Week
+                            </h6>
+                            <div class="d-flex align-items-baseline">
+                                <h1 class="display-5 fw-bold mb-0">34</h1>
+                                <span class="ms-2 text-muted fw-normal fs-5">samples</span>
+                            </div>
+                        </div>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 rounded-pill">
+                            <i class="bi bi-arrow-up"></i> 12% from last week
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
+    <!-- ROW 2: MAIN CHARTS -->
+    <div class="row mb-4">
+        <!-- Monthly Rematches (Bar/Line Chart) -->
+        <div class="col-lg-8 mb-4 mb-lg-0">
+            <div class="card border-0 shadow-sm rounded-3 h-100">
+                <div class="card-body p-4">
+                    <h6 class="text-uppercase fw-bold text-muted small mb-4" style="letter-spacing: 0.05rem;">
+                        Monthly Matches
+                    </h6>
+                    <!-- Placeholder for Bar/Line Chart -->
+                    <div id="match_rematch_chart" style="width: 100%; height: 350px; background: rgba(0,0,0,0.02); border-radius: 8px;" class="d-flex align-items-center justify-content-center">
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sample vs Order (Pie Chart) -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-3 h-100">
+                <div class="card-body p-4">
+                    <h6 class="text-uppercase fw-bold text-muted small mb-4" style="letter-spacing: 0.05rem;">
+                        Sample vs Order Generated
+                    </h6>
+                    <!-- Placeholder for Pie Chart -->
+                    <div id="pieChartDiv" style="width: 100%; height: 350px; background: rgba(0,0,0,0.02); border-radius: 8px;" class="d-flex align-items-center justify-content-center">
+                        <span class="text-muted">Pie Chart Container</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ROW 3: TABLE & SECONDARY CARDS -->
+    <div class="row">
+        <!-- Recent Matches Record -->
+        <div class="col-lg-9 mb-4 mb-lg-0">
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body p-4">
+                    <h6 class="text-uppercase fw-bold text-muted small mb-4" style="letter-spacing: 0.05rem;">
+                        Recent Matches Record
+                    </h6>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle custom-dashboard-table">
+                            <thead>
+                                <tr>
+                                    <th>EMPLOYEE</th>
+                                    <th>MATCHED</th>
+                                    <th>REMATCHES</th>
+                                    <th>SUCCESS %</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Person 1</td>
+                                    <td>60</td>
+                                    <td>15</td>
+                                    <td><span class="badge bg-primary-subtle text-primary">75%</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Person 2</td>
+                                    <td>45</td>
+                                    <td>5</td>
+                                    <td><span class="badge bg-success-subtle text-success">88%</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Person 3</td>
+                                    <td>30</td>
+                                    <td>12</td>
+                                    <td><span class="badge bg-warning-subtle text-warning">60%</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Vertical Stack Cards -->
+        <div class="col-lg-3">
+            <!-- Pending Samples -->
+            <div class="card border-0 shadow-sm rounded-3 mb-4">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-uppercase fw-bold text-muted small mb-3">Pending Samples</h6>
+                            <h2 class="display-6 fw-bold mb-0">32</h2>
+                        </div>
+                        <div class="icon-circle bg-teal-subtle text-teal">
+                            <i class="bi bi-clock-history fs-3"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Conversion Rate -->
+            <div class="card border-0 shadow-sm rounded-3">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-uppercase fw-bold text-muted small mb-3">Conversion Rate</h6>
+                            <h2 class="display-6 fw-bold mb-0">77%</h2>
+                        </div>
+                        <div class="icon-circle bg-primary-subtle text-primary">
+                            <i class="bi bi-percent fs-3"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
 {% endblock content %}
