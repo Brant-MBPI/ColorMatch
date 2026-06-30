@@ -37,8 +37,7 @@ am5.ready(function() {
 
     let yAxis = chart.yAxes.push(am5xy.CategoryAxis.new(root, {
         categoryField: "month",
-        renderer: yRenderer,
-        tooltip: am5.Tooltip.new(root, {})
+        renderer: yRenderer
     }));
 
     yAxis.data.setAll(data);
