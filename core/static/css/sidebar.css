@@ -1,4 +1,6 @@
-/* --- 1. Theme Variables --- */
+/* ===================================
+   1. THEME VARIABLES
+=================================== */
 :root {
     /* Light Mode (Default) */
     --sidebar-bg: #ffffff;
@@ -10,9 +12,11 @@
     --sidebar-border: #dee2e6;
     
     --main-bg: #f8fafc;
+    --card-bg: #ffffff;       /* For Dashboard Cards */
     --text-main: #1e293b;
     --text-muted: #64748b;
     --navbar-bg: #ffffff;
+    --table-header: #94a3b8;
 }
 
 body.dark-mode {
@@ -26,22 +30,33 @@ body.dark-mode {
     --sidebar-border: #1e293b;
     
     --main-bg: #0f172a;
+    --card-bg: #1e293b;       /* For Dashboard Cards */
     --text-main: #f8fafc;
     --text-muted: #94a3b8;
     --navbar-bg: #1e293b;
+    --table-header: #334155;
 }
 
-/* --- 2. Global Styles --- */
+/* ===================================
+   2. GLOBAL STYLES
+=================================== */
 body {
     color: var(--text-main);
     background-color: var(--main-bg);
     transition: background-color 0.3s, color 0.3s;
     overflow-x: hidden;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
-.wrapper { display: flex; width: 100%; min-height: 100vh; }
+.wrapper { 
+    display: flex; 
+    width: 100%; 
+    min-height: 100vh; 
+}
 
-/* --- 3. Sidebar Structure --- */
+/* ===================================
+   3. SIDEBAR STRUCTURE
+=================================== */
 .sidebar {
     width: 260px;
     background: var(--sidebar-bg);
@@ -67,7 +82,11 @@ body {
     flex-shrink: 0;
 }
 
-.sidebar-menu { flex: 1; overflow-y: auto; padding: 15px 0; }
+.sidebar-menu { 
+    flex: 1; 
+    overflow-y: auto; 
+    padding: 15px 0; 
+}
 
 .sidebar .nav-link {
     color: var(--sidebar-text);
@@ -84,7 +103,7 @@ body {
 
 .sidebar .nav-link i { font-size: 1.2rem; }
 
-/* Active & Hover */
+/* Active & Hover States */
 .sidebar .nav-item .nav-link.active {
     background-color: var(--sidebar-active-bg) !important;
     color: var(--sidebar-active-text) !important;
@@ -95,18 +114,22 @@ body {
     color: var(--sidebar-active-text);
 }
 
-/* Dropdown Arrow Fix */
-.sidebar .arrow-icon {
-    margin-left: auto; /* Pushes arrow to far right */
-    transition: transform 0.3s;
-}
-.sidebar .nav-link[aria-expanded="true"] .arrow-icon {
-    transform: rotate(180deg);
-}
+/* Submenu Styling */
 .sidebar .submenu .nav-link.active-sub {
     background-color: transparent !important;
     color: var(--sidebar-active-text) !important;
     font-weight: 700;
+    border-left: 2px solid var(--sidebar-active-text);
+    border-radius: 0;
+}
+
+/* Dropdown Arrow Fix */
+.sidebar .arrow-icon {
+    margin-left: auto;
+    transition: transform 0.3s;
+}
+.sidebar .nav-link[aria-expanded="true"] .arrow-icon {
+    transform: rotate(180deg);
 }
 
 /* Footer Section */
@@ -115,44 +138,36 @@ body {
     border-top: 1px solid var(--sidebar-border);
     background: var(--sidebar-bg);
 }
-.user-name { color: var(--sidebar-text); font-weight: 600; }
-.user-role { color: var(--text-muted); font-size: 0.75rem; }
 
 .user-profile-link {
     width: 100%;
     display: flex !important;
     align-items: center;
-    justify-content: space-between; /* This pushes internal flex items apart */
+    justify-content: space-between;
     padding: 8px 10px;
     border-radius: 8px;
     transition: background 0.2s;
+    color: var(--sidebar-text);
 }
 
 .user-profile-link:hover {
     background: var(--sidebar-hover-bg);
 }
 
-/* THE FIX: Pushing the Arrow to the rightmost side */
+.user-name { color: var(--sidebar-text); font-weight: 600; }
+.user-role { color: var(--text-muted); font-size: 0.75rem; }
+
 .sidebar-footer .dropdown-toggle::after {
-    margin-left: auto; /* Pushes the arrow to the far right */
+    margin-left: auto;
     vertical-align: middle;
 }
 
-/* Hide the arrow when the sidebar is collapsed (Desktop) */
-.sidebar.collapsed .sidebar-footer .dropdown-toggle::after {
-    display: none !important;
-}
-
-/* Ensure the user info container is also flex to stay on the left */
-.user-profile-link > div {
-    display: flex;
-    align-items: center;
-}
-
-/* --- 4. Main Content Area --- */
+/* ===================================
+   4. MAIN CONTENT & NAVBAR
+=================================== */
 .main {
     flex: 1;
-    margin-left: 260px; /* Space for sidebar */
+    margin-left: 260px;
     background: var(--main-bg);
     min-height: 100vh;
     transition: all 0.3s ease;
@@ -165,9 +180,57 @@ body {
     background: var(--navbar-bg);
     border-bottom: 1px solid var(--sidebar-border);
     height: 64px;
+    display: flex;
+    align-items: center;
 }
 
-/* --- 5. Responsive / Mobile --- */
+/* ===================================
+   5. DASHBOARD COMPONENTS (Theme Aware)
+=================================== */
+.theme-card {
+    background-color: var(--card-bg) !important;
+    border: none !important;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+.theme-text-main { color: var(--text-main) !important; }
+
+/* Dashboard Tables */
+.custom-dashboard-table thead th {
+    background-color: var(--table-header);
+    color: #ffffff;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    padding: 12px;
+    border: none;
+}
+
+.custom-dashboard-table tbody td {
+    padding: 16px 12px;
+    border-bottom: 1px solid var(--sidebar-border);
+    color: var(--text-main);
+}
+
+/* KPI Icon Circles */
+.icon-circle {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.bg-teal-subtle { background-color: rgba(20, 184, 166, 0.15); }
+.text-teal { color: #14b8a6; }
+
+/* ===================================
+   6. RESPONSIVE / MOBILE / COLLAPSED
+=================================== */
 .sidebar-overlay {
     position: fixed;
     top: 0;
@@ -189,8 +252,19 @@ body {
 @media (min-width: 992px) {
     .sidebar.collapsed { width: 80px; }
     .sidebar.collapsed ~ .main { margin-left: 80px; }
+    
     .sidebar.collapsed .logo-text, 
     .sidebar.collapsed span, 
     .sidebar.collapsed .user-info, 
-    .sidebar.collapsed .arrow-icon { display: none !important; }
+    .sidebar.collapsed .arrow-icon,
+    .sidebar.collapsed .user-name,
+    .sidebar.collapsed .user-role { 
+        display: none !important; 
+    }
+    
+    .sidebar.collapsed .nav-link { justify-content: center; }
+    .sidebar.collapsed .sidebar-footer .dropdown-toggle::after { display: none !important; }
 }
+
+/* Utility to ensure footer stays bottom of main */
+.mt-auto { margin-top: auto !important; }

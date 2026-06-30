@@ -9,23 +9,21 @@ Dashboard
 <div class="container-fluid p-0">
     
     <!-- ROW 1: TOP SUMMARY CARD -->
-    <!-- Use g-3 or g-4 for consistent spacing between stacked elements on mobile -->
-    <div class="row g-3 mb-4">
+    <div class="row g-3 g-md-4 mb-4">
         <div class="col-12">
-            <div class="card border-0 shadow-sm rounded-3">
+            <div class="card border-0 shadow-sm rounded-3 theme-card">
                 <div class="card-body p-3 p-md-4">
-                    <!-- flex-column on mobile, flex-row on small screens and up -->
                     <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center">
                         <div class="mb-2 mb-sm-0">
                             <h6 class="text-uppercase fw-bold text-muted small mb-1" style="letter-spacing: 0.05rem;">
                                 Completed Samples This Week
                             </h6>
                             <div class="d-flex align-items-baseline">
-                                <h1 class="display-5 fw-bold mb-0">34</h1>
-                                <span class="ms-2 text-muted fw-normal fs-5">samples</span>
+                                <h1 class="display-6 display-md-5 fw-bold mb-0 theme-text-main">34</h1>
+                                <span class="ms-2 text-muted fw-normal fs-6">samples</span>
                             </div>
                         </div>
-                        <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill">
+                        <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill small">
                             <i class="bi bi-arrow-up"></i> 12% <span class="d-none d-md-inline">from last week</span>
                         </span>
                     </div>
@@ -35,44 +33,36 @@ Dashboard
     </div>
 
     <!-- ROW 2: MAIN CHARTS -->
-    <div class="row g-3 mb-4">
-        <!-- Monthly Matches - Full width on mobile/tablet, 8/12 on desktop -->
+    <div class="row g-3 g-md-4 mb-4">
+        <!-- Monthly Matches (Bar/Line Chart) -->
         <div class="col-12 col-lg-8">
-            <div class="card border-0 shadow-sm rounded-3 h-100">
+            <div class="card border-0 shadow-sm rounded-3 h-100 theme-card">
                 <div class="card-body p-3 p-md-4">
-                    <h6 class="text-uppercase fw-bold text-muted small mb-4" style="letter-spacing: 0.05rem;">
-                        Monthly Matches
-                    </h6>
-                    <div id="match_rematch_chart" style="width: 100%; height: 350px; background: rgba(0,0,0,0.02); border-radius: 8px;">
-                        <!-- amCharts will render here -->
-                    </div>
+                    <h6 class="text-uppercase fw-bold text-muted small mb-4">Monthly Matches</h6>
+                    <!-- Height 450px = 90px chunky bars for 5 items -->
+                    <div id="match_rematch_chart" style="width: 100%; height: 450px;"></div>
                 </div>
             </div>
         </div>
 
-        <!-- Sample vs Order - Full width on mobile/tablet, 4/12 on desktop -->
+        <!-- Sample vs Order (Donut) -->
         <div class="col-12 col-lg-4">
-            <div class="card border-0 shadow-sm rounded-3 h-100">
+            <div class="card border-0 shadow-sm rounded-3 h-100 theme-card">
                 <div class="card-body p-3 p-md-4">
-                    <h6 class="text-uppercase fw-bold text-muted small mb-4" style="letter-spacing: 0.05rem;">
-                        Sample vs Order Generated
-                    </h6>
-                    <div id="sample_order_chart" style="width: 100%; height: 350px;"></div>
+                    <h6 class="text-uppercase fw-bold text-muted small mb-4">Sample vs Order</h6>
+                    <div id="sample_order_chart" style="width: 100%; height: 450px;"></div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- ROW 3: TABLE & SECONDARY CARDS -->
-    <div class="row g-3">
-        <!-- Recent Matches Record - Stacks on bottom on mobile -->
+    <!-- ROW 3: TABLE & KPI CARDS -->
+    <div class="row g-3 g-md-4">
+        <!-- Recent Matches Record Table -->
         <div class="col-12 col-lg-9">
-            <div class="card border-0 shadow-sm rounded-3 h-100">
+            <div class="card border-0 shadow-sm rounded-3 h-100 theme-card">
                 <div class="card-body p-3 p-md-4">
-                    <h6 class="text-uppercase fw-bold text-muted small mb-4" style="letter-spacing: 0.05rem;">
-                        Recent Matches Record
-                    </h6>
-                    <!-- table-responsive is critical for mobile to prevent page stretching -->
+                    <h6 class="text-uppercase fw-bold text-muted small mb-4">Recent Matches Record</h6>
                     <div class="table-responsive">
                         <table class="table table-hover align-middle custom-dashboard-table mb-0">
                             <thead>
@@ -85,22 +75,22 @@ Dashboard
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td class="fw-bold">Person 1</td>
-                                    <td>60</td>
-                                    <td>15</td>
-                                    <td><span class="badge bg-primary-subtle text-primary">75%</span></td>
+                                    <td class="fw-bold theme-text-main">Person 1</td>
+                                    <td class="theme-text-main">60</td>
+                                    <td class="theme-text-main">15</td>
+                                    <td><span class="badge bg-primary-subtle text-primary border border-primary-subtle">75%</span></td>
                                 </tr>
                                 <tr>
-                                    <td class="fw-bold">Person 2</td>
-                                    <td>45</td>
-                                    <td>5</td>
-                                    <td><span class="badge bg-success-subtle text-success">88%</span></td>
+                                    <td class="fw-bold theme-text-main">Person 2</td>
+                                    <td class="theme-text-main">45</td>
+                                    <td class="theme-text-main">5</td>
+                                    <td><span class="badge bg-success-subtle text-success border border-success-subtle">88%</span></td>
                                 </tr>
                                 <tr>
-                                    <td class="fw-bold">Person 3</td>
-                                    <td>30</td>
-                                    <td>12</td>
-                                    <td><span class="badge bg-warning-subtle text-warning">60%</span></td>
+                                    <td class="fw-bold theme-text-main">Person 3</td>
+                                    <td class="theme-text-main">30</td>
+                                    <td class="theme-text-main">12</td>
+                                    <td><span class="badge bg-warning-subtle text-warning border border-warning-subtle">60%</span></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -109,45 +99,41 @@ Dashboard
             </div>
         </div>
 
-        <!-- Right KPI Cards - Stacks side-by-side on tablets, full width on phone -->
+        <!-- Vertical KPI Cards -->
         <div class="col-12 col-lg-3">
             <div class="row g-3">
-                <!-- Pending Samples -->
-                <div class="col-12 col-md-6 col-lg-12">
-                    <div class="card border-0 shadow-sm rounded-3">
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm rounded-3 theme-card">
                         <div class="card-body p-3 p-md-4">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
-                                    <h6 class="text-uppercase fw-bold text-muted small mb-2">Pending Samples</h6>
-                                    <h2 class="fw-bold mb-0">32</h2>
+                                    <h6 class="text-uppercase fw-bold text-muted small mb-2">Pending</h6>
+                                    <h2 class="fw-bold mb-0 theme-text-main">32</h2>
                                 </div>
-                                <div class="icon-circle bg-teal-subtle text-teal p-3">
-                                    <i class="bi bi-clock-history fs-3"></i>
+                                <div class="icon-circle bg-teal-subtle text-teal">
+                                    <i class="bi bi-clock-history fs-4"></i>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-
-                <!-- Conversion Rate -->
-                <div class="col-12 col-md-6 col-lg-12">
-                    <div class="card border-0 shadow-sm rounded-3">
+                <div class="col-12">
+                    <div class="card border-0 shadow-sm rounded-3 theme-card">
                         <div class="card-body p-3 p-md-4">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
-                                    <h6 class="text-uppercase fw-bold text-muted small mb-2">Conversion Rate</h6>
-                                    <h2 class="fw-bold mb-0">77%</h2>
+                                    <h6 class="text-uppercase fw-bold text-muted small mb-2">Conversion</h6>
+                                    <h2 class="fw-bold mb-0 theme-text-main">77%</h2>
                                 </div>
-                                <div class="icon-circle bg-primary-subtle text-primary p-3">
-                                    <i class="bi bi-percent fs-3"></i>
+                                <div class="icon-circle bg-primary-subtle text-primary">
+                                    <i class="bi bi-percent fs-4"></i>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div> <!-- End Nested Row -->
+            </div>
         </div>
     </div>
-
 </div>
 {% endblock content %}
