@@ -18,18 +18,12 @@ am5.ready(function() {
 
     // === DATA (Full Year) ===
     let data = [
-        { month: "Jan", matches: 40, rematches: 10 },
         { month: "Feb", matches: 55, rematches: 15 },
         { month: "Mar", matches: 80, rematches: 25 },
         { month: "Apr", matches: 45, rematches: 12 },
         { month: "May", matches: 60, rematches: 20 },
         { month: "Jun", matches: 70, rematches: 22 },
-        { month: "Jul", matches: 85, rematches: 30 },
-        { month: "Aug", matches: 50, rematches: 15 },
-        { month: "Sep", matches: 65, rematches: 18 },
-        { month: "Oct", matches: 90, rematches: 35 },
-        { month: "Nov", matches: 75, rematches: 25 },
-        { month: "Dec", matches: 100, rematches: 40 }
+        { month: "Jul", matches: 85, rematches: 30 }
     ];
 
     // === Y-AXIS (LEFT: MONTHS) ===
