@@ -117,13 +117,13 @@ body {
 /* Submenu Styling */
 .sidebar .submenu .nav-link.active-sub {
     background-color: transparent !important;
-    color: var(--sidebar-active-text) !important;
+    /* color: var(--sidebar-active-text) !important; */
+    color: #0d9488;
     font-weight: 700;
-    border-left: 2px solid var(--sidebar-active-text);
+    border-left: 2px solid #0d9488;
     border-radius: 0;
 }
-
-/* Dropdown Arrow Fix */
+    /* Dropdown Arrow Fix */
 .sidebar .arrow-icon {
     margin-left: auto;
     transition: transform 0.3s;

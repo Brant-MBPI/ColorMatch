@@ -27,7 +27,8 @@
 
             <!-- CMF Parent Menu -->
             <li class="nav-item">
-                <a class="nav-link {% if request.resolver_match.url_name == 'cmf_records' or request.resolver_match.url_name == 'cmf_entry' %}active{% endif %}"
+                {% with cmf_urls="cmf_records cmf_entry rs_entry mb_formula dc_formula pending_completed" %}
+                <a class="nav-link {% if request.resolver_match.url_name in cmf_urls %}active{% endif %}"
                     data-bs-toggle="collapse"
                     href="#appsMenu"
                     role="button"
@@ -37,6 +38,7 @@
                     <span>CMF</span>
                     <i class="bi bi-chevron-down arrow-icon"></i>
                 </a>
+                {% endwith %}
                 <div class="collapse" id="appsMenu">
                     <ul class="nav flex-column submenu" style="padding-left: 2rem;">
                         <li>
