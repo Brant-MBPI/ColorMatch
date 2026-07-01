@@ -9,4 +9,5 @@ urlpatterns = [
     path('cmf/entry/', views.cmf_entry, name='cmf_entry'),
     path('cmf/rs-entry/', views.cmf_rs_entry, name='rs_entry'),
     path('cmf/mb-formula/', views.cmf_mb_formula, name='mb_formula'),
+    path('cmf/dc-formula/', views.cmf_dc_formula, name='dc_formula'),
 ]

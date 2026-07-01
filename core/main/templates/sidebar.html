@@ -63,7 +63,12 @@
                                 MB Formula
                             </a>
                         </li>
-                        <li><a class="nav-link" href="#">DC Formula</a></li>
+                        <li>
+                            <a href="{% url 'dc_formula' %}"
+                            class="nav-link {% if request.resolver_match.url_name == 'dc_formula' %}active-sub{% endif %}">
+                                DC Formula
+                            </a>
+                        </li>
                         <li><a class="nav-link" href="#">Pending/Completed</a></li>
                     </ul>
                 </div>

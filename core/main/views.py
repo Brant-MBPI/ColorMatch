@@ -21,4 +21,7 @@ def cmf_rs_entry(request):
     return render(request, "cmf/rs_entry.html")
 
 def cmf_mb_formula(request):
-    return render(request, "cmf/mb_formula.html")
+    return render(request, "cmf/formula_mb.html")
+
+def cmf_dc_formula(request):
+    return render(request, "cmf/formula_dc.html")
