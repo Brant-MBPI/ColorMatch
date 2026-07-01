@@ -25,3 +25,6 @@ def cmf_mb_formula(request):
 
 def cmf_dc_formula(request):
     return render(request, "cmf/formula_dc.html")
+
+def cmf_pending_completed(request):
+    return render(request, "cmf/pending_completed.html")

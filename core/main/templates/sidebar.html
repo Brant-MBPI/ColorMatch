@@ -69,7 +69,12 @@
                                 DC Formula
                             </a>
                         </li>
-                        <li><a class="nav-link" href="#">Pending/Completed</a></li>
+                        <li>
+                            <a href="{% url 'pending_completed' %}"
+                            class="nav-link {% if request.resolver_match.url_name == 'pending_completed' %}active-sub{% endif %}">
+                                Pending/Completed
+                            </a>
+                        </li>
                     </ul>
                 </div>
             </li>
