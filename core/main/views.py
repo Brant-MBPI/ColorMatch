@@ -16,3 +16,9 @@ def cmf_records(request):
 
 def cmf_entry(request):
     return render(request, "cmf/cmf_entry.html")
+
+def cmf_rs_entry(request):
+    return render(request, "cmf/rs_entry.html")
+
+def cmf_mb_formula(request):
+    return render(request, "cmf/mb_formula.html")

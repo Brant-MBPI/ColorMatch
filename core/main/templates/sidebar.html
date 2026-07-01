@@ -45,15 +45,24 @@
                                 CMF Records
                             </a>
                         </li>
-
                         <li>
                             <a href="{% url 'cmf_entry' %}"
                             class="nav-link {% if request.resolver_match.url_name == 'cmf_entry' %}active-sub{% endif %}">
                                 CMF Entry
                             </a>
                         </li>
-                        <li><a class="nav-link" href="#">RS Entry</a></li>
-                        <li><a class="nav-link" href="#">MB Formula</a></li>
+                        <li>
+                            <a href="{% url 'rs_entry' %}"
+                            class="nav-link {% if request.resolver_match.url_name == 'rs_entry' %}active-sub{% endif %}">
+                                RS Entry
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{% url 'mb_formula' %}"
+                            class="nav-link {% if request.resolver_match.url_name == 'mb_formula' %}active-sub{% endif %}">
+                                MB Formula
+                            </a>
+                        </li>
                         <li><a class="nav-link" href="#">DC Formula</a></li>
                         <li><a class="nav-link" href="#">Pending/Completed</a></li>
                     </ul>
