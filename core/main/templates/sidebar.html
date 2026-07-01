@@ -27,25 +27,28 @@
 
             <!-- CMF Parent Menu -->
             <li class="nav-item">
-                <a class="nav-link {% if request.resolver_match.url_name == 'cmf_records' %}active{% endif %}" 
-                   data-bs-toggle="collapse" href="#appsMenu" role="button" 
-                   aria-expanded="{% if request.resolver_match.url_name == 'cmf_records' %}true{% else %}false{% endif %}">
+                <a class="nav-link {% if request.resolver_match.url_name == 'cmf_records' or request.resolver_match.url_name == 'cmf_entry' %}active{% endif %}"
+                    data-bs-toggle="collapse"
+                    href="#appsMenu"
+                    role="button"
+                    aria-expanded="false">
+                    
                     <i class="bi bi-file-earmark-text"></i>
                     <span>CMF</span>
                     <i class="bi bi-chevron-down arrow-icon"></i>
                 </a>
-                <!-- Add 'show' class so it stays open when active -->
-                <div class="collapse {% if request.resolver_match.url_name == 'cmf_records' %}show{% endif %}" id="appsMenu">
+                <div class="collapse" id="appsMenu">
                     <ul class="nav flex-column submenu" style="padding-left: 2rem;">
                         <li>
                             <a href="{% url 'cmf_records' %}"
-                               class="nav-link {% if request.resolver_match.url_name == 'cmf_records' %}active-sub{% endif %}">
+                            class="nav-link {% if request.resolver_match.url_name == 'cmf_records' %}active-sub{% endif %}">
                                 CMF Records
                             </a>
-                        </li> 
+                        </li>
+
                         <li>
                             <a href="{% url 'cmf_entry' %}"
-                               class="nav-link {% if request.resolver_match.url_name == 'cmf_entry' %}active-sub{% endif %}">
+                            class="nav-link {% if request.resolver_match.url_name == 'cmf_entry' %}active-sub{% endif %}">
                                 CMF Entry
                             </a>
                         </li>
