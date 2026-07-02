@@ -34,7 +34,8 @@
             <!-- CMF Parent Menu -->
             <li class="nav-item">
                 {% with cmf_urls="cmf_records cmf_entry rs_entry mb_formula dc_formula pending_completed" %}
-                <a class="nav-link {% if request.resolver_match.url_name in cmf_urls %}active{% endif %}"
+                <!-- Added 'cmf-nav-trigger' class below -->
+                <a class="nav-link cmf-nav-trigger {% if request.resolver_match.url_name in cmf_urls %}active{% endif %}"
                     data-bs-toggle="collapse"
                     href="#appsMenu"
                     role="button"
