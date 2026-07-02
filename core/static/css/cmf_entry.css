@@ -33,6 +33,7 @@
     border-radius: 0.4rem !important; 
     padding: 0.25rem 0.5rem;
     transition: border-color 0.2s, box-shadow 0.2s;
+    color-scheme: light; /* pin the native date-icon color to light mode explicitly — don't let the OS's own theme decide */
 }
 
 .uniform-input:focus {
@@ -68,6 +69,7 @@ body.dark-mode .uniform-input {
     background-color: #0f172a; 
     border-color: #334155 !important; 
     color: #f8fafc;
+    color-scheme: dark; /* pin the native date-icon color to dark mode explicitly — same reasoning as the light-mode rule above */
 }
 
 /* FIX: Placeholder visibility in Dark Mode */
@@ -76,11 +78,22 @@ body.dark-mode .uniform-input::placeholder {
     opacity: 0.8;
 }
 
-/* FIX: Date Picker Icon visibility in Dark Mode (Inverts black to white) */
-body.dark-mode .uniform-input::-webkit-calendar-picker-indicator {
-    filter: invert(1);
-    cursor: pointer;
+/* The mm/dd/yyyy placeholder segments of a native date input are rendered
+   through their own pseudo-elements, not the input's ::placeholder or even
+   always its color property — so they need to be targeted directly or they
+   stay black regardless of dark mode. */
+body.dark-mode .uniform-input::-webkit-datetime-edit-fields-wrapper,
+body.dark-mode .uniform-input::-webkit-datetime-edit-text,
+body.dark-mode .uniform-input::-webkit-datetime-edit-month-field,
+body.dark-mode .uniform-input::-webkit-datetime-edit-day-field,
+body.dark-mode .uniform-input::-webkit-datetime-edit-year-field {
+    color: #f8fafc !important;
 }
+
+/* No filter needed on the calendar picker icon — color-scheme: dark
+   (set above) already tells the browser to render it in a light color
+   natively. Stacking filter: invert(1) on top of that is what broke this
+   once the OS-level theme shifted underneath it. */
 
 body.dark-mode .visible-check {
     border: 2px solid #475569 !important;

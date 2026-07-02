@@ -6,21 +6,26 @@
 .extra-small {
     font-size: 0.75rem !important;
     color: var(--text-main);
+    letter-spacing: 0.01rem;
 }
 
+/* Base Card Styling */
 .rs-entry-card {
     background-color: var(--card-bg);
     border: 1px solid var(--sidebar-border);
     border-radius: 0.6rem;
-    transition: background-color 0.3s;
+    transition: all 0.3s ease;
 }
 
+/* Section Title - Styled exactly like CMF General Info */
 .rs-section-title {
     color: #0d9488;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.02rem;
+    border-left: 3px solid #0d9488;
+    padding-left: 10px;
 }
 
 /* --- Uniform Field Styling --- */
@@ -31,6 +36,7 @@
     border-radius: 0.4rem !important; 
     padding: 0.25rem 0.5rem;
     transition: border-color 0.2s, box-shadow 0.2s;
+    color-scheme: light; /* pin the native date-icon color to light mode explicitly — don't let the OS's own theme decide */
 }
 
 .uniform-input:focus {
@@ -54,34 +60,59 @@
 }
 
 /* Button Styling */
-.btn-teal { background-color: #0d9488; border: none; border-radius: 0.4rem; }
-.btn-teal:hover { background-color: #0b7a70; }
+.btn-teal { background-color: #0d9488; color: white; border: none; border-radius: 0.4rem; }
+.btn-teal:hover { background-color: #0b7a70; color: white; }
 .btn-dark-teal { background-color: #134e4a; border: none; border-radius: 0.4rem; }
-.btn-primary { background-color: #3b82f6; border: none; border-radius: 0.4rem; }
-.btn-success { background-color: #10b981; border: none; border-radius: 0.4rem; }
+.btn-primary, .btn-success { border-radius: 0.4rem; }
 
 /* ==============================================
-   DARK MODE COMPATIBILITY
+   DARK MODE COMPATIBILITY - Exact CMF Match
    ============================================== */
+
+/* 1. Force the Card to be Dark Navy.
+   We reset Bootstrap's own --bs-card-bg / --bs-card-border-color
+   custom properties in ADDITION to the literal background-color /
+   border-color. This is belt-and-suspenders: if anything downstream
+   (a nested .card-body, a Bootstrap component update, etc.) reads
+   the variable instead of the property, it still gets the dark value
+   instead of falling back to Bootstrap's light default. */
+body.dark-mode .rs-entry-card {
+    --bs-card-bg: #1e293b;
+    --bs-card-border-color: #334155;
+    background-color: #1e293b !important; /* Dark navy card like CMF */
+    border-color: #334155 !important;
+    box-shadow: none !important;
+}
+
+/* Defensive: catches any plain .card inside the RS entry form even if
+   it's missing the .rs-entry-card class for some reason. */
+body.dark-mode .rs-entry-form .card {
+    background-color: #1e293b !important;
+    border-color: #334155 !important;
+}
+
+/* 2. Force Labels to be visible (Light Gray) */
+body.dark-mode .extra-small {
+    color: #cbd5e1 !important;
+}
+
+/* 3. Style Inputs to be Deep Dark.
+   Same variable-reset insurance as the card above, plus color-scheme
+   so native widget chrome (date picker popup, etc.) renders dark
+   instead of defaulting to light because the page never sets
+   data-bs-theme="dark". */
 body.dark-mode .uniform-input {
-    background-color: #0f172a; 
+    --bs-body-bg: #0f172a;
+    background-color: #0f172a !important; 
     border-color: #334155 !important; 
-    color: #f8fafc;
+    color: #f8fafc !important;
+    color-scheme: dark;
 }
 
-body.dark-mode .uniform-input::placeholder {
-    color: #94a3b8 !important;
-    opacity: 0.7;
-}
-
-body.dark-mode .uniform-input::-webkit-calendar-picker-indicator {
-    filter: invert(1);
-    cursor: pointer;
-}
-
+/* 4. Fix Checkbox/Radio Backgrounds in Dark Mode */
 body.dark-mode .visible-check {
-    border: 2px solid #475569 !important;
-    background-color: #0f172a;
+    background-color: #0f172a !important;
+    border-color: #475569 !important;
 }
 
 body.dark-mode .visible-check:checked {
@@ -89,6 +120,33 @@ body.dark-mode .visible-check:checked {
     border-color: #0d9488 !important;
 }
 
-body.dark-mode .rs-entry-card {
-    border-color: #334155;
+/* 5. Placeholder & Date Icons */
+body.dark-mode .uniform-input::placeholder {
+    color: #64748b !important;
+    opacity: 0.8;
 }
+
+/* No filter needed here anymore — color-scheme: dark (set above on
+   .uniform-input) already tells the browser to render this icon in a
+   light color natively. Adding filter: invert(1) on top of that was
+   flipping an already-light icon back to black. *//* The mm/dd/yyyy placeholder segments of a native date input are rendered
+   through their own pseudo-elements, not the input's ::placeholder or even
+   always its color property — so they need to be targeted directly or they
+   stay black regardless of dark mode. */
+body.dark-mode .uniform-input::-webkit-datetime-edit-fields-wrapper,
+body.dark-mode .uniform-input::-webkit-datetime-edit-text,
+body.dark-mode .uniform-input::-webkit-datetime-edit-month-field,
+body.dark-mode .uniform-input::-webkit-datetime-edit-day-field,
+body.dark-mode .uniform-input::-webkit-datetime-edit-year-field {
+    color: #f8fafc !important;
+}
+
+/* 6. Section Title tweak for dark mode */
+body.dark-mode .rs-section-title {
+    color: #2dd4bf; /* Slightly brighter teal for dark mode readability */
+    border-left-color: #2dd4bf;
+}
+
+/* Standard Bootstrap Dark Mode Utility Fixes */
+body.dark-mode .bg-white { background-color: #0f172a !important; }
+body.dark-mode .bg-light-subtle { background-color: rgba(255, 255, 255, 0.05) !important; }
