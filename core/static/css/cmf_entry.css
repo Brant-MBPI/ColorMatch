@@ -60,6 +60,7 @@
 .btn-teal { background-color: #0d9488; color: white; border: none; border-radius: 0.4rem; }
 .btn-teal:hover { background-color: #0b7a70; color: white; }
 .btn-dark-teal { background-color: #134e4a; border: none; border-radius: 0.4rem; }
+.btn-dark-teal:hover { background-color: #0d3a37; color: white; }
 .btn-primary, .btn-success { border-radius: 0.4rem; }
 
 /* ==============================================
