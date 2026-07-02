@@ -2,7 +2,7 @@
    1. THEME VARIABLES (Global)
 =================================== */
 :root {
-    /* Light Mode - Adjusted background for better contrast */
+    
     --sidebar-bg: #ffffff;
     --sidebar-header-bg: #0d9488;
     --sidebar-text: #334155;
@@ -19,7 +19,6 @@
     --table-header: #94a3b8;
 }
 
-/* Dark mode variables remain unchanged as they were already fine */
 body.dark-mode {
     --sidebar-bg: #0f172a;
     --sidebar-header-bg: #0d9488; 
