@@ -1,9 +1,170 @@
-
 {% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/rs_entry.css' %}">
+{% endblock %}
 
 {% block navigation %} 
-CMF Records
+RS Entry
 {% endblock navigation %}
+
 {% block content %}
-    <div>This is RS Entry</div>
-{% endblock content %}
+<div class="container-fluid p-0">
+    <form class="rs-entry-form">
+        <!-- Main Entry Card -->
+        <div class="card rs-entry-card shadow-sm mb-4">
+            <div class="card-body p-4">
+                <h5 class="rs-section-title mb-4">RS Entry & Specifications</h5>
+                
+                <div class="row g-4">
+                    <!-- LEFT COLUMN -->
+                    <div class="col-lg-6">
+                        <div class="row g-2 align-items-center mb-2">
+                            <div class="col-md-3"><label class="fw-bold extra-small">RS Number:</label></div>
+                            <div class="col-md-9"><input type="text" class="form-control form-control-sm uniform-input" placeholder="Enter RS Number"></div>
+                        </div>
+
+                        <div class="row g-2 align-items-center mb-2">
+                            <div class="col-md-3"><label class="fw-bold extra-small">Customer:</label></div>
+                            <div class="col-md-9"><input type="text" class="form-control form-control-sm uniform-input"></div>
+                        </div>
+
+                        <div class="row g-2 mb-2">
+                            <div class="col-md-6">
+                                <div class="row g-2 align-items-center">
+                                    <div class="col-4"><label class="fw-bold extra-small">Created:</label></div>
+                                    <div class="col-8"><input type="date" class="form-control form-control-sm uniform-input"></div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="row g-2 align-items-center">
+                                    <div class="col-4 text-md-end"><label class="fw-bold extra-small">Required:</label></div>
+                                    <div class="col-8"><input type="date" class="form-control form-control-sm uniform-input"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-2 mb-2">
+                            <div class="col-md-6">
+                                <div class="row g-2 align-items-center">
+                                    <div class="col-4"><label class="fw-bold extra-small">Received:</label></div>
+                                    <div class="col-8"><input type="date" class="form-control form-control-sm uniform-input"></div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="row g-2 align-items-center">
+                                    <div class="col-4 text-md-end"><label class="fw-bold extra-small">Due Date:</label></div>
+                                    <div class="col-8"><input type="date" class="form-control form-control-sm uniform-input"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-2 align-items-center mb-2">
+                            <div class="col-md-3"><label class="fw-bold extra-small">Product Code(s):</label></div>
+                            <div class="col-md-9"><input type="text" class="form-control form-control-sm uniform-input"></div>
+                        </div>
+
+                        <div class="row g-2 align-items-center mb-2">
+                            <div class="col-md-3"><label class="fw-bold extra-small">Color Description:</label></div>
+                            <div class="col-md-9"><input type="text" class="form-control form-control-sm uniform-input"></div>
+                        </div>
+
+                        <div class="row g-2 align-items-center mb-2">
+                            <div class="col-md-3"><label class="fw-bold extra-small">Finished Product:</label></div>
+                            <div class="col-md-9"><input type="text" class="form-control form-control-sm uniform-input"></div>
+                        </div>
+
+                        <div class="row g-2 align-items-center mb-2">
+                            <div class="col-md-3"><label class="fw-bold extra-small">Matching Type:</label></div>
+                            <div class="col-md-9"><input type="text" class="form-control form-control-sm uniform-input"></div>
+                        </div>
+
+                        <div class="row g-2 align-items-center mb-2">
+                            <div class="col-md-3"><label class="fw-bold extra-small">Sales Person:</label></div>
+                            <div class="col-md-9"><input type="text" class="form-control form-control-sm uniform-input"></div>
+                        </div>
+                    </div>
+
+                    <!-- RIGHT COLUMN -->
+                    <div class="col-lg-6">
+                        <div class="row g-2 align-items-center mb-2">
+                            <div class="col-md-3"><label class="fw-bold extra-small">Resin:</label></div>
+                            <div class="col-md-9"><input type="text" class="form-control form-control-sm uniform-input"></div>
+                        </div>
+
+                        <div class="row g-2 align-items-center mb-2">
+                            <div class="col-md-3"><label class="fw-bold extra-small">Dosage (%):</label></div>
+                            <div class="col-md-9"><input type="text" class="form-control form-control-sm uniform-input" placeholder="0.000000"></div>
+                        </div>
+
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-3"><label class="fw-bold extra-small">Process:</label></div>
+                            <div class="col-md-9">
+                                <div class="d-flex flex-wrap gap-3">
+                                    <div class="form-check"><input class="form-check-input visible-check" type="checkbox" id="p1"><label class="form-check-label extra-small" for="p1">Injection</label></div>
+                                    <div class="form-check"><input class="form-check-input visible-check" type="checkbox" id="p2"><label class="form-check-label extra-small" for="p2">Blow-Molding</label></div>
+                                    <div class="form-check"><input class="form-check-input visible-check" type="checkbox" id="p3"><label class="form-check-label extra-small" for="p3">Film</label></div>
+                                    <div class="form-check"><input class="form-check-input visible-check" type="checkbox" id="p4"><label class="form-check-label extra-small" for="p4">Pipe Extrusion</label></div>
+                                </div>
+                                <div class="d-flex align-items-center gap-2 mt-2">
+                                    <div class="form-check mb-0"><input class="form-check-input visible-check" type="checkbox" id="p5"><label class="form-check-label extra-small" for="p5">Others:</label></div>
+                                    <input type="text" class="form-control form-control-sm uniform-input" placeholder="Specify..." style="height: 26px;">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-3"><label class="fw-bold extra-small">Colorant Type:</label></div>
+                            <div class="col-md-9 d-flex align-items-center flex-wrap gap-3">
+                                <div class="form-check"><input class="form-check-input visible-check" type="radio" name="ctype" id="mb"><label class="form-check-label extra-small" for="mb">MB</label></div>
+                                <div class="form-check"><input class="form-check-input visible-check" type="radio" name="ctype" id="dc"><label class="form-check-label extra-small" for="dc">DC</label></div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="form-check mb-0"><input class="form-check-input visible-check" type="radio" name="ctype" id="co"><label class="form-check-label extra-small" for="co">Others:</label></div>
+                                    <input type="text" class="form-control form-control-sm uniform-input" style="width: 150px; height: 26px;">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-2">
+                            <div class="col-md-3"><label class="fw-bold extra-small">Color Requirement:</label></div>
+                            <div class="col-md-9">
+                                <div class="d-flex flex-wrap gap-3 mb-2">
+                                    <div class="form-check"><input class="form-check-input visible-check" type="radio" name="creq" id="cr1"><label class="form-check-label extra-small" for="cr1">Transparent</label></div>
+                                    <div class="form-check"><input class="form-check-input visible-check" type="radio" name="creq" id="cr2"><label class="form-check-label extra-small" for="cr2">Opaque</label></div>
+                                    <div class="form-check"><input class="form-check-input visible-check" type="radio" name="creq" id="cr3"><label class="form-check-label extra-small" for="cr3">Translucent</label></div>
+                                    <div class="form-check"><input class="form-check-input visible-check" type="radio" name="creq" id="cr4"><label class="form-check-label extra-small" for="cr4">Metallic</label></div>
+                                    <div class="form-check"><input class="form-check-input visible-check" type="radio" name="creq" id="cr5"><label class="form-check-label extra-small" for="cr5">Fluorescent</label></div>
+                                    <div class="form-check"><input class="form-check-input visible-check" type="radio" name="creq" id="cr6"><label class="form-check-label extra-small" for="cr6">Pearlescent</label></div>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="form-check mb-0"><input class="form-check-input visible-check" type="radio" name="creq" id="cr7"><label class="form-check-label extra-small" for="cr7">Others:</label></div>
+                                    <input type="text" class="form-control form-control-sm uniform-input" placeholder="Specify..." style="height: 26px;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ACTION BUTTONS -->
+        <div class="d-flex justify-content-between align-items-center mt-4 mb-5">
+            <button type="button" class="btn btn-sm btn-teal px-4 shadow-sm text-white">
+                <i class="bi bi-cloud-upload me-1"></i> Upload
+            </button>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-sm btn-dark-teal px-4 shadow-sm text-white">
+                    <i class="bi bi-printer me-1"></i> Print
+                </button>
+                <button type="button" class="btn btn-sm btn-primary px-4 shadow-sm">
+                    <i class="bi bi-file-earmark-plus me-1"></i> New
+                </button>
+                <button type="submit" class="btn btn-sm btn-success px-4 shadow-sm">
+                    <i class="bi bi-save me-1"></i> Save
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
