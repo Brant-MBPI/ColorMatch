@@ -8,10 +8,10 @@ def index(request):
     return render(request, "base.html")
 
 def dashboard(request):
-    return render(request, "dashboard/dashboard.html")
+    return render(request, "sidemenu/dashboard/dashboard.html")
 
 def otherPage(request):
-    return render(request, "other.html")
+    return render(request, "sidemenu/other.html")
 
 def cmf_records(request):
     records = [
@@ -40,19 +40,22 @@ def cmf_records(request):
             "status": "Pending"
         },
     ]
-    return render(request, "cmf/cmf_records.html",  {'records': records})
+    return render(request, "sidemenu/cmf/cmf_records.html",  {'records': records})
 
 def cmf_entry(request):
-    return render(request, "cmf/cmf_entry.html")
+    return render(request, "sidemenu/cmf/cmf_entry.html")
 
 def cmf_rs_entry(request):
-    return render(request, "cmf/rs_entry.html")
+    return render(request, "sidemenu/cmf/rs_entry.html")
 
 def cmf_mb_formula(request):
-    return render(request, "cmf/formula_mb.html")
+    return render(request, "sidemenu/cmf/formula_mb.html")
 
 def cmf_dc_formula(request):
-    return render(request, "cmf/formula_dc.html")
+    return render(request, "sidemenu/cmf/formula_dc.html")
 
 def cmf_pending_completed(request):
-    return render(request, "cmf/pending_completed.html")
+    return render(request, "sidemenu/cmf/pending_completed.html")
+
+def audit_trail(request):
+    return render(request, "sidemenu/audit_trail.html")
