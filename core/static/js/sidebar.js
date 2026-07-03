@@ -6,11 +6,44 @@ document.addEventListener("DOMContentLoaded", function () {
     const logoTrigger = document.querySelector(".logo-icon-box");
     const body = document.body;
 
-    // --- MOVE THESE TO THE TOP ---
     const themeToggleFooter = document.getElementById("themeToggle");       
     const themeToggleSidebar = document.getElementById("themeToggleSidebar"); 
     const sidebarThemeIcon = document.getElementById("sidebarThemeIcon");
     const sidebarThemeText = document.getElementById("sidebarThemeText");
+
+    const appsMenu = document.getElementById('appsMenu');
+    const cmfTrigger = document.querySelector('.cmf-nav-trigger');
+
+    // --- Submenu Persistence Logic ---
+    function setSubmenuState(isOpen) {
+        localStorage.setItem("cmfSubmenuOpen", isOpen ? "true" : "false");
+    }
+
+    // Initialize Submenu State on Load
+    const isSubmenuStoredOpen = localStorage.getItem("cmfSubmenuOpen") === "true";
+    if (isSubmenuStoredOpen && !sidebar.classList.contains("collapsed") && window.innerWidth >= 992) {
+        appsMenu.classList.add("show");
+        cmfTrigger.setAttribute("aria-expanded", "true");
+    }
+
+    // Listener for manual CMF toggle
+    if (cmfTrigger) {
+        cmfTrigger.addEventListener('click', function () {
+            // Logic: Auto-expand sidebar if it was collapsed
+            if (window.innerWidth >= 992 && sidebar.classList.contains('collapsed')) {
+                sidebar.classList.remove('collapsed');
+                // Re-open menu and save state
+                const bsCollapse = new bootstrap.Collapse(appsMenu, { toggle: false });
+                bsCollapse.show();
+                setSubmenuState(true);
+            } else {
+                // Normal toggle behavior - detect state AFTER bootstrap finishes transition
+                setTimeout(() => {
+                    setSubmenuState(appsMenu.classList.contains('show'));
+                }, 400);
+            }
+        });
+    }
 
     // --- 1. Sidebar Toggle Logic ---
     function toggleMenu() {
@@ -20,18 +53,17 @@ document.addEventListener("DOMContentLoaded", function () {
         } else {
             sidebar.classList.toggle("collapsed");
 
+            // Close submenu when collapsing sidebar
             if (sidebar.classList.contains("collapsed")) {
-                const appsMenu = document.getElementById('appsMenu');
-                const cmfTrigger = document.querySelector('.cmf-nav-trigger');
-                
-                if (appsMenu && appsMenu.classList.contains('show')) {
-                    const bsCollapse = bootstrap.Collapse.getInstance(appsMenu);
-                    if (bsCollapse) {
-                        bsCollapse.hide();
-                    } else {
-                        appsMenu.classList.remove('show');
-                        if (cmfTrigger) cmfTrigger.setAttribute('aria-expanded', 'false');
-                    }
+                if (appsMenu.classList.contains('show')) {
+                    const bsCollapse = bootstrap.Collapse.getInstance(appsMenu) || new bootstrap.Collapse(appsMenu, {toggle: false});
+                    bsCollapse.hide();
+                }
+            } else {
+                // If expanding sidebar, check if submenu should be open
+                if (localStorage.getItem("cmfSubmenuOpen") === "true") {
+                    const bsCollapse = new bootstrap.Collapse(appsMenu, {toggle: false});
+                    bsCollapse.show();
                 }
             }
         }
@@ -48,21 +80,10 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    const cmfTrigger = document.querySelector('.cmf-nav-trigger');
-    if (cmfTrigger) {
-        cmfTrigger.addEventListener('click', function () {
-            if (window.innerWidth >= 992 && sidebar.classList.contains('collapsed')) {
-                sidebar.classList.remove('collapsed');
-            }
-        });
-    }
-
     // --- 2. Theme Toggle Logic ---
     function updateThemeUI(isDark) {
         const text = isDark ? "Switch to Light Mode" : "Try Dark Mode";
         const iconClass = isDark ? "bi bi-sun me-2" : "bi bi-moon-stars me-2";
-        
-        // These now work because the variables are declared at the top
         if (themeToggleFooter) themeToggleFooter.textContent = text;
         if (sidebarThemeText) sidebarThemeText.textContent = text;
         if (sidebarThemeIcon) sidebarThemeIcon.className = iconClass;

@@ -34,12 +34,11 @@
             <!-- CMF Parent Menu -->
             <li class="nav-item">
                 {% with cmf_urls="cmf_records cmf_entry rs_entry mb_formula dc_formula pending_completed" %}
-                <!-- Added 'cmf-nav-trigger' class below -->
                 <a class="nav-link cmf-nav-trigger {% if request.resolver_match.url_name in cmf_urls %}active{% endif %}"
                     data-bs-toggle="collapse"
                     href="#appsMenu"
                     role="button"
-                    aria-expanded="false">
+                    aria-expanded="false"> <!-- JS will handle this -->
                     
                     <i class="bi bi-file-earmark-text"></i>
                     <span>CMF</span>
@@ -48,39 +47,40 @@
                 {% endwith %}
                 <div class="collapse" id="appsMenu">
                     <ul class="nav flex-column submenu" style="padding-left: 2rem;">
+                        <!-- ... list items stay exactly as they are ... -->
                         <li>
                             <a href="{% url 'cmf_records' %}"
-                            class="nav-link {% if request.resolver_match.url_name == 'cmf_records' %}active-sub{% endif %}">
+                                class="nav-link {% if request.resolver_match.url_name == 'cmf_records' %}active-sub{% endif %}">
                                 CMF Records
                             </a>
                         </li>
                         <li>
                             <a href="{% url 'cmf_entry' %}"
-                            class="nav-link {% if request.resolver_match.url_name == 'cmf_entry' %}active-sub{% endif %}">
+                                class="nav-link {% if request.resolver_match.url_name == 'cmf_entry' %}active-sub{% endif %}">
                                 CMF Entry
                             </a>
                         </li>
                         <li>
                             <a href="{% url 'rs_entry' %}"
-                            class="nav-link {% if request.resolver_match.url_name == 'rs_entry' %}active-sub{% endif %}">
+                                class="nav-link {% if request.resolver_match.url_name == 'rs_entry' %}active-sub{% endif %}">
                                 RS Entry
                             </a>
                         </li>
                         <li>
                             <a href="{% url 'mb_formula' %}"
-                            class="nav-link {% if request.resolver_match.url_name == 'mb_formula' %}active-sub{% endif %}">
+                                class="nav-link {% if request.resolver_match.url_name == 'mb_formula' %}active-sub{% endif %}">
                                 MB Formula
                             </a>
                         </li>
                         <li>
                             <a href="{% url 'dc_formula' %}"
-                            class="nav-link {% if request.resolver_match.url_name == 'dc_formula' %}active-sub{% endif %}">
+                                class="nav-link {% if request.resolver_match.url_name == 'dc_formula' %}active-sub{% endif %}">
                                 DC Formula
                             </a>
                         </li>
                         <li>
                             <a href="{% url 'pending_completed' %}"
-                            class="nav-link {% if request.resolver_match.url_name == 'pending_completed' %}active-sub{% endif %}">
+                                class="nav-link {% if request.resolver_match.url_name == 'pending_completed' %}active-sub{% endif %}">
                                 Pending/Completed
                             </a>
                         </li>
