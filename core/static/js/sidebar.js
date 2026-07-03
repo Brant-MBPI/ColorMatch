@@ -6,6 +6,12 @@ document.addEventListener("DOMContentLoaded", function () {
     const logoTrigger = document.querySelector(".logo-icon-box");
     const body = document.body;
 
+    // --- MOVE THESE TO THE TOP ---
+    const themeToggleFooter = document.getElementById("themeToggle");       
+    const themeToggleSidebar = document.getElementById("themeToggleSidebar"); 
+    const sidebarThemeIcon = document.getElementById("sidebarThemeIcon");
+    const sidebarThemeText = document.getElementById("sidebarThemeText");
+
     // --- 1. Sidebar Toggle Logic ---
     function toggleMenu() {
         if (window.innerWidth < 992) {
@@ -14,18 +20,15 @@ document.addEventListener("DOMContentLoaded", function () {
         } else {
             sidebar.classList.toggle("collapsed");
 
-            // --- NEW: If sidebar is now collapsed, close the CMF submenu ---
             if (sidebar.classList.contains("collapsed")) {
                 const appsMenu = document.getElementById('appsMenu');
                 const cmfTrigger = document.querySelector('.cmf-nav-trigger');
                 
                 if (appsMenu && appsMenu.classList.contains('show')) {
-                    // Use Bootstrap's Collapse API to hide it
                     const bsCollapse = bootstrap.Collapse.getInstance(appsMenu);
                     if (bsCollapse) {
                         bsCollapse.hide();
                     } else {
-                        // Fallback if instance isn't initialized: manual class removal
                         appsMenu.classList.remove('show');
                         if (cmfTrigger) cmfTrigger.setAttribute('aria-expanded', 'false');
                     }
@@ -45,7 +48,6 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // --- Auto-expand sidebar ONLY when CMF menu is clicked ---
     const cmfTrigger = document.querySelector('.cmf-nav-trigger');
     if (cmfTrigger) {
         cmfTrigger.addEventListener('click', function () {
@@ -55,11 +57,12 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // --- 2. Theme Toggle Logic (Synchronized) ---
+    // --- 2. Theme Toggle Logic ---
     function updateThemeUI(isDark) {
         const text = isDark ? "Switch to Light Mode" : "Try Dark Mode";
         const iconClass = isDark ? "bi bi-sun me-2" : "bi bi-moon-stars me-2";
         
+        // These now work because the variables are declared at the top
         if (themeToggleFooter) themeToggleFooter.textContent = text;
         if (sidebarThemeText) sidebarThemeText.textContent = text;
         if (sidebarThemeIcon) sidebarThemeIcon.className = iconClass;
@@ -84,11 +87,6 @@ document.addEventListener("DOMContentLoaded", function () {
         updateThemeUI(isDark);
         document.dispatchEvent(new CustomEvent("themechange"));
     }
-
-    const themeToggleFooter = document.getElementById("themeToggle");       
-    const themeToggleSidebar = document.getElementById("themeToggleSidebar"); 
-    const sidebarThemeIcon = document.getElementById("sidebarThemeIcon");
-    const sidebarThemeText = document.getElementById("sidebarThemeText");
 
     if (themeToggleFooter) themeToggleFooter.addEventListener("click", toggleTheme);
     if (themeToggleSidebar) themeToggleSidebar.addEventListener("click", toggleTheme);
