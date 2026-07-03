@@ -24,7 +24,12 @@ CMF Entry
                             </div>
                             <div class="col-md-12">
                                 <label class="fw-bold extra-small">Customer:</label>
-                                <input type="text" class="form-control form-control-sm uniform-input">
+                                <select class="form-select form-select-sm ts-select" name="customer" placeholder="Select customer..." required>
+                                    <option value=""></option>
+                                    {% for customer in customers %}
+                                        <option value="{{ customer }}">{{ customer }}</option>
+                                    {% endfor %}
+                                </select>
                             </div>
                         </div>
                         

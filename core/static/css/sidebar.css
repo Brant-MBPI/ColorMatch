@@ -40,6 +40,15 @@ body.dark-mode {
     --text-muted: #94a3b8;
     --navbar-bg: #1e293b;
     --table-header: #334155;
+
+     /* Bootstrap variables Tom Select reads directly */
+    --bs-body-bg: #0f172a;
+    --bs-body-color: #f8fafc;
+    --bs-border-color: #334155;
+    --bs-border-color-translucent: #334155;
+    --bs-tertiary-bg: #334155;
+    --bs-secondary-bg: #1e293b;
+    --bs-secondary-color: #94a3b8;
 }
 
 /* ===================================
@@ -175,6 +184,51 @@ body.dark-mode .bg-light, body.dark-mode .bg-light-subtle { background-color: rg
     background-color: var(--card-bg);
     border: 1px solid var(--sidebar-border);
     transition: background-color 0.3s;
+}
+
+/* ===================================
+   TOM SELECT DARK MODE FIX
+=================================== */
+
+/* Belt-and-suspenders: covers any Tom Select state that might still hardcode a color */
+body.dark-mode .ts-control,
+body.dark-mode .ts-wrapper.single.input-active .ts-control,
+body.dark-mode .full .ts-control {
+    background-color: #0f172a !important;
+    color: #f8fafc !important;
+    border-color: #334155 !important;
+}
+
+body.dark-mode .ts-wrapper .ts-control input {
+    color: #f8fafc !important;
+}
+
+body.dark-mode .ts-wrapper .ts-control input::placeholder {
+    color: var(--text-muted) !important;
+    opacity: 0.8;
+}
+
+body.dark-mode .ts-dropdown {
+    background-color: #1e293b !important;
+    color: #f8fafc !important;
+    border-color: #334155 !important;
+}
+
+body.dark-mode .ts-dropdown .option {
+    color: #f8fafc !important;
+    background-color: transparent !important;
+}
+
+body.dark-mode .ts-dropdown .active {
+    background-color: var(--sidebar-header-bg) !important;
+    color: #ffffff !important;
+}
+
+/* Match the small height of your other inputs */
+.ts-wrapper.form-select-sm .ts-control {
+    min-height: 31px !important;
+    padding: 2px 8px !important;
+    border-radius: 0.4rem !important;
 }
 
 /* ===================================

@@ -13,4 +13,16 @@
     text-transform: uppercase;
 }
 
+.ts-dropdown .active {
+    background-color: #12b3a542 !important; /* Your teal color */
+    color: #0d9488 !important;
+}
+
+/* Match the small input height exactly */
+.ts-wrapper.form-select-sm .ts-control {
+    min-height: 31px;
+    padding: 2px 8px;
+    font-size: 0.875rem;
+}
+
 body.dark-mode .cmf-entry-card { border-color: var(--sidebar-border); }
