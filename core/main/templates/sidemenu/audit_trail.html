@@ -1,9 +1,103 @@
-
 {% extends "base.html" %}
+{% load static %}
 
 {% block navigation %} 
-Other page
+Audit Trail
 {% endblock navigation %}
+
 {% block content %}
-    <div>Audit Trail page</div>
-{% endblock content %}
+<div class="container-fluid p-0 d-flex flex-column" style="min-height: 80vh;">
+    
+    <!-- Top Search & Filter Bar -->
+    <div class="card audit-card shadow-sm mb-3">
+        <div class="card-body p-3">
+            <div class="row g-2 align-items-center">
+                <div class="col-auto">
+                    <span class="fw-bold extra-small text-uppercase">Search Record:</span>
+                </div>
+                <div class="col-md-2">
+                    <select class="form-select form-select-sm uniform-input">
+                        <option>All Department</option>
+                        <option>Information Technology</option>
+                        <option>Sales</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select class="form-select form-select-sm uniform-input">
+                        <option>All Columns</option>
+                        <option>Hostname</option>
+                        <option>Action</option>
+                    </select>
+                </div>
+                
+                <div class="col">
+                    <div class="input-group input-group-sm">
+                        <input type="text" class="form-control form-control-sm uniform-input border-start-0 ps-2" placeholder="Enter Text to search...">
+                  
+                        <span class="input-group-text uniform-input border-end-0 bg-transparent">
+                            <i class="bi bi-search text-muted"></i>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="col-auto">
+                    <button class="btn btn-sm btn-primary px-3 shadow-sm">
+                        <i class="bi bi-arrow-clockwise"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Table Card -->
+    <div class="card border-0 shadow-sm rounded-3 audit-table-card flex-grow-1">
+        <div class="p-3 bg-white d-flex align-items-center border-bottom dark-card-header">
+            <h6 class="fw-bold extra-small m-0 text-uppercase">Audit Records <span class="text-muted fw-normal ms-2">1 records found</span></h6>
+        </div>
+        
+        <div class="audit-scroll-body">
+            <table class="table align-middle mb-0 audit-records-table">
+                <thead>
+                    <tr class="text-uppercase">
+                        <th class="ps-3">Timestamp</th>
+                        <th>Hostname</th>
+                        <th>Action</th>
+                        <th>Details</th>
+                        <th>IP Address</th>
+                        <th>Mac Address</th>
+                        <th class="pe-3">Department</th>
+                    </tr>
+                </thead>
+                <tbody class="extra-small">
+                    <tr>
+                        <td class="ps-3 text-nowrap">2026-06-17 01:21 PM</td>
+                        <td class="text-nowrap">MBPI-AMIEL\Brant</td>
+                        <td><span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2">MODIFY</span></td>
+                        <td class="text-wrap" style="min-width: 400px;">Hostname: MBPI-AMIEL\Brant details has been successfully updated</td>
+                        <td>192.168.1.184</td>
+                        <td class="text-nowrap">E8:9C:25:E0:CC:BD</td>
+                        <td class="pe-3 text-nowrap">Information Technology</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Footer Action Bar (Date Range & Export) -->
+    <div class="mt-3 py-3 px-2 border-top d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+        <div class="d-flex align-items-center gap-3">
+            <span class="small fw-bold text-uppercase">Filter Date Range:</span>
+            <div class="d-flex align-items-center gap-2">
+                <input type="date" class="form-control form-control-sm uniform-input w-auto">
+                <span class="text-muted small">to</span>
+                <input type="date" class="form-control form-control-sm uniform-input w-auto">
+            </div>
+        </div>
+        
+        <button class="btn btn-sm btn-teal px-4 shadow-sm text-white">
+            <i class="bi bi-file-earmark-arrow-down me-2"></i> Export to CSV
+        </button>
+    </div>
+
+</div>
+{% endblock %}
