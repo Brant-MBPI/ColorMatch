@@ -47,7 +47,27 @@ def cmf_entry(request):
         "Masterbatch PH",
         "Generic Co.",
     ]
-    return render(request, "sidemenu/cmf/cmf_entry.html", {"customers": customers})
+    salesman = [
+        "Brant Jan Abillanoza",
+        "Francis Candedlaria",
+    ]
+    primary_color = [
+        "Red",
+        "Green",
+        "Blue"
+    ]
+    resin = [
+        "pp",
+        "hdpe",
+    ]
+
+    
+    return render(request, "sidemenu/cmf/cmf_entry.html", {
+        "customers": customers,
+        "salesman": salesman,
+        "primary_color": primary_color,
+        "resin": resin,
+    })
 
 def cmf_rs_entry(request):
     return render(request, "sidemenu/cmf/rs_entry.html")

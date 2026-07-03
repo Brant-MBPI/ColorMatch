@@ -70,7 +70,12 @@ CMF Entry
                         <div class="row g-2 mb-2">
                             <div class="col-md-12">
                                 <label class="fw-bold extra-small">Sales Person:</label>
-                                <input type="text" class="form-control form-control-sm uniform-input">
+                                <select class="form-select form-select-sm ts-select" name="salesman" placeholder="Select sales person..." required>
+                                    <option value=""></option>
+                                    {% for salesman in salesman %}
+                                        <option value="{{ salesman }}">{{ salesman }}</option>
+                                    {% endfor %}
+                                </select>
                             </div>
                             <div class="col-md-12">
                                 <label class="fw-bold extra-small">Finished Product:</label>
@@ -81,7 +86,12 @@ CMF Entry
                         <div class="row g-2">
                             <div class="col-4">
                                 <label class="fw-bold extra-small">Primary Color:</label>
-                                <select class="form-select form-select-sm uniform-input"><option>-</option></select>
+                                <select class="form-select form-select-sm ts-select" name="primary_color" placeholder="Select color" required>
+                                    <option value=""></option>
+                                    {% for primary_color in primary_color %}
+                                        <option value="{{ primary_color }}">{{ primary_color }}</option>
+                                    {% endfor %}
+                                </select>
                             </div>
                             <div class="col-8">
                                 <label class="fw-bold extra-small">Description:</label>
@@ -123,7 +133,12 @@ CMF Entry
                         
                         <div class="mb-2">
                             <label class="fw-bold extra-small">Resin Type:</label>
-                            <input type="text" class="form-control form-control-sm uniform-input">
+                            <select class="form-select form-select-sm ts-select" name="resin" placeholder="Select resin" required>
+                                <option value=""></option>
+                                {% for resin in resin %}
+                                    <option value="{{ resin }}">{{ resin }}</option>
+                                {% endfor %}
+                            </select>
                         </div>
 
                         <div class="mb-2">
