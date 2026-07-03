@@ -29,7 +29,7 @@ body.dark-mode {
     --sidebar-bg: #0f172a;
     --sidebar-header-bg: #0d9488; 
     --sidebar-text: #cbd5e1;
-    --sidebar-hover-bg: #1e293b;
+    --sidebar-hover-bg: #334155; /* MODIFIED: Changed from #1e293b to #334155 to be visible against the card background */
     --sidebar-active-bg: #14b8a6;
     --sidebar-active-text: #ffffff;
     --sidebar-border: #1e293b;
@@ -102,7 +102,9 @@ select.uniform-input {
 /* Global Button Overrides */
 .btn-teal { background-color: var(--btn-teal); color: white !important; border: none; border-radius: 0.4rem; }
 .btn-teal:hover { background-color: var(--btn-teal-hover); }
+
 .btn-dark-teal { background-color: var(--btn-dark-teal); color: white !important; border: none; border-radius: 0.4rem; }
+
 .btn-primary { background-color: var(--btn-primary); border: none; border-radius: 0.4rem; }
 .btn-success { background-color: var(--btn-success); border: none; border-radius: 0.4rem; }
 
@@ -115,6 +117,9 @@ body.dark-mode select.uniform-input {
     color: #f8fafc !important;
     color-scheme: dark;
 }
+
+/* FIX: Forces Search Icon (text-muted) to be visible in Dark Mode */
+body.dark-mode .text-muted { color: var(--text-muted) !important; }
 
 body.dark-mode .uniform-input::placeholder { color: var(--text-muted); opacity: 0.8; }
 
@@ -156,6 +161,11 @@ body.dark-mode .table tr,
 body.dark-mode .table td {
     background-color: transparent !important;
     color: var(--text-main) !important;
+}
+
+/* MODIFIED: Explicit rule to force hover visibility in dark mode */
+body.dark-mode .table tbody tr:hover td {
+    background-color: var(--sidebar-hover-bg) !important;
 }
 
 body.dark-mode .bg-white { background-color: var(--card-bg) !important; }

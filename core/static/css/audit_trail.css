@@ -1,14 +1,65 @@
-/* Layout & Scroll */
-.audit-card { background-color: var(--card-bg); border: 1px solid var(--sidebar-border); }
-.audit-table-card { background-color: var(--card-bg); border: 1px solid var(--sidebar-border); overflow: hidden; }
-.audit-scroll-body { max-height: clamp(300px, 55vh, 600px); overflow-y: auto; }
+/* ==============================================
+   audit_trail.css
+   ============================================== */
 
-/* Header handles sticky behavior only */
-.audit-records-table thead th { position: sticky; top: 0; z-index: 2; white-space: nowrap; }
+/* Layout Cards */
+.audit-card { 
+    background-color: var(--card-bg); 
+    border: 1px solid var(--sidebar-border); 
+}
 
-/* Custom Row Padding */
-.audit-records-table tbody td { color: var(--text-main); border-bottom: 1px solid var(--sidebar-border); padding: 8px 12px; }
-.audit-records-table tbody tr:hover td { background-color: var(--sidebar-hover-bg) !important; }
+/* ── Table Card Shell (Matches CMF Records Exactly) ────────────────── */
+.audit-table-card {
+    background-color: var(--card-bg);
+    border-radius: 0.5rem;
+    border: 1px solid var(--sidebar-border);
+    overflow: hidden; /* clips the scrollable body at rounded corners */
+}
 
-/* Custom Badge fix for "MODIFY" */
-body.dark-mode .bg-primary-subtle { background-color: rgba(59, 130, 246, 0.15) !important; color: #60a5fa !important; }
+/* ── Scroll container (Matches CMF clamp) ────────────────────────── */
+.audit-scroll-body {
+    max-height: clamp(280px, 60vh, 640px);
+    overflow-x: auto;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* ── Sticky Header ────────────────────────────── */
+.audit-records-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    white-space: nowrap;
+    border-bottom: none;
+}
+
+/* ── tbody cells ─────────────────────────────── */
+.audit-records-table tbody td {
+    color: var(--text-main);
+    border-bottom: 1px solid var(--sidebar-border);
+    padding: 12px 16px; /* Matches standard CMF row spacing */
+}
+
+/* ── Row hover (Matches CMF behavior) ───────────────────────────────── */
+.audit-records-table tbody tr:hover td {
+    background-color: var(--sidebar-hover-bg) !important; /* FIXED: Added !important for Light Mode visibility */
+}
+
+/* ==============================================
+   DARK MODE COMPATIBILITY & BADGES
+   ============================================== */
+
+body.dark-mode .dark-card-header {
+    background-color: var(--card-bg) !important;
+    border-bottom-color: var(--sidebar-border) !important;
+}
+
+/* Custom Badge fix for the "MODIFY" action */
+body.dark-mode .bg-primary-subtle {
+    background-color: rgba(59, 130, 246, 0.15) !important;
+    color: #60a5fa !important;
+}
+
+body.dark-mode .audit-table-card {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3) !important;
+}
