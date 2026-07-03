@@ -1,28 +1,9 @@
-.cmf-table-card {
-    background-color: var(--card-bg);
-    border-radius: 0.5rem;
-    border: 1px solid var(--sidebar-border);
-    overflow: hidden;
-}
+.cmf-table-card { background-color: var(--card-bg); border-radius: 0.5rem; border: 1px solid var(--sidebar-border); overflow: hidden; }
 
-.cmf-scroll-body {
-    max-height: clamp(280px, 60vh, 640px);
-    overflow: auto;
-}
+.cmf-scroll-body { max-height: clamp(280px, 60vh, 640px); overflow: auto; }
 
-.cmf-records-table thead th {
-    position: sticky; top: 0; z-index: 2;
-    background-color: var(--table-header);
-    color: #ffffff; font-size: 0.72rem; font-weight: 600;
-}
+.cmf-records-table thead th { position: sticky; top: 0; z-index: 2; }
 
-.cmf-records-table tbody td {
-    color: var(--text-main);
-    border-bottom: 1px solid var(--sidebar-border);
-}
+.cmf-records-table tbody td { color: var(--text-main); border-bottom: 1px solid var(--sidebar-border); }
 
-.cmf-records-table tbody tr:hover td { background-color: var(--sidebar-hover-bg); }
-
-/* Search Bar */
-.cmf-search-addon, .cmf-search-input { background-color: var(--card-bg); color: var(--text-main); border-color: var(--sidebar-border); }
-.cmf-search-input:focus { border-color: var(--sidebar-header-bg); }
+.cmf-records-table tbody tr:hover td { background-color: var(--sidebar-hover-bg) !important; }

@@ -1,78 +1,14 @@
-/* ==============================================
-   audit_trail.css
-   ============================================== */
+/* Layout & Scroll */
+.audit-card { background-color: var(--card-bg); border: 1px solid var(--sidebar-border); }
+.audit-table-card { background-color: var(--card-bg); border: 1px solid var(--sidebar-border); overflow: hidden; }
+.audit-scroll-body { max-height: clamp(300px, 55vh, 600px); overflow-y: auto; }
 
-   .audit-card {
-    background-color: var(--card-bg);
-    border: 1px solid var(--sidebar-border);
-}
+/* Header handles sticky behavior only */
+.audit-records-table thead th { position: sticky; top: 0; z-index: 2; white-space: nowrap; }
 
-/* ── Table Card Shell ────────────────── */
-.audit-table-card {
-    background-color: var(--card-bg);
-    border: 1px solid var(--sidebar-border);
-    overflow: hidden;
-}
+/* Custom Row Padding */
+.audit-records-table tbody td { color: var(--text-main); border-bottom: 1px solid var(--sidebar-border); padding: 8px 12px; }
+.audit-records-table tbody tr:hover td { background-color: var(--sidebar-hover-bg) !important; }
 
-.audit-scroll-body {
-    /* Responsive height calculation */
-    max-height: clamp(300px, 55vh, 600px);
-    overflow-y: auto;
-}
-
-/* ── Sticky Header ─────────────────── */
-.audit-records-table thead th {
-    position: sticky;
-    top: 0;
-    z-index: 2;
-    background-color: var(--table-header, #94a3b8);
-    color: #ffffff;
-    font-size: 0.72rem;
-    font-weight: 600;
-    padding: 14px 10px;
-    border: none;
-    letter-spacing: 0.03rem;
-}
-
-.audit-records-table tbody td {
-    color: var(--text-main);
-    border-bottom: 1px solid var(--sidebar-border);
-    padding: 12px 10px;
-}
-
-/* Row Hover effect */
-.audit-records-table tbody tr:hover td {
-    background-color: var(--sidebar-hover-bg) !important;
-}
-
-/* Fix for Input Group Icon background */
-.input-group-text.uniform-input {
-    border-color: #cbd5e1 !important;
-}
-
-/* ==============================================
-   DARK MODE COMPATIBILITY
-   ============================================== */
-
-body.dark-mode .dark-card-header {
-    background-color: var(--card-bg) !important;
-    border-bottom-color: var(--sidebar-border) !important;
-}
-
-body.dark-mode .audit-records-table thead th {
-    background-color: var(--table-header);
-}
-
-body.dark-mode .input-group-text.uniform-input {
-    border-color: #334155 !important;
-    background-color: #0f172a !important;
-}
-
-body.dark-mode .border-top {
-    border-top-color: var(--sidebar-border) !important;
-}
-
-body.dark-mode .bg-primary-subtle {
-    background-color: rgba(59, 130, 246, 0.15) !important;
-    color: #60a5fa !important;
-}
+/* Custom Badge fix for "MODIFY" */
+body.dark-mode .bg-primary-subtle { background-color: rgba(59, 130, 246, 0.15) !important; color: #60a5fa !important; }
