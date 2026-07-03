@@ -3,6 +3,16 @@
     background-color: var(--card-bg) !important;
     border: 1px solid var(--sidebar-border) !important; 
     box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.05) !important;
+    color: var(--text-main) !important; /* FIX: Ensures text inside cards respects the theme */
+}
+
+/* FIX: Specific targeting for KPI numbers and labels in Dark Mode */
+body.dark-mode .theme-card h2, 
+body.dark-mode .theme-card h3, 
+body.dark-mode .theme-card h4, 
+body.dark-mode .theme-card h5, 
+body.dark-mode .theme-card span:not(.badge) {
+    color: var(--text-main) !important;
 }
 
 .cmf-table-card {
@@ -32,3 +42,17 @@
 .icon-circle { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; }
 .dash-bg-teal-subtle { background-color: rgba(20, 184, 166, 0.15); color: #14b8a6; }
 .dash-bg-primary-subtle { background-color: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+
+/* FIX: Update 60% success badge (typically bg-warning) to be lighter */
+.badge.bg-warning {
+    background-color: #fef3c7 !important; /* Much lighter amber/yellow */
+    color: #92400e !important; /* Darker brown text for contrast */
+    border: 1px solid #fde68a;
+}
+
+/* Ensure visibility of these badges in dark mode */
+body.dark-mode .badge.bg-warning {
+    background-color: rgba(250, 234, 195, 0.2) !important;
+    color: #dba213 !important;
+    border: 1px solid rgba(251, 191, 36, 0.4);
+}
