@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block navigation %} 
+Feedback & Monitoring
+{% endblock navigation %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <!-- Tab Navigation -->
+    <ul class="nav nav-tabs feedback-nav-tabs border-0" id="feedbackTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="records-tab" data-bs-toggle="tab" data-bs-target="#records" type="button" role="tab">
+                <i class="bi bi-list-ul me-2"></i>Feedback Records
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="entry-tab" data-bs-toggle="tab" data-bs-target="#entry" type="button" role="tab">
+                <i class="bi bi-plus-circle me-2"></i>Feedback Entry
+            </button>
+        </li>
+    </ul>
+
+    <!-- Unified Container Card -->
+    <div class="card feedback-container-card shadow-sm">
+        <div class="card-body p-4">
+            <div class="tab-content" id="feedbackTabContent">
+                <!-- Records Tab -->
+                <div class="tab-pane fade show active" id="records" role="tabpanel">
+                    {% include "sidemenu/feedback/feedback_records.html" %}
+                </div>
+
+                <!-- Entry Tab -->
+                <div class="tab-pane fade" id="entry" role="tabpanel">
+                    {% include "sidemenu/feedback/feedback_entry.html" %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

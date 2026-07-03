@@ -11,5 +11,6 @@ urlpatterns = [
     path('cmf/mb-formula/', views.cmf_mb_formula, name='mb_formula'),
     path('cmf/dc-formula/', views.cmf_dc_formula, name='dc_formula'),
     path('cmf/pending-completed/', views.cmf_pending_completed, name='pending_completed'),
+    path('feedback', views.feedback, name='feedback'),
     path('audit-trail/', views.audit_trail, name='audit_trail'),
 ]

@@ -43,7 +43,11 @@ def cmf_records(request):
     return render(request, "sidemenu/cmf/cmf_records.html",  {'records': records})
 
 def cmf_entry(request):
-    return render(request, "sidemenu/cmf/cmf_entry.html")
+    customers = [
+        "Masterbatch PH",
+        "Generic Co.",
+    ]
+    return render(request, "sidemenu/cmf/cmf_entry.html", {"customers": customers})
 
 def cmf_rs_entry(request):
     return render(request, "sidemenu/cmf/rs_entry.html")
@@ -56,6 +60,9 @@ def cmf_dc_formula(request):
 
 def cmf_pending_completed(request):
     return render(request, "sidemenu/cmf/pending_completed.html")
+
+def feedback(request):
+    return render(request, "sidemenu/feedback/feedback.html")
 
 def audit_trail(request):
     return render(request, "sidemenu/audit_trail.html")

@@ -1,0 +1,114 @@
+/* ==============================================
+   feedback.css
+   ============================================== */
+
+/* Tab Container Adjustment */
+.feedback-nav-tabs {
+    margin-bottom: -1px; /* Overlaps the card border below it */
+    z-index: 1;
+    gap: 5px;
+}
+
+/* Individual Tab Button */
+.feedback-nav-tabs .nav-link {
+    color: var(--text-muted);
+    background-color: rgba(0, 0, 0, 0.04);
+    border: 1px solid var(--sidebar-border) !important;
+    border-bottom: none !important; /* No bottom border to allow connection */
+    font-weight: 600;
+    font-size: 0.82rem;
+    padding: 12px 25px;
+    border-radius: 10px 10px 0 0 !important;
+    transition: all 0.2s;
+    opacity: 0.8;
+}
+
+.feedback-nav-tabs .nav-link:hover {
+    color: var(--sidebar-header-bg);
+    opacity: 1;
+}
+
+/* Active Tab Connector Logic */
+.feedback-nav-tabs .nav-link.active {
+    background-color: var(--card-bg) !important;
+    color: var(--sidebar-header-bg) !important;
+    border-top: 3px solid var(--sidebar-header-bg) !important; /* Top accent */
+    border-left: 1px solid var(--sidebar-border) !important;
+    border-right: 1px solid var(--sidebar-border) !important;
+    border-bottom: 2px solid var(--card-bg) !important; /* MELT EFFECT: same color as card-bg */
+    opacity: 1;
+    box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.02);
+}
+
+/* The Main Container Card */
+.feedback-container-card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--sidebar-border) !important;
+    border-radius: 0 10px 10px 10px !important; /* Top-left is sharp where tabs are */
+    min-height: 500px;
+}
+
+/* Table Wrapper for specific tab context */
+.feedback-table-wrapper {
+    background-color: var(--card-bg);
+    overflow: hidden;
+    border-color: var(--sidebar-border) !important;
+}
+
+.feedback-scroll-body {
+    max-height: clamp(300px, 60vh, 650px);
+    overflow: auto;
+}
+
+.feedback-scroll-body thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+/* ==============================================
+   DARK MODE COMPATIBILITY
+   ============================================== */
+body.dark-mode .feedback-nav-tabs .nav-link {
+    background-color: rgba(255, 255, 255, 0.03);
+    color: #94a3b8;
+}
+
+body.dark-mode .feedback-nav-tabs .nav-link.active {
+    background-color: var(--card-bg) !important;
+    border-color: var(--sidebar-border) !important;
+    border-top-color: #2dd4bf !important;
+    color: #2dd4bf !important;
+    border-bottom-color: var(--card-bg) !important; /* Melting effect in dark mode */
+}
+
+body.dark-mode .feedback-container-card {
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4) !important;
+}
+
+.feedback-section-title {
+    color: #0d9488 !important; /* Fixed Teal color */
+    font-size: 0.8rem;
+    font-weight: 700;
+    border-left: 3px solid #0d9488;
+    padding-left: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.02rem;
+}
+
+.readonly-input {
+    background-color: rgba(0, 0, 0, 0.03) !important;
+    border-color: var(--sidebar-border) !important;
+    color: var(--text-muted) !important;
+    cursor: not-allowed;
+}
+
+body.dark-mode .readonly-input {
+    background-color: rgba(255, 255, 255, 0.03) !important;
+}
+
+/* Ensure headings in entry tab match design */
+.feedback-entry-form-container h6 {
+    color: var(--text-main);
+    letter-spacing: 0.02rem;
+}

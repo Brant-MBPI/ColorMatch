@@ -1,0 +1,140 @@
+<div class="feedback-entry-form-container">
+    <form id="feedbackEntryForm">
+        <div class="row g-4">
+            <!-- LEFT COLUMN -->
+            <div class="col-lg-6">
+                <div class="row g-2 align-items-center mb-3">
+                    <div class="col-md-3"><label class="extra-small fw-bold">Matching No:</label></div>
+                    <div class="col-md-9"><input type="text" name="matching_no" id="id_f_matching_no" class="form-control form-control-sm uniform-input readonly-input" value="CMF-24-001" readonly></div>
+                </div>
+
+                <div class="row g-2 align-items-center mb-3">
+                    <div class="col-md-3"><label class="extra-small fw-bold">Customer:</label></div>
+                    <div class="col-md-9"><input type="text" name="customer" id="id_f_customer" class="form-control form-control-sm uniform-input"></div>
+                </div>
+
+                <div class="row g-2 align-items-center mb-3">
+                    <div class="col-md-3"><label class="extra-small fw-bold">Date Created:</label></div>
+                    <div class="col-md-4"><input type="date" name="date_created" id="id_f_date_created" class="form-control form-control-sm uniform-input"></div>
+                    <div class="col-md-1 px-0 text-center"><label class="extra-small">Req:</label></div>
+                    <div class="col-md-4"><input type="date" name="required_date" id="id_f_required_date" class="form-control form-control-sm uniform-input"></div>
+                </div>
+
+                <div class="row g-2 align-items-center mb-3">
+                    <div class="col-md-3"><label class="extra-small fw-bold">Date Received:</label></div>
+                    <div class="col-md-4"><input type="date" name="date_received" id="id_f_date_received" class="form-control form-control-sm uniform-input"></div>
+                    <div class="col-md-1 px-0 text-center"><label class="extra-small">Due:</label></div>
+                    <div class="col-md-4"><input type="date" name="due_date" id="id_f_due_date" class="form-control form-control-sm uniform-input"></div>
+                </div>
+
+                <div class="row g-2 align-items-center mb-3">
+                    <div class="col-md-3"><label class="extra-small fw-bold">Finished Product:</label></div>
+                    <div class="col-md-9"><input type="text" name="finished_product" id="id_f_finished_product" class="form-control form-control-sm uniform-input"></div>
+                </div>
+
+                <div class="row g-2 align-items-center mb-3">
+                    <div class="col-md-3"><label class="extra-small fw-bold">Color Description:</label></div>
+                    <div class="col-md-9"><input type="text" name="color_description" id="id_f_color_description" class="form-control form-control-sm uniform-input"></div>
+                </div>
+
+                <div class="row g-2 align-items-center mb-3">
+                    <div class="col-md-3"><label class="extra-small fw-bold">Matching Type:</label></div>
+                    <div class="col-md-9"><input type="text" name="matching_type" id="id_f_matching_type" class="form-control form-control-sm uniform-input"></div>
+                </div>
+
+                <div class="row g-2 align-items-center mb-3">
+                    <div class="col-md-3"><label class="extra-small fw-bold">Sales Person:</label></div>
+                    <div class="col-md-9"><input type="text" name="sales_person" id="id_f_sales_person" class="form-control form-control-sm uniform-input"></div>
+                </div>
+
+                <!-- Feedback Specific Section -->
+                <div class="mt-4 pt-2">
+                    <h6 class="feedback-section-title mb-3">Feedback & Monitoring</h6>
+                    
+                    <div class="row g-2 align-items-center mb-3">
+                        <div class="col-md-3"><label class="extra-small fw-bold">Feedback Status:</label></div>
+                        <div class="col-md-9">
+                            <select name="feedback_status" id="id_f_feedback_status" class="form-select form-select-sm uniform-input">
+                                <option value="Pending">Pending</option>
+                                <option value="Passed">Passed</option>
+                                <option value="Failed">Failed</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row g-2 align-items-center mb-3">
+                        <div class="col-md-3"><label class="extra-small fw-bold">Comments:</label></div>
+                        <div class="col-md-9"><input type="text" name="comments" id="id_f_comments" class="form-control form-control-sm uniform-input" placeholder="Enter feedback observations..."></div>
+                    </div>
+
+                    <div class="row g-2 align-items-center mb-3">
+                        <div class="col-md-3"><label class="extra-small fw-bold">Storage Details:</label></div>
+                        <div class="col-md-9"><input type="text" name="storage_details" id="id_f_storage_details" class="form-control form-control-sm uniform-input" placeholder="Box #, Plastic Bin location..."></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT COLUMN -->
+            <div class="col-lg-6">
+                <div class="row g-2 align-items-center mb-3">
+                    <div class="col-md-3"><label class="extra-small fw-bold">Current Status:</label></div>
+                    <div class="col-md-9">
+                        <select name="current_status" id="id_f_current_status" class="form-select form-select-sm uniform-input">
+                            <option value="Pending">Pending</option>
+                            <option value="Completed">Completed</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row g-2 align-items-center mb-3">
+                    <div class="col-md-3"><label class="extra-small fw-bold">Pending Reason:</label></div>
+                    <div class="col-md-9"><input type="text" name="pending_reason" id="id_f_pending_reason" class="form-control form-control-sm uniform-input"></div>
+                </div>
+
+                <div class="row g-2 align-items-center mb-3">
+                    <div class="col-md-3"><label class="extra-small fw-bold">Product Code:</label></div>
+                    <div class="col-md-9"><input type="text" name="product_code" id="id_f_product_code" class="form-control form-control-sm uniform-input"></div>
+                </div>
+
+                <div class="row g-2 align-items-center mb-3">
+                    <div class="col-md-3"><label class="extra-small fw-bold">Code Description:</label></div>
+                    <div class="col-md-9"><input type="text" name="code_description" id="id_f_code_description" class="form-control form-control-sm uniform-input"></div>
+                </div>
+
+                <div class="row g-2 align-items-center mb-3">
+                    <div class="col-md-3"><label class="extra-small fw-bold">Set-Pc:</label></div>
+                    <div class="col-md-4"><input type="text" name="set_pc" id="id_f_set_pc" class="form-control form-control-sm uniform-input" placeholder="Qty"></div>
+                    <div class="col-md-1 px-0 text-center"><label class="extra-small fw-bold">KG:</label></div>
+                    <div class="col-md-4"><input type="text" name="quantity_kg" id="id_f_quantity_kg" class="form-control form-control-sm uniform-input" placeholder="KG"></div>
+                </div>
+
+                <div class="row g-2 align-items-center mb-3">
+                    <div class="col-md-3"><label class="extra-small fw-bold">Date Submitted:</label></div>
+                    <div class="col-md-9"><input type="date" name="date_submitted" id="id_f_date_submitted" class="form-control form-control-sm uniform-input"></div>
+                </div>
+
+                <div class="row g-2 align-items-center mb-3">
+                    <div class="col-md-3"><label class="extra-small fw-bold">Lot No.:</label></div>
+                    <div class="col-md-9"><input type="text" name="lot_no" id="id_f_lot_no" class="form-control form-control-sm uniform-input"></div>
+                </div>
+
+                <div class="row g-2 align-items-center mb-3">
+                    <div class="col-md-3"><label class="extra-small fw-bold">AR Number:</label></div>
+                    <div class="col-md-9"><input type="text" name="ar_number" id="id_f_ar_number" class="form-control form-control-sm uniform-input"></div>
+                </div>
+
+                <div class="row g-2 align-items-center mb-3">
+                    <div class="col-md-3"><label class="extra-small fw-bold">AR Date:</label></div>
+                    <div class="col-md-9"><input type="date" name="ar_date" id="id_f_ar_date" class="form-control form-control-sm uniform-input"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Button -->
+        <div class="mt-5 d-flex justify-content-end">
+            <button type="submit" class="btn btn-success btn-sm px-4 py-2 shadow-sm">
+                <i class="bi bi-save me-2"></i>Save Update
+            </button>
+        </div>
+    </form>
+</div>
