@@ -144,26 +144,43 @@ CMF Entry
                         <div class="mb-2">
                             <label class="fw-bold extra-small d-block mb-1">Process:</label>
                             <div class="d-flex flex-wrap gap-2">
-                                <div class="form-check"><input class="form-check-input visible-check" type="checkbox" id="p1"><label class="form-check-label extra-small" for="p1">Injection</label></div>
-                                <div class="form-check"><input class="form-check-input visible-check" type="checkbox" id="p2"><label class="form-check-label extra-small" for="p2">Blow-Molding</label></div>
-                                <div class="form-check"><input class="form-check-input visible-check" type="checkbox" id="p3"><label class="form-check-label extra-small" for="p3">Film</label></div>
-                                <div class="form-check"><input class="form-check-input visible-check" type="checkbox" id="p4"><label class="form-check-label extra-small" for="p4">Pipe</label></div>
-                            </div>
+                                <div class="form-check d-flex align-items-center mb-0">
+                                    <input class="form-check-input visible-check" type="checkbox" id="p1">
+                                    <label class="form-check-label extra-small ms-2" for="p1">Injection</label>
+                                </div>
+                                <div class="form-check d-flex align-items-center mb-0">
+                                    <input class="form-check-input visible-check" type="checkbox" id="p2">
+                                    <label class="form-check-label extra-small ms-2" for="p2">Blow-Molding</label>
+                                </div>
+                                <div class="form-check d-flex align-items-center mb-0">
+                                    <input class="form-check-input visible-check" type="checkbox" id="p3">
+                                    <label class="form-check-label extra-small ms-2" for="p3">Film</label>
+                                </div>
+                                <div class="form-check d-flex align-items-center mb-0">
+                                    <input class="form-check-input visible-check" type="checkbox" id="p4">
+                                    <label class="form-check-label extra-small ms-2" for="p4">Pipe Extrusion</label>
+                                </div>
+                                <div class="form-check d-flex align-items-center mb-0">
+                                    <input class="form-check-input visible-check" type="checkbox" id="p5">
+                                    <label class="form-check-label extra-small ms-2 me-1" for="p5">Others:</label>
+                                    <input type="text" class="form-control form-control-sm uniform-input ms-1" style="width: 120px; height: 26px;">
+                                </div>
+                            </div>          
                         </div>
 
                         <div class="row g-2 mb-2">
                             <div class="col-7"><label class="fw-bold extra-small">Qty Resin for Test:</label><input type="text" class="form-control form-control-sm uniform-input"></div>
                             <div class="col-5">
-                                <label class="fw-bold extra-small d-block">Provided:</label>
+                                <label class="fw-bold extra-small d-block">Customer Resin Provided:</label>
                                 <div class="form-check form-check-inline"><input class="form-check-input visible-check" type="radio" name="resPr" id="ry"><label class="form-check-label extra-small" for="ry">Y</label></div>
                                 <div class="form-check form-check-inline"><input class="form-check-input visible-check" type="radio" name="resPr" id="rn"><label class="form-check-label extra-small" for="rn">N</label></div>
                             </div>
                         </div>
 
                         <div class="row g-2 mb-2">
-                            <div class="col-7"><label class="fw-bold extra-small">MI Value:</label><input type="text" class="form-control form-control-sm uniform-input"></div>
+                            <div class="col-7"><label class="fw-bold extra-small">MI Customer Resin:</label><input type="text" class="form-control form-control-sm uniform-input"></div>
                             <div class="col-5">
-                                <label class="fw-bold extra-small d-block">Sample Avail:</label>
+                                <label class="fw-bold extra-small d-block">Sample Colorant Available:</label>
                                 <div class="form-check form-check-inline"><input class="form-check-input visible-check" type="radio" name="sa" id="say"><label class="form-check-label extra-small" for="say">Y</label></div>
                                 <div class="form-check form-check-inline"><input class="form-check-input visible-check" type="radio" name="sa" id="san"><label class="form-check-label extra-small" for="san">N</label></div>
                             </div>
@@ -186,15 +203,62 @@ CMF Entry
 
                         <div class="row g-2 mb-2">
                             <div class="col-6">
-                                <label class="fw-bold extra-small">Target Dosage:</label>
-                                <input type="text" class="form-control form-control-sm uniform-input" placeholder="% or phr">
+                                <label class="fw-bold extra-small">Target Dosage (%):</label>
+                                <input type="text" class="form-control form-control-sm uniform-input" placeholder="%">
                             </div>
                             <div class="col-6">
-                                <label class="fw-bold extra-small">Operating Temp:</label>
+                                <label class="fw-bold extra-small">Processing Temp (°C):</label>
                                 <input type="text" class="form-control form-control-sm uniform-input" placeholder="°C">
                             </div>
                         </div>
-
+                        <div class="mb-2">
+                            <label class="fw-bold extra-small d-block mb-1">Other Specification:</label>
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="form-check form-check-inline mb-0">
+                                    <input class="form-check-input visible-check" type="checkbox" id="spec_food_contact">
+                                    <label class="form-check-label extra-small" for="spec_food_contact">Food Contact</label>
+                                </div>
+                                <div class="form-check form-check-inline mb-0">
+                                    <input class="form-check-input visible-check" type="checkbox" id="spec_sunlight_exposure">
+                                    <label class="form-check-label extra-small" for="spec_sunlight_exposure">Sunlight Exposure</label>
+                                </div>
+                                <div class="d-flex align-items-center gap-1 mb-0">
+                                    <div class="form-check mb-0">
+                                        <input class="form-check-input visible-check" type="checkbox" id="spec_others">
+                                        <label class="form-check-label extra-small" for="spec_others">Others</label>
+                                    </div>
+                                    <input type="text" class="form-control form-control-sm uniform-input" style="width: 100px; height: 26px;" placeholder="Specify">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col">
+                                <label class="fw-bold extra-small d-block mb-1">Color Guide to be Returned:</label>
+                                <div class="d-flex gap-3 mt-1">
+                                    <div class="form-check form-check-inline mb-0">
+                                        <input class="form-check-input visible-check" type="radio" name="color_guide_return" id="color_guide_yes" value="yes">
+                                        <label class="form-check-label extra-small" for="color_guide_yes">Yes</label>
+                                    </div>
+                                    <div class="form-check form-check-inline mb-0">
+                                        <input class="form-check-input visible-check" type="radio" name="color_guide_return" id="color_guide_no" value="no">
+                                        <label class="form-check-label extra-small" for="color_guide_no">No</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <label class="fw-bold extra-small d-block mb-1">Is Low Cost?</label>
+                                <div class="d-flex gap-3 mt-1">
+                                    <div class="form-check form-check-inline mb-0">
+                                        <input class="form-check-input visible-check" type="radio" name="is_low_cost" id="low_cost_yes" value="yes">
+                                        <label class="form-check-label extra-small" for="low_cost_yes">Yes</label>
+                                    </div>
+                                    <div class="form-check form-check-inline mb-0">
+                                        <input class="form-check-input visible-check" type="radio" name="is_low_cost" id="low_cost_no" value="no">
+                                        <label class="form-check-label extra-small" for="low_cost_no">No</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         <div class="mb-0">
                             <label class="fw-bold extra-small">Remarks:</label>
                             <textarea class="form-control form-control-sm uniform-input" rows="2"></textarea>
