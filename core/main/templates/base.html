@@ -8,6 +8,7 @@
     <link rel="icon" type="image/png" href="{% static 'image/icon_logo/mbpi_no_bg.png' %}">
     <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/bootstrap-icons.css' %}">
+    <link rel="stylesheet" href="{% static 'css/tom-select.bootstrap5.min.css' %}">
     <link rel="stylesheet" href="{% static 'css/sidebar.css' %}">
     <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
     <link rel="stylesheet" href="{% static 'css/cmf_records.css' %}">
@@ -45,12 +46,15 @@
     </div>
 
     <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
-    <script src="{% static 'js/sidebar.js' %}"></script>
-
+    <script src="{% static 'js/tom-select.complete.min.js' %}"></script>
+    
     <script src="{% static 'amcharts5/index.js' %}"></script>
     <script src="{% static 'amcharts5/percent.js' %}"></script> 
     <script src="{% static 'amcharts5/xy.js' %}"></script>
     <script src="{% static 'amcharts5/themes/Animated.js' %}"></script>
+    
+    <script src="{% static 'js/sidebar/sidebar.js' %}"></script>
+    <script src="{% static 'js/auto-suggest.js' %}"></script>
 
     {% block scripts %}{% endblock %}
 </body>
