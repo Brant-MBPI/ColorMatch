@@ -17,88 +17,107 @@ RS Entry
                 <div class="row g-4">
                     <!-- LEFT COLUMN -->
                     <div class="col-lg-6">
-                        <div class="row g-2 align-items-center mb-2">
-                            <div class="col-md-3"><label class="fw-bold extra-small">RS Number:</label></div>
-                            <div class="col-md-9"><input type="text" class="form-control form-control-sm uniform-input" placeholder="Enter RS Number"></div>
+                        <div class="mb-2">
+                            <label class="fw-bold extra-small">RS Number:</label>
+                            <input type="text" class="form-control form-control-sm uniform-input" placeholder="Enter RS Number">
                         </div>
 
-                        <div class="row g-2 align-items-center mb-2">
-                            <div class="col-md-3"><label class="fw-bold extra-small">Customer:</label></div>
-                            <div class="col-md-9"><input type="text" class="form-control form-control-sm uniform-input"></div>
-                        </div>
-                        
-                        <div class="row align-items-center mb-2">
-                            <div class="col-md-3"><label class="fw-bold extra-small">Created:</label></div>
-                            <div class="col-md-4"><input type="date" class="form-control form-control-sm uniform-input"></div>
-                            <div class="col-auto px-1 text-md-end"><label class="fw-bold extra-small">Required:</label></div>
-                            <div class="col-md-4"><input type="date" class="form-control form-control-sm uniform-input"></div>
+                        <div class="mb-2">
+                            <label class="fw-bold extra-small">Customer:</label>
+                            <input type="text" class="form-control form-control-sm uniform-input">
                         </div>
 
-                        <div class="row align-items-center mb-2">
-                            <div class="col-md-3"><label class="fw-bold extra-small">Received:</label></div>
-                            <div class="col-md-4"><input type="date" class="form-control form-control-sm uniform-input"></div>
-                            <div class="col-auto px-1 text-md-end"><label class="fw-bold extra-small">Due Date:</label></div>
-                            <div class="col-md-4"><input type="date" class="form-control form-control-sm uniform-input"></div>
-                        </div>
-       
-
-                        <div class="row g-2 align-items-center mb-2">
-                            <div class="col-md-3"><label class="fw-bold extra-small">Product Code(s):</label></div>
-                            <div class="col-md-9"><input type="text" class="form-control form-control-sm uniform-input"></div>
-                        </div>
-
-                        <div class="row g-2 align-items-center mb-2">
-                            <div class="col-md-3"><label class="fw-bold extra-small">Color Description:</label></div>
-                            <div class="col-md-9"><input type="text" class="form-control form-control-sm uniform-input"></div>
-                        </div>
-
-                        <div class="row g-2 align-items-center mb-2">
-                            <div class="col-md-3"><label class="fw-bold extra-small">Finished Product:</label></div>
-                            <div class="col-md-9"><input type="text" class="form-control form-control-sm uniform-input"></div>
-                        </div>
-
-                        <div class="row g-2 align-items-center mb-2">
-                            <div class="col-md-3"><label class="fw-bold extra-small">Matching Type:</label></div>
-                            <div class="col-md-9"><input type="text" class="form-control form-control-sm uniform-input"></div>
-                        </div>
-
-                        <div class="row g-2 align-items-center mb-2">
-                            <div class="col-md-3"><label class="fw-bold extra-small">Sales Person:</label></div>
-                            <div class="col-md-9"><input type="text" class="form-control form-control-sm uniform-input"></div>
-                        </div>
-                    </div>
-
-                    <!-- RIGHT COLUMN (Unchanged) -->
-                    <div class="col-lg-6">
-                        <div class="row g-2 align-items-center mb-2">
-                            <div class="col-md-3"><label class="fw-bold extra-small">Resin:</label></div>
-                            <div class="col-md-9"><input type="text" class="form-control form-control-sm uniform-input"></div>
-                        </div>
-
-                        <div class="row g-2 align-items-center mb-2">
-                            <div class="col-md-3"><label class="fw-bold extra-small">Dosage (%):</label></div>
-                            <div class="col-md-9"><input type="text" class="form-control form-control-sm uniform-input" placeholder="0.000000"></div>
-                        </div>
-
-                        <div class="row g-2 mb-3">
-                            <div class="col-md-3"><label class="fw-bold extra-small">Process:</label></div>
-                            <div class="col-md-9">
-                                <div class="d-flex flex-wrap gap-3">
-                                    <div class="form-check"><input class="form-check-input visible-check" type="checkbox" id="p1"><label class="form-check-label extra-small" for="p1">Injection</label></div>
-                                    <div class="form-check"><input class="form-check-input visible-check" type="checkbox" id="p2"><label class="form-check-label extra-small" for="p2">Blow-Molding</label></div>
-                                    <div class="form-check"><input class="form-check-input visible-check" type="checkbox" id="p3"><label class="form-check-label extra-small" for="p3">Film</label></div>
-                                    <div class="form-check"><input class="form-check-input visible-check" type="checkbox" id="p4"><label class="form-check-label extra-small" for="p4">Pipe Extrusion</label></div>
+                        <!-- Date Created & Required Date -->
+                        <div class="row g-2 mb-2">
+                            <div class="col-6">
+                                <label class="fw-bold extra-small">Created:</label>
+                                <div class="input-group input-group-sm flatpickr-container" data-wrap="true">
+                                    <input type="text" name="date_created" class="form-control uniform-input date-picker-single" placeholder="MM/DD/YYYY" data-input>
+                                    <span class="input-group-text uniform-input border-start-0" data-toggle><i class="bi bi-calendar3"></i></span>
                                 </div>
-                                <div class="d-flex align-items-center gap-2 mt-2">
-                                    <div class="form-check mb-0"><input class="form-check-input visible-check" type="checkbox" id="p5"><label class="form-check-label extra-small" for="p5">Others:</label></div>
-                                    <input type="text" class="form-control form-control-sm uniform-input" placeholder="Specify..." style="height: 26px;">
+                            </div>
+                            <div class="col-6">
+                                <label class="fw-bold extra-small">Required:</label>
+                                <div class="input-group input-group-sm flatpickr-container" data-wrap="true">
+                                    <input type="text" name="required_date" class="form-control uniform-input date-picker-single" placeholder="MM/DD/YYYY" data-input>
+                                    <span class="input-group-text uniform-input border-start-0" data-toggle><i class="bi bi-calendar3"></i></span>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="row g-2 mb-3">
-                            <div class="col-md-3"><label class="fw-bold extra-small">Colorant Type:</label></div>
-                            <div class="col-md-9 d-flex align-items-center flex-wrap gap-3">
+                        <!-- Date Received & Due Date -->
+                        <div class="row g-2 mb-2">
+                            <div class="col-6">
+                                <label class="fw-bold extra-small">Received:</label>
+                                <div class="input-group input-group-sm flatpickr-container" data-wrap="true">
+                                    <input type="text" name="date_received" class="form-control uniform-input date-picker-single" placeholder="MM/DD/YYYY" data-input>
+                                    <span class="input-group-text uniform-input border-start-0" data-toggle><i class="bi bi-calendar3"></i></span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <label class="fw-bold extra-small">Due Date:</label>
+                                <div class="input-group input-group-sm flatpickr-container" data-wrap="true">
+                                    <input type="text" name="due_date" class="form-control uniform-input date-picker-single" placeholder="MM/DD/YYYY" data-input>
+                                    <span class="input-group-text uniform-input border-start-0" data-toggle><i class="bi bi-calendar3"></i></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-2">
+                            <label class="fw-bold extra-small">Product Code(s):</label>
+                            <input type="text" class="form-control form-control-sm uniform-input">
+                        </div>
+
+                        <div class="mb-2">
+                            <label class="fw-bold extra-small">Color Description:</label>
+                            <input type="text" class="form-control form-control-sm uniform-input">
+                        </div>
+
+                        <div class="mb-2">
+                            <label class="fw-bold extra-small">Finished Product:</label>
+                            <input type="text" class="form-control form-control-sm uniform-input">
+                        </div>
+
+                        <div class="mb-2">
+                            <label class="fw-bold extra-small">Matching Type:</label>
+                            <input type="text" class="form-control form-control-sm uniform-input">
+                        </div>
+
+                        <div class="mb-2">
+                            <label class="fw-bold extra-small">Sales Person:</label>
+                            <input type="text" class="form-control form-control-sm uniform-input">
+                        </div>
+                    </div>
+
+                    <!-- RIGHT COLUMN -->
+                    <div class="col-lg-6">
+                        <div class="mb-2">
+                            <label class="fw-bold extra-small">Resin:</label>
+                            <input type="text" class="form-control form-control-sm uniform-input">
+                        </div>
+
+                        <div class="mb-2">
+                            <label class="fw-bold extra-small">Dosage (%):</label>
+                            <input type="text" class="form-control form-control-sm uniform-input" placeholder="0.000000">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="fw-bold extra-small d-block mb-1">Process:</label>
+                            <div class="d-flex flex-wrap gap-3">
+                                <div class="form-check"><input class="form-check-input visible-check" type="checkbox" id="p1"><label class="form-check-label extra-small" for="p1">Injection</label></div>
+                                <div class="form-check"><input class="form-check-input visible-check" type="checkbox" id="p2"><label class="form-check-label extra-small" for="p2">Blow-Molding</label></div>
+                                <div class="form-check"><input class="form-check-input visible-check" type="checkbox" id="p3"><label class="form-check-label extra-small" for="p3">Film</label></div>
+                                <div class="form-check"><input class="form-check-input visible-check" type="checkbox" id="p4"><label class="form-check-label extra-small" for="p4">Pipe Extrusion</label></div>
+                            </div>
+                            <div class="d-flex align-items-center gap-2 mt-2">
+                                <div class="form-check mb-0"><input class="form-check-input visible-check" type="checkbox" id="p5"><label class="form-check-label extra-small" for="p5">Others:</label></div>
+                                <input type="text" class="form-control form-control-sm uniform-input" placeholder="Specify..." style="height: 26px;">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="fw-bold extra-small d-block mb-1">Colorant Type:</label>
+                            <div class="d-flex align-items-center flex-wrap gap-3">
                                 <div class="form-check"><input class="form-check-input visible-check" type="radio" name="ctype" id="mb"><label class="form-check-label extra-small" for="mb">MB</label></div>
                                 <div class="form-check"><input class="form-check-input visible-check" type="radio" name="ctype" id="dc"><label class="form-check-label extra-small" for="dc">DC</label></div>
                                 <div class="d-flex align-items-center gap-2">
@@ -108,21 +127,19 @@ RS Entry
                             </div>
                         </div>
 
-                        <div class="row g-2">
-                            <div class="col-md-3"><label class="fw-bold extra-small">Color Requirement:</label></div>
-                            <div class="col-md-9">
-                                <div class="d-flex flex-wrap gap-3 mb-2">
-                                    <div class="form-check"><input class="form-check-input visible-check" type="radio" name="creq" id="cr1"><label class="form-check-label extra-small" for="cr1">Transparent</label></div>
-                                    <div class="form-check"><input class="form-check-input visible-check" type="radio" name="creq" id="cr2"><label class="form-check-label extra-small" for="cr2">Opaque</label></div>
-                                    <div class="form-check"><input class="form-check-input visible-check" type="radio" name="creq" id="cr3"><label class="form-check-label extra-small" for="cr3">Translucent</label></div>
-                                    <div class="form-check"><input class="form-check-input visible-check" type="radio" name="creq" id="cr4"><label class="form-check-label extra-small" for="cr4">Metallic</label></div>
-                                    <div class="form-check"><input class="form-check-input visible-check" type="radio" name="creq" id="cr5"><label class="form-check-label extra-small" for="cr5">Fluorescent</label></div>
-                                    <div class="form-check"><input class="form-check-input visible-check" type="radio" name="creq" id="cr6"><label class="form-check-label extra-small" for="cr6">Pearlescent</label></div>
-                                </div>
-                                <div class="d-flex align-items-center gap-2">
-                                    <div class="form-check mb-0"><input class="form-check-input visible-check" type="radio" name="creq" id="cr7"><label class="form-check-label extra-small" for="cr7">Others:</label></div>
-                                    <input type="text" class="form-control form-control-sm uniform-input" placeholder="Specify..." style="height: 26px;">
-                                </div>
+                        <div class="mb-0">
+                            <label class="fw-bold extra-small d-block mb-1">Color Requirement:</label>
+                            <div class="d-flex flex-wrap gap-3 mb-2">
+                                <div class="form-check"><input class="form-check-input visible-check" type="radio" name="creq" id="cr1"><label class="form-check-label extra-small" for="cr1">Transparent</label></div>
+                                <div class="form-check"><input class="form-check-input visible-check" type="radio" name="creq" id="cr2"><label class="form-check-label extra-small" for="cr2">Opaque</label></div>
+                                <div class="form-check"><input class="form-check-input visible-check" type="radio" name="creq" id="cr3"><label class="form-check-label extra-small" for="cr3">Translucent</label></div>
+                                <div class="form-check"><input class="form-check-input visible-check" type="radio" name="creq" id="cr4"><label class="form-check-label extra-small" for="cr4">Metallic</label></div>
+                                <div class="form-check"><input class="form-check-input visible-check" type="radio" name="creq" id="cr5"><label class="form-check-label extra-small" for="cr5">Fluorescent</label></div>
+                                <div class="form-check"><input class="form-check-input visible-check" type="radio" name="creq" id="cr6"><label class="form-check-label extra-small" for="cr6">Pearlescent</label></div>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="form-check mb-0"><input class="form-check-input visible-check" type="radio" name="creq" id="cr7"><label class="form-check-label extra-small" for="cr7">Others:</label></div>
+                                <input type="text" class="form-control form-control-sm uniform-input" placeholder="Specify..." style="height: 26px;">
                             </div>
                         </div>
                     </div>
