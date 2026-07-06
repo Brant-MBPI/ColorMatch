@@ -27,38 +27,116 @@
 
 body.dark-mode .cmf-entry-card { border-color: var(--sidebar-border); }
 
-/* Fix input groups to match your uniform-input style */
-.input-group-text.uniform-input {
-    cursor: pointer;
-    border: 1px solid #cbd5e1 !important;
-    border-left: none !important; /* Merge with the input */
+/* Merging the input and the calendar icon */
+/* Ensure the calendar doesn't appear white in dark mode */
+body.dark-mode .flatpickr-calendar {
+    background-color: #1e293b !important;
+    border: 1px solid #334155 !important;
+    color: #f8fafc !important;
+    box-shadow: 0 3px 13px rgba(0, 0, 0, 0.4) !important;
 }
 
-body.dark-mode .input-group-text.uniform-input {
+/* Arrow pointing to the input */
+body.dark-mode .flatpickr-calendar.arrowTop:before,
+body.dark-mode .flatpickr-calendar.arrowTop:after {
+    border-bottom-color: #1e293b !important;
+}
+
+/* Month header bar */
+body.dark-mode .flatpickr-months .flatpickr-month {
+    background-color: #1e293b !important;
+    color: #f8fafc !important;
+    fill: #f8fafc !important;
+}
+
+body.dark-mode .flatpickr-current-month {
+    color: #f8fafc !important;
+}
+
+body.dark-mode .flatpickr-current-month input.cur-year {
+    background-color: transparent !important;
+    color: #f8fafc !important;
+}
+
+body.dark-mode .flatpickr-monthDropdown-months {
+    background-color: #1e293b !important;
+    color: #f8fafc !important;
+}
+
+body.dark-mode .flatpickr-monthDropdown-months .flatpickr-monthDropdown-month {
+    background-color: #1e293b !important;
+    color: #f8fafc !important;
+}
+
+/* Prev/Next month arrows */
+body.dark-mode .flatpickr-prev-month svg,
+body.dark-mode .flatpickr-next-month svg {
+    fill: #94a3b8 !important;
+}
+
+body.dark-mode .flatpickr-prev-month:hover svg,
+body.dark-mode .flatpickr-next-month:hover svg {
+    fill: #f8fafc !important;
+}
+
+/* Weekday row */
+body.dark-mode .flatpickr-weekdays {
+    background-color: #1e293b !important;
+}
+
+body.dark-mode span.flatpickr-weekday {
+    background-color: #1e293b !important;
+    color: #94a3b8 !important;
+}
+
+/* Day cells */
+body.dark-mode .flatpickr-day {
+    color: #f8fafc !important;
+}
+
+body.dark-mode .flatpickr-day.prevMonthDay,
+body.dark-mode .flatpickr-day.nextMonthDay {
+    color: #475569 !important;
+}
+
+body.dark-mode .flatpickr-day.flatpickr-disabled,
+body.dark-mode .flatpickr-day.flatpickr-disabled:hover {
+    color: #334155 !important;
+}
+
+body.dark-mode .flatpickr-day:hover,
+body.dark-mode .flatpickr-day.nextMonthDay:hover,
+body.dark-mode .flatpickr-day.prevMonthDay:hover {
     background-color: #334155 !important;
     border-color: #334155 !important;
     color: #f8fafc !important;
 }
 
-/* Ensure Flatpickr calendar is dark */
-body.dark-mode .flatpickr-calendar {
-    background: #1e293b !important;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5) !important;
-    border: 1px solid #334155 !important;
+/* Today's date */
+body.dark-mode .flatpickr-day.today {
+    border-color: #0d9488 !important;
 }
 
-body.dark-mode .flatpickr-day, 
-body.dark-mode .flatpickr-months .flatpickr-month,
-body.dark-mode .flatpickr-current-month .flatpickr-monthDropdown-months {
-    color: #f8fafc !important;
-    fill: #f8fafc !important;
+body.dark-mode .flatpickr-day.today:hover {
+    background-color: #0d9488 !important;
+    color: #ffffff !important;
 }
 
-body.dark-mode .flatpickr-day.selected {
-    background: var(--sidebar-header-bg) !important;
-    border-color: var(--sidebar-header-bg) !important;
+/* Selected date */
+body.dark-mode .flatpickr-day.selected,
+body.dark-mode .flatpickr-day.selected:hover,
+body.dark-mode .flatpickr-day.startRange,
+body.dark-mode .flatpickr-day.startRange:hover,
+body.dark-mode .flatpickr-day.endRange,
+body.dark-mode .flatpickr-day.endRange:hover {
+    background-color: #0d9488 !important;
+    border-color: #0d9488 !important;
+    color: #ffffff !important;
 }
 
-body.dark-mode .flatpickr-day:hover {
-    background: #334155 !important;
+/* Multi-select mode (Date Received) selected day range fill */
+body.dark-mode .flatpickr-day.inRange {
+    background-color: rgba(13, 148, 136, 0.25) !important;
+    border-color: rgba(13, 148, 136, 0.25) !important;
+    box-shadow: -5px 0 0 rgba(13, 148, 136, 0.25), 5px 0 0 rgba(13, 148, 136, 0.25) !important;
 }

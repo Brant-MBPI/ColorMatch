@@ -1,52 +1,41 @@
 document.addEventListener('DOMContentLoaded', function() {
-    
-    // 1. Standard Single Date Pickers (Created & Due)
-    flatpickr(".date-picker-single", {
-        dateFormat: "d/m/Y",
-        allowInput: true,
-        disableMobile: true
-    });
 
-    // 2. Multiple Date Picker (Received)
-    flatpickr(".date-picker-multiple", {
-        mode: "multiple",
-        dateFormat: "d/m/Y",
-        conjunction: ", ",
-        allowInput: true,
-        disableMobile: true
-    });
+    // Sentinel date used internally to represent "ASAP"
+    const ASAP_SENTINEL = new Date(8640000000000000);
 
-    // 3. ASAP Logic (Required Date)
-    const asapPicker = flatpickr(".date-picker-asap", {
-        dateFormat: "d/m/Y",
-        allowInput: true,
-        disableMobile: true,
-        onClose: function(selectedDates, dateStr, instance) {
-            const val = instance.input.value.toUpperCase();
-            if (val === "ASAP") {
-                instance.input.value = "ASAP";
-            }
+    document.querySelectorAll('.flatpickr-container').forEach(container => {
+        const input = container.querySelector('input');
+
+        let options = {
+            wrap: true,
+            allowInput: true,
+            dateFormat: "m/d/Y",
+            disableMobile: true,
+        };
+
+        if (input.classList.contains('date-picker-multiple')) {
+            options.mode = "multiple";
+            options.conjunction = ", ";
         }
-    });
 
-    // Handle manual typing of "ASAP"
-    document.querySelector('.date-picker-asap').addEventListener('blur', function() {
-        const val = this.value.toUpperCase();
-        if (val.includes("ASAP")) {
-            this.value = "ASAP";
-        } else {
-            // If it's not ASAP and not a valid date, Flatpickr usually clears it
-            // but we ensure it remains strict here if needed.
+        if (input.classList.contains('date-picker-asap')) {
+            // Teach Flatpickr that "ASAP" IS a valid parsed value
+            options.parseDate = function(datestr, format) {
+                if (datestr.trim().toUpperCase() === "ASAP") {
+                    return ASAP_SENTINEL;
+                }
+                return flatpickr.parseDate(datestr, format);
+            };
+
+            // Teach Flatpickr to render the sentinel back out as "ASAP"
+            options.formatDate = function(date, format) {
+                if (date.getTime() === ASAP_SENTINEL.getTime()) {
+                    return "ASAP";
+                }
+                return flatpickr.formatDate(date, format);
+            };
         }
-    });
 
-    // Global: Make the calendar icon trigger the picker
-    document.querySelectorAll('.input-group-text').forEach(icon => {
-        icon.addEventListener('click', function() {
-            const input = this.parentElement.querySelector('input');
-            if (input._flatpickr) {
-                input._flatpickr.open();
-            }
-        });
+        flatpickr(container, options);
     });
 });
