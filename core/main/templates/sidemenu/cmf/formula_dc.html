@@ -43,7 +43,12 @@ Formula DC
                         </div>
                         <div class="row g-2 align-items-center mb-2">
                             <div class="col-5"><label class="extra-small fw-bold">Date Matched:</label></div>
-                            <div class="col-7"><input type="date" name="date_matched" id="id_dc_date_matched" class="form-control form-control-sm uniform-input"></div>
+                            <div class="col-7">
+                                <div class="input-group input-group-sm flatpickr-container" data-wrap="true">
+                                    <input type="text" name="date_matched" id="id_dc_date_matched" class="form-control uniform-input date-picker-single" placeholder="MM/DD/YYYY" data-input>
+                                    <span class="input-group-text uniform-input border-start-0" data-toggle><i class="bi bi-calendar3"></i></span>
+                                </div>
+                            </div>
                         </div>
                         <div class="row g-2 align-items-center mb-2">
                             <div class="col-5"><label class="extra-small fw-bold">Dosage:</label></div>

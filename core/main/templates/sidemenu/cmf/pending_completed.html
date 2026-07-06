@@ -16,106 +16,135 @@ Pending/Completed Forms
                 <div class="row g-4">
                     <!-- LEFT COLUMN -->
                     <div class="col-lg-6">
-                        <div class="row g-2 align-items-center mb-3">
-                            <div class="col-md-3"><label class="fw-bold extra-small">Matching No:</label></div>
-                            <div class="col-md-9"><input type="text" class="form-control form-control-sm uniform-input readonly-input" value="CMF-24-001" readonly></div>
+                        <div class="mb-3">
+                            <label class="fw-bold extra-small">Matching No:</label>
+                            <input type="text" class="form-control form-control-sm uniform-input readonly-input" value="CMF-24-001" readonly>
                         </div>
 
-                        <div class="row g-2 align-items-center mb-3">
-                            <div class="col-md-3"><label class="fw-bold extra-small">Customer:</label></div>
-                            <div class="col-md-9"><input type="text" class="form-control form-control-sm uniform-input readonly-input" value="Sample Customer Name" readonly></div>
+                        <div class="mb-3">
+                            <label class="fw-bold extra-small">Customer:</label>
+                            <input type="text" class="form-control form-control-sm uniform-input readonly-input" value="Sample Customer Name" readonly>
                         </div>
 
-                        <!-- Fixed Date Created / Required Row -->
-                        <div class="row g-2 align-items-center mb-3">
-                            <div class="col-md-3"><label class="fw-bold extra-small">Date Created:</label></div>
-                            <div class="col-md-4"><input type="date" class="form-control form-control-sm uniform-input"></div>
-                            <div class="col-md-1 px-0 text-center"><label class="fw-bold extra-small">Req:</label></div>
-                            <div class="col-md-4"><input type="date" class="form-control form-control-sm uniform-input"></div>
+                        <!-- Date Created & Required -->
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="fw-bold extra-small">Date Created:</label>
+                                <div class="input-group input-group-sm flatpickr-container" data-wrap="true">
+                                    <input type="text" name="date_created" class="form-control uniform-input date-picker-single" placeholder="MM/DD/YYYY" data-input>
+                                    <span class="input-group-text uniform-input border-start-0" data-toggle><i class="bi bi-calendar3"></i></span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <label class="fw-bold extra-small">Required:</label>
+                                <div class="input-group input-group-sm flatpickr-container" data-wrap="true">
+                                    <input type="text" name="required_date" class="form-control uniform-input date-picker-single" placeholder="MM/DD/YYYY or ASAP" data-input>
+                                    <span class="input-group-text uniform-input border-start-0" data-toggle><i class="bi bi-calendar3"></i></span>
+                                </div>
+                            </div>
                         </div>
 
-                        <!-- FIXED Date Received / Due Date Row -->
-                        <div class="row g-2 align-items-center mb-3">
-                            <div class="col-md-3"><label class="fw-bold extra-small">Date Received:</label></div>
-                            <div class="col-md-4"><input type="date" class="form-control form-control-sm uniform-input"></div>
-                            <div class="col-md-1 px-0 text-center"><label class="fw-bold extra-small">Due:</label></div>
-                            <div class="col-md-4"><input type="date" class="form-control form-control-sm uniform-input"></div>
+                        <!-- Date Received & Due Date -->
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="fw-bold extra-small">Date Received:</label>
+                                <div class="input-group input-group-sm flatpickr-container" data-wrap="true">
+                                    <input type="text" name="date_received" class="form-control uniform-input date-picker-multiple" placeholder="MM/DD/YYYY, MM/DD/YYYY" data-input>
+                                    <span class="input-group-text uniform-input border-start-0" data-toggle><i class="bi bi-calendar3"></i></span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <label class="fw-bold extra-small">Due Date:</label>
+                                <div class="input-group input-group-sm flatpickr-container" data-wrap="true">
+                                    <input type="text" name="due_date" class="form-control uniform-input date-picker-single" placeholder="MM/DD/YYYY" data-input>
+                                    <span class="input-group-text uniform-input border-start-0" data-toggle><i class="bi bi-calendar3"></i></span>
+                                </div>
+                            </div>
                         </div>
 
-                        <div class="row g-2 align-items-center mb-3">
-                            <div class="col-md-3"><label class="fw-bold extra-small">Finished Product:</label></div>
-                            <div class="col-md-9"><input type="text" class="form-control form-control-sm uniform-input"></div>
+                        <div class="mb-3">
+                            <label class="fw-bold extra-small">Finished Product:</label>
+                            <input type="text" class="form-control form-control-sm uniform-input">
                         </div>
 
-                        <div class="row g-2 align-items-center mb-3">
-                            <div class="col-md-3"><label class="fw-bold extra-small">Color Description:</label></div>
-                            <div class="col-md-9"><input type="text" class="form-control form-control-sm uniform-input"></div>
+                        <div class="mb-3">
+                            <label class="fw-bold extra-small">Color Description:</label>
+                            <input type="text" class="form-control form-control-sm uniform-input">
                         </div>
 
-                        <div class="row g-2 align-items-center mb-3">
-                            <div class="col-md-3"><label class="fw-bold extra-small">Matching Type:</label></div>
-                            <div class="col-md-9"><input type="text" class="form-control form-control-sm uniform-input"></div>
+                        <div class="mb-3">
+                            <label class="fw-bold extra-small">Matching Type:</label>
+                            <input type="text" class="form-control form-control-sm uniform-input">
                         </div>
 
-                        <div class="row g-2 align-items-center mb-3">
-                            <div class="col-md-3"><label class="fw-bold extra-small">Sales Person:</label></div>
-                            <div class="col-md-9"><input type="text" class="form-control form-control-sm uniform-input"></div>
+                        <div class="mb-0">
+                            <label class="fw-bold extra-small">Sales Person:</label>
+                            <input type="text" class="form-control form-control-sm uniform-input">
                         </div>
                     </div>
 
                     <!-- RIGHT COLUMN -->
                     <div class="col-lg-6">
-                        <div class="row g-2 align-items-center mb-3">
-                            <div class="col-md-3"><label class="fw-bold extra-small">Current Status:</label></div>
-                            <div class="col-md-9">
-                                <select class="form-select form-select-sm uniform-input">
-                                    <option value="Pending">Pending</option>
-                                    <option value="Completed">Completed</option>
-                                    <option value="In Progress">In Progress</option>
-                                </select>
+                        <div class="mb-3">
+                            <label class="fw-bold extra-small">Current Status:</label>
+                            <select class="form-select form-select-sm uniform-input">
+                                <option value="Pending">Pending</option>
+                                <option value="Completed">Completed</option>
+                                <option value="In Progress">In Progress</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="fw-bold extra-small">Pending Reason:</label>
+                            <input type="text" class="form-control form-control-sm uniform-input">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="fw-bold extra-small">Product Code:</label>
+                            <input type="text" class="form-control form-control-sm uniform-input">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="fw-bold extra-small">Code Description:</label>
+                            <input type="text" class="form-control form-control-sm uniform-input">
+                        </div>
+
+                        <!-- Set-Pc & Qty Given -->
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="fw-bold extra-small">Set-Pc:</label>
+                                <input type="text" class="form-control form-control-sm uniform-input" placeholder="Qty">
+                            </div>
+                            <div class="col-6">
+                                <label class="fw-bold extra-small">Qty Given:</label>
+                                <input type="text" class="form-control form-control-sm uniform-input" placeholder="KG">
                             </div>
                         </div>
 
-                        <div class="row g-2 align-items-center mb-3">
-                            <div class="col-md-3"><label class="fw-bold extra-small text-nowrap">Pending Reason:</label></div>
-                            <div class="col-md-9"><input type="text" class="form-control form-control-sm uniform-input"></div>
+                        <div class="mb-3">
+                            <label class="fw-bold extra-small">Date Submitted:</label>
+                            <div class="input-group input-group-sm flatpickr-container" data-wrap="true">
+                                <input type="text" name="date_submitted" class="form-control uniform-input date-picker-single" placeholder="MM/DD/YYYY" data-input>
+                                <span class="input-group-text uniform-input border-start-0" data-toggle><i class="bi bi-calendar3"></i></span>
+                            </div>
                         </div>
 
-                        <div class="row g-2 align-items-center mb-3">
-                            <div class="col-md-3"><label class="fw-bold extra-small">Product Code:</label></div>
-                            <div class="col-md-9"><input type="text" class="form-control form-control-sm uniform-input"></div>
+                        <div class="mb-3">
+                            <label class="fw-bold extra-small">Lot No.:</label>
+                            <input type="text" class="form-control form-control-sm uniform-input">
                         </div>
 
-                        <div class="row g-2 align-items-center mb-3">
-                            <div class="col-md-3"><label class="fw-bold extra-small">Code Description:</label></div>
-                            <div class="col-md-9"><input type="text" class="form-control form-control-sm uniform-input"></div>
+                        <div class="mb-3">
+                            <label class="fw-bold extra-small">AR No.:</label>
+                            <input type="text" class="form-control form-control-sm uniform-input">
                         </div>
 
-                        <div class="row g-2 align-items-center mb-3">
-                            <div class="col-md-3"><label class="fw-bold extra-small">Set-Pc:</label></div>
-                            <div class="col-md-3"><input type="text" class="form-control form-control-sm uniform-input" placeholder="Qty"></div>
-                            <div class="col-auto px-1"><label class="fw-bold extra-small">Qty Given:</label></div>
-                            <div class="col-md-3 flex-grow-1"><input type="text" class="form-control form-control-sm uniform-input" placeholder="KG"></div>
-                        </div>
-
-                        <div class="row g-2 align-items-center mb-3">
-                            <div class="col-md-3"><label class="fw-bold extra-small">Date Submitted:</label></div>
-                            <div class="col-md-9"><input type="date" class="form-control form-control-sm uniform-input"></div>
-                        </div>
-
-                        <div class="row g-2 align-items-center mb-3">
-                            <div class="col-md-3"><label class="fw-bold extra-small">Lot No.:</label></div>
-                            <div class="col-md-9"><input type="text" class="form-control form-control-sm uniform-input"></div>
-                        </div>
-
-                        <div class="row g-2 align-items-center mb-3">
-                            <div class="col-md-3"><label class="fw-bold extra-small">AR No.:</label></div>
-                            <div class="col-md-9"><input type="text" class="form-control form-control-sm uniform-input"></div>
-                        </div>
-
-                        <div class="row g-2 align-items-center mb-3">
-                            <div class="col-md-3"><label class="fw-bold extra-small">AR Date:</label></div>
-                            <div class="col-md-9"><input type="date" class="form-control form-control-sm uniform-input"></div>
+                        <div class="mb-0">
+                            <label class="fw-bold extra-small">AR Date:</label>
+                            <div class="input-group input-group-sm flatpickr-container" data-wrap="true">
+                                <input type="text" name="ar_date" class="form-control uniform-input date-picker-single" placeholder="MM/DD/YYYY" data-input>
+                                <span class="input-group-text uniform-input border-start-0" data-toggle><i class="bi bi-calendar3"></i></span>
+                            </div>
                         </div>
                     </div>
                 </div>
