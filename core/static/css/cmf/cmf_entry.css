@@ -26,3 +26,39 @@
 }
 
 body.dark-mode .cmf-entry-card { border-color: var(--sidebar-border); }
+
+/* Fix input groups to match your uniform-input style */
+.input-group-text.uniform-input {
+    cursor: pointer;
+    border: 1px solid #cbd5e1 !important;
+    border-left: none !important; /* Merge with the input */
+}
+
+body.dark-mode .input-group-text.uniform-input {
+    background-color: #334155 !important;
+    border-color: #334155 !important;
+    color: #f8fafc !important;
+}
+
+/* Ensure Flatpickr calendar is dark */
+body.dark-mode .flatpickr-calendar {
+    background: #1e293b !important;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5) !important;
+    border: 1px solid #334155 !important;
+}
+
+body.dark-mode .flatpickr-day, 
+body.dark-mode .flatpickr-months .flatpickr-month,
+body.dark-mode .flatpickr-current-month .flatpickr-monthDropdown-months {
+    color: #f8fafc !important;
+    fill: #f8fafc !important;
+}
+
+body.dark-mode .flatpickr-day.selected {
+    background: var(--sidebar-header-bg) !important;
+    border-color: var(--sidebar-header-bg) !important;
+}
+
+body.dark-mode .flatpickr-day:hover {
+    background: #334155 !important;
+}

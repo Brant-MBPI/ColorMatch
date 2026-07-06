@@ -33,27 +33,41 @@ CMF Entry
                             </div>
                         </div>
                         
-                        <div class="row g-2 mb-2">
-                            <div class="col-6">
-                                <label class="fw-bold extra-small">Date Created:</label>
-                                <input type="date" class="form-control form-control-sm uniform-input">
-                            </div>
-                            <div class="col-6">
-                                <label class="fw-bold extra-small">Required Date:</label>
-                                <input type="date" class="form-control form-control-sm uniform-input">
-                            </div>
-                        </div>
+                        <!-- Date Created & Required Date -->
+<div class="row g-2 mb-2">
+    <div class="col-6">
+        <label class="fw-bold extra-small">Date Created:</label>
+        <div class="input-group input-group-sm">
+            <input type="text" name="date_created" class="form-control uniform-input date-picker-single" placeholder="DD/MM/YYYY">
+            <span class="input-group-text uniform-input border-start-0"><i class="bi bi-calendar3"></i></span>
+        </div>
+    </div>
+    <div class="col-6">
+        <label class="fw-bold extra-small">Required Date:</label>
+        <div class="input-group input-group-sm">
+            <input type="text" name="required_date" class="form-control uniform-input date-picker-asap" placeholder="DD/MM/YYYY or ASAP">
+            <span class="input-group-text uniform-input border-start-0"><i class="bi bi-calendar3"></i></span>
+        </div>
+    </div>
+</div>
 
-                        <div class="row g-2 mb-2">
-                            <div class="col-6">
-                                <label class="fw-bold extra-small">Date Received:</label>
-                                <input type="date" class="form-control form-control-sm uniform-input">
-                            </div>
-                            <div class="col-6">
-                                <label class="fw-bold extra-small">Due Date:</label>
-                                <input type="date" class="form-control form-control-sm uniform-input">
-                            </div>
-                        </div>
+<!-- Date Received & Due Date -->
+<div class="row g-2 mb-2">
+    <div class="col-6">
+        <label class="fw-bold extra-small">Date Received:</label>
+        <div class="input-group input-group-sm">
+            <input type="text" name="date_received" class="form-control uniform-input date-picker-multiple" placeholder="Select multiple dates...">
+            <span class="input-group-text uniform-input border-start-0"><i class="bi bi-calendar3"></i></span>
+        </div>
+    </div>
+    <div class="col-6">
+        <label class="fw-bold extra-small">Due Date:</label>
+        <div class="input-group input-group-sm">
+            <input type="text" name="due_date" class="form-control uniform-input date-picker-single" placeholder="DD/MM/YYYY">
+            <span class="input-group-text uniform-input border-start-0"><i class="bi bi-calendar3"></i></span>
+        </div>
+    </div>
+</div>
 
                         <div class="mb-2">
                             <label class="fw-bold extra-small d-block mb-1">Matching Type:</label>
