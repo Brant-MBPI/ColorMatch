@@ -1,0 +1,41 @@
+/* Custom Dropzone Container */
+.custom-dropzone-box {
+    border: 2px dashed #cbd5e1 !important;
+    border-radius: 0.8rem !important;
+    background-color: var(--main-bg) !important;
+    min-height: 220px !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.custom-dropzone-box:hover {
+    border-color: var(--sidebar-header-bg) !important;
+    background-color: rgba(13, 148, 136, 0.02) !important;
+}
+
+/* Dark Mode Overrides */
+body.dark-mode .custom-dropzone-box {
+    background-color: #0f172a !important;
+    border-color: #334155 !important;
+}
+
+body.dark-mode .dz-preview {
+    background: #1e293b !important;
+    color: #f8fafc !important;
+}
+
+/* Dropzone Inner Styling */
+.dropzone .dz-preview .dz-error-message {
+    top: 150px !important;
+}
+
+.dropzone .dz-preview .dz-details .dz-size {
+    font-size: 11px !important;
+    margin-bottom: 5px;
+}
+
+.text-teal {
+    color: var(--sidebar-header-bg) !important;
+}
