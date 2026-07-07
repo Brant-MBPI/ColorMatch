@@ -1,41 +1,102 @@
-/* Custom Dropzone Container */
+/* --- Dropzone Main Container --- */
 .custom-dropzone-box {
     border: 2px dashed #cbd5e1 !important;
     border-radius: 0.8rem !important;
     background-color: var(--main-bg) !important;
     min-height: 220px !important;
+    transition: all 0.3s ease;
+    padding: 20px !important;
+    
+    /* Center the uploaded file boxes */
+    display: flex !important;
+    flex-wrap: wrap;
+    justify-content: center; 
+    align-content: center;
+    gap: 15px;
+}
+
+/* --- Individual File Box --- */
+.dropzone .dz-preview {
+    margin: 0 !important; 
+    background: var(--card-bg) !important;
+    border: 1px solid var(--sidebar-border) !important;
+    border-radius: 0.6rem !important;
+    padding: 12px !important;
+    width: 140px !important; 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+/* --- THE TEAL BOX (Image/Icon Container) --- */
+.dropzone .dz-preview .dz-image {
+    border-radius: 0.4rem !important;
+    width: 90px !important;
+    height: 90px !important;
+    /* Teal Theme for the box */
+    background: rgba(13, 148, 136, 0.1) !important; 
+    border: 1px solid var(--sidebar-header-bg) !important;
     display: flex !important;
     align-items: center;
     justify-content: center;
-    transition: all 0.3s ease;
+    margin: 0 auto 10px auto !important;
+    z-index: 1;
 }
 
-.custom-dropzone-box:hover {
-    border-color: var(--sidebar-header-bg) !important;
-    background-color: rgba(13, 148, 136, 0.02) !important;
+/* --- Filename & Size Details --- */
+.dropzone .dz-preview .dz-details {
+    position: relative !important; /* Prevents covering the image */
+    opacity: 1 !important;
+    padding: 0 !important;
+    text-align: center !important;
+    background: transparent !important;
+    width: 100%;
+    color: var(--text-main) !important;
 }
 
-/* Dark Mode Overrides */
-body.dark-mode .custom-dropzone-box {
-    background-color: #0f172a !important;
-    border-color: #334155 !important;
-}
-
-body.dark-mode .dz-preview {
-    background: #1e293b !important;
-    color: #f8fafc !important;
-}
-
-/* Dropzone Inner Styling */
-.dropzone .dz-preview .dz-error-message {
-    top: 150px !important;
+.dropzone .dz-preview .dz-details .dz-filename {
+    font-size: 0.75rem !important;
+    font-weight: 700 !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 2px;
 }
 
 .dropzone .dz-preview .dz-details .dz-size {
-    font-size: 11px !important;
-    margin-bottom: 5px;
+    font-size: 0.65rem !important;
+    color: var(--text-muted);
 }
 
-.text-teal {
-    color: var(--sidebar-header-bg) !important;
+/* --- REMOVE BUTTON (RED) --- */
+.dropzone .dz-preview .dz-remove {
+    margin-top: 10px !important;
+    font-size: 0.7rem !important;
+    text-transform: uppercase;
+    font-weight: 800 !important;
+    color: #dc3545 !important; /* Pure Red */
+    text-decoration: none !important;
+    border: 1px solid #dc3545;
+    padding: 2px 8px;
+    border-radius: 4px;
+    transition: all 0.2s;
 }
+
+.dropzone .dz-preview .dz-remove:hover {
+    background-color: #dc3545;
+    color: white !important;
+}
+
+/* --- Dark Mode Support --- */
+body.dark-mode .dropzone .dz-preview {
+    background: #0f172a !important;
+    border-color: #334155 !important;
+}
+
+body.dark-mode .dropzone .dz-preview .dz-image {
+    background: rgba(13, 148, 136, 0.2) !important;
+}
+
+/* Hide default Dropzone success/error icons */
+.dz-success-mark, .dz-error-mark { display: none !important; }
