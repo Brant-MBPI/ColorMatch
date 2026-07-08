@@ -14,12 +14,20 @@ Color Matching Records
 
         <div class="col-md-2">
             <select class="form-select form-select-sm uniform-input">
-                <option selected>Filter By</option>
-                <option>CMF No.</option>
-                <option>Primary Color</option>
-                <option>Customer</option>
-                <option>Product Code</option>
-                <option>All Fields</option>
+                <option selected>All Fields</option>
+                <option>{{ col_no_label }}</option>
+                {% if 1 in active_cols %}<option>Customer</option>{% endif %}
+                {% if 2 in active_cols %}<option>Primary Color</option>{% endif %}
+                {% if 3 in active_cols %}<option>Color Description</option>{% endif %}
+                {% if 4 in active_cols %}<option>Finished Product</option>{% endif %}
+                {% if 5 in active_cols %}<option>Required Date</option>{% endif %}
+                {% if 6 in active_cols %}<option>Target Date</option>{% endif %}
+                {% if 7 in active_cols %}<option>Matching Type</option>{% endif %}
+                {% if 8 in active_cols %}<option>Product Code</option>{% endif %}
+                {% if 9 in active_cols %}<option>Status</option>{% endif %}
+                {% if 10 in active_cols %}<option>Submitted Date</option>{% endif %}
+                {% if 11 in active_cols %}<option>AR No.</option>{% endif %}
+                {% if 12 in active_cols %}<option>Reason</option>{% endif %}
             </select>
         </div>
 
