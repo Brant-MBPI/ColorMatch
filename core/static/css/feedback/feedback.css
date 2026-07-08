@@ -9,6 +9,35 @@
     gap: 5px;
 }
 
+/* --- Keep tabs in one row on mobile --- */
+.feedback-nav-tabs {
+    flex-wrap: nowrap !important;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Firefox */
+}
+
+.feedback-nav-tabs::-webkit-scrollbar {
+    display: none; /* Chrome/Safari */
+}
+
+.feedback-nav-tabs .nav-item {
+    flex: 0 0 auto; /* prevent items from shrinking/wrapping */
+}
+
+@media (max-width: 575.98px) {
+    .feedback-nav-tabs .nav-link {
+        padding: 10px 14px;
+        font-size: 0.72rem;
+        white-space: nowrap;
+    }
+
+    .feedback-nav-tabs .nav-link i {
+        margin-right: 6px !important;
+    }
+}
+
 /* Individual Tab Button */
 .feedback-nav-tabs .nav-link {
     color: var(--text-muted);
