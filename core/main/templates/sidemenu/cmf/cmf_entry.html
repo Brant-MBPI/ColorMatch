@@ -34,7 +34,40 @@ CMF Entry
                         </div>
                         
                         <!-- Date Created & Required Date -->
-                        
+                        <div class="row g-2 mb-2">
+                            <div class="col-6">
+                                <label class="fw-bold extra-small">Date Created:</label>
+                                <div class="input-group input-group-sm flatpickr-container" data-wrap="true">
+                                    <input type="text" name="date_created" class="form-control uniform-input date-picker-single" placeholder="MM/DD/YYYY" data-input>
+                                    <span class="input-group-text uniform-input border-start-0" data-toggle><i class="bi bi-calendar3"></i></span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <label class="fw-bold extra-small">Required Date:</label>
+                                <!-- This specific field allows "ASAP" -->
+                                <div class="input-group input-group-sm flatpickr-container" data-wrap="true">
+                                    <input type="text" name="required_date" class="form-control uniform-input date-picker-asap" placeholder="MM/DD/YYYY or ASAP" data-input>
+                                    <span class="input-group-text uniform-input border-start-0" data-toggle><i class="bi bi-calendar3"></i></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-2 mb-2">
+                            <div class="col-6">
+                                <label class="fw-bold extra-small">Date Received:</label>
+                                <div class="input-group input-group-sm flatpickr-container" data-wrap="true">
+                                    <input type="text" name="date_received" class="form-control uniform-input date-picker-multiple" placeholder="MM/DD/YYYY, MM/DD/YYYY" data-input>
+                                    <span class="input-group-text uniform-input border-start-0" data-toggle><i class="bi bi-calendar3"></i></span>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <label class="fw-bold extra-small">Due Date:</label>
+                                <div class="input-group input-group-sm flatpickr-container" data-wrap="true">
+                                    <input type="text" name="due_date" class="form-control uniform-input date-picker-single" placeholder="MM/DD/YYYY" data-input>
+                                    <span class="input-group-text uniform-input border-start-0" data-toggle><i class="bi bi-calendar3"></i></span>
+                                </div>
+                            </div>
+                        </div>
                         <div class="mb-2">
                             <label class="fw-bold extra-small d-block mb-1">Matching Type:</label>
                             <div class="form-check form-check-inline">
@@ -193,21 +226,25 @@ CMF Entry
                         </div>
                         <div class="mb-2">
                             <label class="fw-bold extra-small d-block mb-1">Other Specification:</label>
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="form-check form-check-inline mb-0">
+                            <!-- Added flex-wrap to allow dropping to next line -->
+                            <!-- Added row-gap-2 to prevent items from touching vertically when wrapped -->
+                            <div class="d-flex flex-wrap align-items-center gap-3 row-gap-2">
+                                <div class="form-check mb-0">
                                     <input class="form-check-input visible-check" type="checkbox" id="spec_food_contact">
                                     <label class="form-check-label extra-small" for="spec_food_contact">Food Contact</label>
                                 </div>
-                                <div class="form-check form-check-inline mb-0">
+                                <div class="form-check mb-0">
                                     <input class="form-check-input visible-check" type="checkbox" id="spec_sunlight_exposure">
                                     <label class="form-check-label extra-small" for="spec_sunlight_exposure">Sunlight Exposure</label>
                                 </div>
-                                <div class="d-flex align-items-center gap-1 mb-0">
+                                
+                                <!-- This div keeps the 'Others' checkbox and input field together as one unit -->
+                                <div class="d-flex align-items-center gap-1">
                                     <div class="form-check mb-0">
                                         <input class="form-check-input visible-check" type="checkbox" id="spec_others">
                                         <label class="form-check-label extra-small" for="spec_others">Others</label>
                                     </div>
-                                    <input type="text" class="form-control form-control-sm uniform-input" style="width: 100px; height: 26px;" placeholder="Specify">
+                                    <input type="text" class="form-control form-control-sm uniform-input" style="width: 110px; height: 26px;" placeholder="Specify">
                                 </div>
                             </div>
                         </div>
