@@ -13,18 +13,40 @@
                     <div class="col-md-9"><input type="text" name="customer" id="id_f_customer" class="form-control form-control-sm uniform-input"></div>
                 </div>
 
+                <!-- Date Created & Required Date Row -->
                 <div class="row g-2 align-items-center mb-3">
                     <div class="col-md-3"><label class="extra-small fw-bold">Date Created:</label></div>
-                    <div class="col-md-4"><input type="date" name="date_created" id="id_f_date_created" class="form-control form-control-sm uniform-input"></div>
+                    <div class="col-md-4">
+                        <div class="input-group input-group-sm flatpickr-container" data-wrap="true">
+                            <input type="text" name="date_created" id="id_f_date_created" class="form-control uniform-input date-picker-single" placeholder="MM/DD/YYYY" data-input>
+                            <span class="input-group-text uniform-input border-start-0" data-toggle><i class="bi bi-calendar3"></i></span>
+                        </div>
+                    </div>
                     <div class="col-md-1 px-0 text-center"><label class="extra-small">Req:</label></div>
-                    <div class="col-md-4"><input type="date" name="required_date" id="id_f_required_date" class="form-control form-control-sm uniform-input"></div>
+                    <div class="col-md-4">
+                        <div class="input-group input-group-sm flatpickr-container" data-wrap="true">
+                            <input type="text" name="required_date" id="id_f_required_date" class="form-control uniform-input date-picker-asap" placeholder="MM/DD/YYYY or ASAP" data-input>
+                            <span class="input-group-text uniform-input border-start-0" data-toggle><i class="bi bi-calendar3"></i></span>
+                        </div>
+                    </div>
                 </div>
 
+                <!-- Date Received & Due Date Row -->
                 <div class="row g-2 align-items-center mb-3">
                     <div class="col-md-3"><label class="extra-small fw-bold">Date Received:</label></div>
-                    <div class="col-md-4"><input type="date" name="date_received" id="id_f_date_received" class="form-control form-control-sm uniform-input"></div>
+                    <div class="col-md-4">
+                        <div class="input-group input-group-sm flatpickr-container" data-wrap="true">
+                            <input type="text" name="date_received" id="id_f_date_received" class="form-control uniform-input date-picker-multiple" placeholder="MM/DD/YYYY, MM/DD/YYYY" data-input>
+                            <span class="input-group-text uniform-input border-start-0" data-toggle><i class="bi bi-calendar3"></i></span>
+                        </div>
+                    </div>
                     <div class="col-md-1 px-0 text-center"><label class="extra-small">Due:</label></div>
-                    <div class="col-md-4"><input type="date" name="due_date" id="id_f_due_date" class="form-control form-control-sm uniform-input"></div>
+                    <div class="col-md-4">
+                        <div class="input-group input-group-sm flatpickr-container" data-wrap="true">
+                            <input type="text" name="due_date" id="id_f_due_date" class="form-control uniform-input date-picker-single" placeholder="MM/DD/YYYY" data-input>
+                            <span class="input-group-text uniform-input border-start-0" data-toggle><i class="bi bi-calendar3"></i></span>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="row g-2 align-items-center mb-3">
@@ -110,7 +132,12 @@
 
                 <div class="row g-2 align-items-center mb-3">
                     <div class="col-md-3"><label class="extra-small fw-bold">Date Submitted:</label></div>
-                    <div class="col-md-9"><input type="date" name="date_submitted" id="id_f_date_submitted" class="form-control form-control-sm uniform-input"></div>
+                    <div class="col-md-9">
+                        <div class="input-group input-group-sm flatpickr-container" data-wrap="true">
+                            <input type="text" name="date_submitted" id="id_f_date_submitted" class="form-control uniform-input date-picker-single" placeholder="MM/DD/YYYY" data-input>
+                            <span class="input-group-text uniform-input border-start-0" data-toggle><i class="bi bi-calendar3"></i></span>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="row g-2 align-items-center mb-3">
@@ -125,7 +152,12 @@
 
                 <div class="row g-2 align-items-center mb-3">
                     <div class="col-md-3"><label class="extra-small fw-bold">AR Date:</label></div>
-                    <div class="col-md-9"><input type="date" name="ar_date" id="id_f_ar_date" class="form-control form-control-sm uniform-input"></div>
+                    <div class="col-md-9">
+                        <div class="input-group input-group-sm flatpickr-container" data-wrap="true">
+                            <input type="text" name="ar_date" id="id_f_ar_date" class="form-control uniform-input date-picker-single" placeholder="MM/DD/YYYY" data-input>
+                            <span class="input-group-text uniform-input border-start-0" data-toggle><i class="bi bi-calendar3"></i></span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
