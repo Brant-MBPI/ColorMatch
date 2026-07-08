@@ -10,8 +10,7 @@ Color Matching Records
 
     <!-- Updated Search Row -->
     <div class="row g-2 mb-3 align-items-center">
-        
-        <!-- Filter By Dropdown (Now using select to match Audit Trail) -->
+
         <div class="col-md-2">
             <select class="form-select form-select-sm uniform-input">
                 <option selected>Filter By</option>
@@ -32,9 +31,18 @@ Color Matching Records
             </div>
         </div>
 
-        <!-- Refresh Button updated to Primary Blue -->
+        <!-- CMF / RS Teal Toggle -->
+        <div class="col-auto d-flex align-items-center gap-2">
+            <span class="extra-small fw-bold {% if mode == 'cmf' %}text-teal{% else %}text-muted{% endif %}" id="modeLabelCmf">CMF</span>
+            <label class="teal-toggle-switch mb-0">
+                <input type="checkbox" id="modeToggle" {% if mode == 'rs' %}checked{% endif %}>
+                <span class="teal-toggle-slider"></span>
+            </label>
+            <span class="extra-small fw-bold {% if mode == 'rs' %}text-teal{% else %}text-muted{% endif %}" id="modeLabelRs">RS</span>
+        </div>
+
         <div class="col-auto">
-            <button class="btn btn-sm btn-primary shadow-sm px-3">
+            <button class="btn btn-sm btn-primary shadow-sm px-3" id="refreshBtn" type="button">
                 <i class="bi bi-arrow-clockwise"></i>
                 <span class="d-none d-sm-inline">Refresh</span>
             </button>
@@ -48,32 +56,35 @@ Color Matching Records
             <table class="table table-hover align-middle mb-0 cmf-records-table">
                 <thead>
                     <tr class="small text-uppercase">
-                        <th class="ps-3">CMF No.</th>
-                        <th>Customer</th>
-                        <th>Primary Color</th>
-                        <th>Color Description</th>
-                        <th>Finished Product</th>
-                        <th>Required Date</th>
-                        <th>Target Date</th>
-                        <th>Matching Type</th>
-                        <th>Product Code</th>
-                        <th class="pe-3">Status</th>
+                        <th class="ps-3">{{ col_no_label }}</th>
+                        <th {% if 1 not in active_cols %}style="display:none;"{% endif %}>Customer</th>
+                        <th {% if 2 not in active_cols %}style="display:none;"{% endif %}>Primary Color</th>
+                        <th {% if 3 not in active_cols %}style="display:none;"{% endif %}>Color Description</th>
+                        <th {% if 4 not in active_cols %}style="display:none;"{% endif %}>Finished Product</th>
+                        <th {% if 5 not in active_cols %}style="display:none;"{% endif %}>Required Date</th>
+                        <th {% if 6 not in active_cols %}style="display:none;"{% endif %}>Target Date</th>
+                        <th {% if 7 not in active_cols %}style="display:none;"{% endif %}>Matching Type</th>
+                        <th {% if 8 not in active_cols %}style="display:none;"{% endif %}>Product Code</th>
+                        <th {% if 9 not in active_cols %}style="display:none;"{% endif %}>Status</th>
+                        <th {% if 10 not in active_cols %}style="display:none;"{% endif %}>Submitted Date</th>
+                        <th {% if 11 not in active_cols %}style="display:none;"{% endif %}>AR No.</th>
+                        <th class="pe-3" {% if 12 not in active_cols %}style="display:none;"{% endif %}>Reason</th>
                     </tr>
                 </thead>
 
                 <tbody class="small">
                     {% for record in records %}
                     <tr>
-                        <td class="ps-3 fw-bold">{{ record.cmf_no }}</td>
-                        <td>{{ record.customer }}</td>
-                        <td>{{ record.primary_color }}</td>
-                        <td>{{ record.description }}</td>
-                        <td>{{ record.product }}</td>
-                        <td>{{ record.required_date }}</td>
-                        <td>{{ record.target_date }}</td>
-                        <td>{{ record.type }}</td>
-                        <td>{{ record.code }}</td>
-                        <td class="pe-3">
+                        <td class="ps-3 fw-bold">{{ record.no }}</td>
+                        <td {% if 1 not in active_cols %}style="display:none;"{% endif %}>{{ record.customer }}</td>
+                        <td {% if 2 not in active_cols %}style="display:none;"{% endif %}>{{ record.primary_color }}</td>
+                        <td {% if 3 not in active_cols %}style="display:none;"{% endif %}>{{ record.description }}</td>
+                        <td {% if 4 not in active_cols %}style="display:none;"{% endif %}>{{ record.product }}</td>
+                        <td {% if 5 not in active_cols %}style="display:none;"{% endif %}>{{ record.required_date }}</td>
+                        <td {% if 6 not in active_cols %}style="display:none;"{% endif %}>{{ record.target_date }}</td>
+                        <td {% if 7 not in active_cols %}style="display:none;"{% endif %}>{{ record.type }}</td>
+                        <td {% if 8 not in active_cols %}style="display:none;"{% endif %}>{{ record.code }}</td>
+                        <td {% if 9 not in active_cols %}style="display:none;"{% endif %}>
                             <span class="badge
                                 {% if record.status == 'Completed' %}
                                     bg-success-subtle text-success border border-success
@@ -83,10 +94,13 @@ Color Matching Records
                                 {{ record.status }}
                             </span>
                         </td>
+                        <td {% if 10 not in active_cols %}style="display:none;"{% endif %}>{{ record.submitted_date }}</td>
+                        <td {% if 11 not in active_cols %}style="display:none;"{% endif %}>{{ record.ar_no }}</td>
+                        <td class="pe-3" {% if 12 not in active_cols %}style="display:none;"{% endif %}>{{ record.reason }}</td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="10" class="text-center py-5 text-muted">
+                        <td colspan="13" class="text-center py-5 text-muted">
                             No records found.
                         </td>
                     </tr>
@@ -96,18 +110,18 @@ Color Matching Records
         </div>
     </div>
 
-    <!-- Footer Area (remains unchanged) -->
+    <!-- Footer Area -->
     <div class="mt-2 py-3 px-2">
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
             <div class="d-flex flex-column flex-sm-row align-items-sm-center gap-2 gap-sm-3">
                 <span class="small fw-bold">Filter Status:</span>
                 <div class="d-flex flex-wrap gap-3">
                     <div class="form-check">
-                        <input class="form-check-input" type="checkbox" checked id="completed">
+                        <input class="form-check-input" type="checkbox" id="completed" {% if show_completed %}checked{% endif %}>
                         <label class="form-check-label" for="completed">Completed</label>
                     </div>
                     <div class="form-check">
-                        <input class="form-check-input" type="checkbox" checked id="pending">
+                        <input class="form-check-input" type="checkbox" id="pending" {% if show_pending %}checked{% endif %}>
                         <label class="form-check-label" for="pending">Pending</label>
                     </div>
                 </div>
@@ -121,5 +135,28 @@ Color Matching Records
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const completedCheckbox = document.getElementById('completed');
+    const pendingCheckbox = document.getElementById('pending');
+    const modeToggle = document.getElementById('modeToggle');
+    const refreshBtn = document.getElementById('refreshBtn');
+
+    function reloadWithParams() {
+        const params = new URLSearchParams({
+            mode: modeToggle.checked ? 'rs' : 'cmf',
+            completed: completedCheckbox.checked ? '1' : '0',
+            pending: pendingCheckbox.checked ? '1' : '0',
+        });
+        window.location.href = `${window.location.pathname}?${params.toString()}`;
+    }
+
+    completedCheckbox.addEventListener('change', reloadWithParams);
+    pendingCheckbox.addEventListener('change', reloadWithParams);
+    modeToggle.addEventListener('change', reloadWithParams);
+    refreshBtn.addEventListener('click', reloadWithParams);
+});
+</script>
 
 {% endblock %}
