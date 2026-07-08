@@ -79,6 +79,16 @@ TEMPLATES = [
 WSGI_APPLICATION = 'core.wsgi.application'
 
 
+DBF_BASE_PATH = r'\\system-server\SYSTEM-NEW-OLD'
+DBF_PATHS = {
+    'formula_primary': 'tbl_formula01.dbf',
+    'formula_items': 'tbl_formula02.dbf',
+    'production_primary': 'tbl_prod01.dbf',
+    'production_items': 'tbl_prod02.dbf',
+    'rm_wh': 'tbl_rm_wh.dbf',
+    'rm_incoming': 'tbl_incoming.dbf',
+}
+
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
