@@ -104,6 +104,25 @@ class tbl_generated_prod_code(models.Model):
 # ==========================================
 # 3. CMF (COLOR MATCHING) MODULE
 # ==========================================
+class tbl_coding_materials(models.Model):
+    lab_material_no = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=16)
+    code = models.CharField(max_length=1)
+    is_deleted = models.BooleanField(default=False)
+
+    class Meta:
+        db_table = "tbl_coding_materials"
+
+class tbl_resins(models.Model):
+    resin_no = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=22, default=None, null=True, blank=True)
+    abbreviation = models.CharField(max_length=16)
+    code = models.CharField(max_length=3)
+    is_deleted = models.BooleanField(default=False)
+
+    class Meta:
+        db_table = "tbl_resins"
+
 
 class tbl_cmf_salesman(models.Model):
     sm_no = models.AutoField(primary_key=True)
@@ -221,7 +240,7 @@ class tbl_cmf_formula(models.Model):
     cmf_formula_no = models.AutoField(primary_key=True)
     customer = models.CharField(max_length=150, blank=True, null=True)
     finished_product = models.CharField(max_length=150, blank=True, null=True)
-    resin = models.CharField(max_length=100, blank=True, null=True)
+    resin_no = models.ForeignKey(tbl_resins, on_delete=models.SET_NULL, null=True, blank=True, db_column="resin_no")
     dosage = models.DecimalField(max_digits=12, decimal_places=6, null=True, blank=True)
     cm = models.ForeignKey(tbl_cmf, to_field="cm_no", on_delete=models.CASCADE, db_column="cm_no")
 
@@ -291,7 +310,7 @@ class tbl_rs(models.Model):
     date_sample_received = models.DateField(blank=True, null=True)
     primary_color = models.CharField(max_length=100, blank=True, null=True)
     color_desc = models.TextField(blank=True, null=True)
-    resin = models.CharField(max_length=100, blank=True, null=True)
+    resin_no = models.ForeignKey(tbl_resins, on_delete=models.SET_NULL, null=True, blank=True, db_column="resin_no")
     chosen_process_no = models.IntegerField(blank=True, null=True)
     colorant_type = models.CharField(max_length=50, blank=True, null=True)
     date_submitted = models.DateField(blank=True, null=True)
