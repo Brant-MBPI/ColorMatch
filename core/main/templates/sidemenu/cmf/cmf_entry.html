@@ -20,7 +20,7 @@ CMF Entry
                         <div class="row g-2 mb-2">
                             <div class="col-md-12">
                                 <label class="fw-bold extra-small required-label">Color Matching No:</label>
-                                <input type="text" class="form-control form-control-sm uniform-input" >
+                                <input type="text" name="cmf_no" class="form-control form-control-sm uniform-input" >
                             </div>
                             <div class="col-md-12">
                                 <label class="fw-bold extra-small required-label">Customer:</label>
@@ -71,12 +71,12 @@ CMF Entry
                         <div class="mb-2">
                             <label class="fw-bold extra-small d-block mb-1 required-label">Matching Type:</label>
                             <div class="form-check form-check-inline">
-                                <input class="form-check-input visible-check" type="radio" name="matchType" id="newM" checked >
-                                <label class="form-check-label extra-small" for="newM">New Matching</label>
+                                <input class="form-check-input visible-check" type="radio" name="matchType" value="new" id="new">
+                                <label class="form-check-label extra-small" for="new">New Matching</label>
                             </div>
                             <div class="form-check form-check-inline">
-                                <input class="form-check-input visible-check" type="radio" name="matchType" id="reM" >
-                                <label class="form-check-label extra-small" for="reM">Re-Match</label>
+                                <input class="form-check-input visible-check" type="radio" name="matchType" value="rematch" id="re" >
+                                <label class="form-check-label extra-small" for="re">Re-Match</label>
                             </div>
                         </div>
 
@@ -92,7 +92,7 @@ CMF Entry
                             </div>
                             <div class="col-md-12">
                                 <label class="fw-bold extra-small required-label">Finished Product:</label>
-                                <input type="text" class="form-control form-control-sm uniform-input" >
+                                <input type="text" name="finished_product" class="form-control form-control-sm uniform-input" >
                             </div>
                         </div>
 
@@ -108,7 +108,7 @@ CMF Entry
                             </div>
                             <div class="col-8">
                                 <label class="fw-bold extra-small required-label">Description:</label>
-                                <input type="text" class="form-control form-control-sm uniform-input" placeholder="Enter color description..." >
+                                <input type="text" name="color_description" class="form-control form-control-sm uniform-input" placeholder="Enter color description..." >
                             </div>
                         </div>
                     </div>
@@ -119,19 +119,24 @@ CMF Entry
                     <div class="card-body p-3">
                         <h6 class="cmf-section-title mb-3 required-label">Color Requirement</h6>
                         <div class="d-flex flex-wrap gap-3 align-items-center">
-                            <div class="form-check"><input class="form-check-input visible-check" type="radio" name="colorReq" id="c1" ><label class="form-check-label extra-small" for="c1">Transparent</label></div>
-                            <div class="form-check"><input class="form-check-input visible-check" type="radio" name="colorReq" id="c2" ><label class="form-check-label extra-small" for="c2">Opaque</label></div>
-                            <div class="form-check"><input class="form-check-input visible-check" type="radio" name="colorReq" id="c3" ><label class="form-check-label extra-small" for="c3">Translucent</label></div>
-                            <div class="form-check"><input class="form-check-input visible-check" type="radio" name="colorReq" id="c4" ><label class="form-check-label extra-small" for="c4">Metallic</label></div>
-                            <div class="form-check"><input class="form-check-input visible-check" type="radio" name="colorReq" id="c5" ><label class="form-check-label extra-small" for="c5">Fluorescent</label></div>
-                            <div class="form-check"><input class="form-check-input visible-check" type="radio" name="colorReq" id="c6" ><label class="form-check-label extra-small" for="c6">Pearlescent</label></div>
-                            
+                            <div class="form-check"><input class="form-check-input visible-check" type="radio" name="colorReq" value="transparent" id="c1"><label
+                                    class="form-check-label extra-small" for="c1">Transparent</label></div>
+                            <div class="form-check"><input class="form-check-input visible-check" type="radio" name="colorReq" value="opaque" id="c2"><label
+                                    class="form-check-label extra-small" for="c2">Opaque</label></div>
+                            <div class="form-check"><input class="form-check-input visible-check" type="radio" name="colorReq" value="translucent" id="c3"><label
+                                    class="form-check-label extra-small" for="c3">Translucent</label></div>
+                            <div class="form-check"><input class="form-check-input visible-check" type="radio" name="colorReq" value="metallic" id="c4"><label
+                                    class="form-check-label extra-small" for="c4">Metallic</label></div>
+                            <div class="form-check"><input class="form-check-input visible-check" type="radio" name="colorReq" value="fluorescent" id="c5"><label
+                                    class="form-check-label extra-small" for="c5">Fluorescent</label></div>
+                            <div class="form-check"><input class="form-check-input visible-check" type="radio" name="colorReq" value="pearlescent" id="c6"><label
+                                    class="form-check-label extra-small" for="c6">Pearlescent</label></div>
                             <div class="d-flex align-items-center gap-2">
                                 <div class="form-check mb-0">
-                                    <input class="form-check-input visible-check" type="radio" name="colorReq" id="c7" >
+                                    <input class="form-check-input visible-check" type="radio" name="colorReq" value="other" id="c7" >
                                     <label class="form-check-label extra-small" for="c7">Others:</label>
                                 </div>
-                                <input type="text" class="form-control form-control-sm uniform-input" style="width: 150px; height: 26px;">
+                                <input type="text" class="form-control form-control-sm uniform-input" name="colorReq_other" id="colorReq_other_input" style="width: 150px; height: 26px;">
                             </div>
                         </div>
                     </div>
@@ -158,58 +163,60 @@ CMF Entry
                             <label class="fw-bold extra-small d-block mb-1 required-label">Process:</label>
                             <div class="d-flex flex-wrap gap-2">
                                 <div class="form-check d-flex align-items-center mb-0">
-                                    <input class="form-check-input visible-check" type="checkbox" id="p1">
-                                    <label class="form-check-label extra-small ms-2" for="p1">Injection</label>
+                                    <input class="form-check-input visible-check" name="process" value="injection" type="checkbox" id="p1">
+                                    <label class="form-check-label extra-small ms-2" name="process" for="p1">Injection</label>
                                 </div>
                                 <div class="form-check d-flex align-items-center mb-0">
-                                    <input class="form-check-input visible-check" type="checkbox" id="p2">
-                                    <label class="form-check-label extra-small ms-2" for="p2">Blow-Molding</label>
+                                    <input class="form-check-input visible-check" name="process" value="blow-molding" type="checkbox" id="p2">
+                                    <label class="form-check-label extra-small ms-2" name="process" for="p2">Blow-Molding</label>
                                 </div>
                                 <div class="form-check d-flex align-items-center mb-0">
-                                    <input class="form-check-input visible-check" type="checkbox" id="p3">
-                                    <label class="form-check-label extra-small ms-2" for="p3">Film</label>
+                                    <input class="form-check-input visible-check" name="process" value="film" type="checkbox" id="p3">
+                                    <label class="form-check-label extra-small ms-2" name="process" for="p3">Film</label>
                                 </div>
                                 <div class="form-check d-flex align-items-center mb-0">
-                                    <input class="form-check-input visible-check" type="checkbox" id="p4">
-                                    <label class="form-check-label extra-small ms-2" for="p4">Pipe Extrusion</label>
+                                    <input class="form-check-input visible-check" name="process" value="pipe-extrusion" type="checkbox" id="p4">
+                                    <label class="form-check-label extra-small ms-2" name="process" for="p4">Pipe Extrusion</label>
                                 </div>
                                 <div class="form-check d-flex align-items-center mb-0">
-                                    <input class="form-check-input visible-check" type="checkbox" id="p5">
-                                    <label class="form-check-label extra-small ms-2 me-1" for="p5">Others:</label>
-                                    <input type="text" class="form-control form-control-sm uniform-input ms-1" style="width: 120px; height: 26px;">
+                                    <input class="form-check-input visible-check" name="process" value="others" type="checkbox" id="p5">
+                                    <label class="form-check-label extra-small ms-2 me-1" name="process" for="p5">Others:</label>
+                                    <input type="text" class="form-control form-control-sm uniform-input ms-1" name="otherProcess" id="otherProcessInput"  style="width: 120px; height: 26px;">
                                 </div>
                             </div>          
                         </div>
 
                         <div class="row g-2 mb-2">
-                            <div class="col-7"><label class="fw-bold extra-small required-label">Qty Resin for Test:</label><input type="text" class="form-control form-control-sm uniform-input" ></div>
+                            <div class="col-7"><label class="fw-bold extra-small required-label">Qty Resin for Test:</label><input type="text" name="qty_resin_test" class="form-control form-control-sm uniform-input" ></div>
                             <div class="col-5">
                                 <label class="fw-bold extra-small d-block required-label">Customer Resin Provided:</label>
-                                <div class="form-check form-check-inline"><input class="form-check-input visible-check" type="radio" name="resPr" id="ry" ><label class="form-check-label extra-small" for="ry">Y</label></div>
-                                <div class="form-check form-check-inline"><input class="form-check-input visible-check" type="radio" name="resPr" id="rn" ><label class="form-check-label extra-small" for="rn">N</label></div>
+                                <div class="form-check form-check-inline"><input class="form-check-input visible-check" value="Y" type="radio" name="customerResin"
+                                        id="ry"><label class="form-check-label extra-small" for="customerResin">Y</label></div>
+                                <div class="form-check form-check-inline"><input class="form-check-input visible-check" value="N" type="radio" name="customerResin"
+                                        id="rn"><label class="form-check-label extra-small" for="customerResin">N</label></div>
                             </div>
                         </div>
 
                         <div class="row g-2 mb-2">
-                            <div class="col-7"><label class="fw-bold extra-small required-label">MI Customer Resin:</label><input type="text" class="form-control form-control-sm uniform-input" ></div>
+                            <div class="col-7"><label class="fw-bold extra-small required-label">MI Customer Resin:</label><input type="text" name="mi_customer_resin" class="form-control form-control-sm uniform-input" ></div>
                             <div class="col-5">
                                 <label class="fw-bold extra-small d-block required-label">Sample Colorant Available:</label>
-                                <div class="form-check form-check-inline"><input class="form-check-input visible-check" type="radio" name="sa" id="say" ><label class="form-check-label extra-small" for="say">Y</label></div>
-                                <div class="form-check form-check-inline"><input class="form-check-input visible-check" type="radio" name="sa" id="san" ><label class="form-check-label extra-small" for="san">N</label></div>
+                                <div class="form-check form-check-inline"><input class="form-check-input visible-check" type="radio" value="Y" name="sampleColorant" id="say" ><label class="form-check-label extra-small" for="sampleColorant">Y</label></div>
+                                <div class="form-check form-check-inline"><input class="form-check-input visible-check" type="radio" value="N" name="sampleColorant" id="san" ><label class="form-check-label extra-small" for="sampleColorant">N</label></div>
                             </div>
                         </div>
 
                         <div class="mb-2">
                             <label class="fw-bold extra-small d-block mb-1 required-label">Colorant Type:</label>
                             <div class="d-flex align-items-center gap-3">
-                                <div class="form-check"><input class="form-check-input visible-check" type="radio" name="ct" id="mb" ><label class="form-check-label extra-small" for="mb">MB</label></div>
-                                <div class="form-check"><input class="form-check-input visible-check" type="radio" name="ct" id="dc" ><label class="form-check-label extra-small" for="dc">DC</label></div>
+                                <div class="form-check"><input class="form-check-input visible-check" type="radio" value="MB" name="colorantType" id="mb" ><label class="form-check-label extra-small" for="colorantType">MB</label></div>
+                                <div class="form-check"><input class="form-check-input visible-check" type="radio" value="DC" name="colorantType" id="dc" ><label class="form-check-label extra-small" for="colorantType">DC</label></div>
                                 <div class="d-flex align-items-center gap-1">
                                     <div class="form-check mb-0">
-                                        <input class="form-check-input visible-check" type="radio" name="ct" id="ct_other">
-                                        <label class="form-check-label extra-small" for="ct_other">Others:</label>
+                                        <input class="form-check-input visible-check" type="radio" value="Other" name="colorantType" id="ct_other">
+                                        <label class="form-check-label extra-small" for="colorantType">Others:</label>
                                     </div>
-                                    <input type="text" class="form-control form-control-sm uniform-input" style="width: 100px; height: 26px;">
+                                    <input type="text" name="colorantTypeOther" id="colorantTypeOtherInput" class="form-control form-control-sm uniform-input" style="width: 100px; height: 26px;">
                                 </div>
                             </div>
                         </div>
@@ -217,11 +224,11 @@ CMF Entry
                         <div class="row g-2 mb-2">
                             <div class="col-6">
                                 <label class="fw-bold extra-small required-label">Dosage (%):</label>
-                                <input type="number" step="any" class="form-control form-control-sm uniform-input" placeholder="%" >
+                                <input type="number" step="any" name="dosage" class="form-control form-control-sm uniform-input" placeholder="%" >
                             </div>
                             <div class="col-6">
                                 <label class="fw-bold extra-small required-label">Processing Temp (°C):</label>
-                                <input type="number" step="any" class="form-control form-control-sm uniform-input" placeholder="°C" >
+                                <input type="number" step="any" name="processing_temp" class="form-control form-control-sm uniform-input" placeholder="°C" >
                             </div>
                         </div>
 
@@ -229,19 +236,19 @@ CMF Entry
                             <label class="fw-bold extra-small d-block mb-1 required-label">Other Specification:</label>
                             <div class="d-flex flex-wrap align-items-center gap-3 row-gap-2">
                                 <div class="form-check mb-0">
-                                    <input class="form-check-input visible-check" type="checkbox" id="spec_food_contact">
-                                    <label class="form-check-label extra-small" for="spec_food_contact">Food Contact</label>
+                                    <input class="form-check-input visible-check" type="checkbox" name="specification" value="Food Contact" id="spec_food_contact">
+                                    <label class="form-check-label extra-small" for="specification">Food Contact</label>
                                 </div>
                                 <div class="form-check mb-0">
-                                    <input class="form-check-input visible-check" type="checkbox" id="spec_sunlight_exposure">
-                                    <label class="form-check-label extra-small" for="spec_sunlight_exposure">Sunlight Exposure</label>
+                                    <input class="form-check-input visible-check" type="checkbox" name="specification" value="Sunlight Exposure" id="spec_sunlight_exposure">
+                                    <label class="form-check-label extra-small" for="specification">Sunlight Exposure</label>
                                 </div>
                                 <div class="d-flex align-items-center gap-1">
                                     <div class="form-check mb-0">
-                                        <input class="form-check-input visible-check" type="checkbox" id="spec_others">
-                                        <label class="form-check-label extra-small" for="spec_others">Others</label>
+                                        <input class="form-check-input visible-check" type="checkbox" name="specification" value="Others" id="spec_others">
+                                        <label class="form-check-label extra-small" for="specification">Others</label>
                                     </div>
-                                    <input type="text" class="form-control form-control-sm uniform-input" style="width: 110px; height: 26px;" placeholder="Specify">
+                                    <input type="text" class="form-control form-control-sm uniform-input" name="specificationOther" id="specificationOtherInput" style="width: 110px; height: 26px;" placeholder="Specify">
                                 </div>
                             </div>
                         </div>
@@ -251,12 +258,12 @@ CMF Entry
                                 <label class="fw-bold extra-small d-block mb-1 required-label">Color Guide to be Returned:</label>
                                 <div class="d-flex gap-3 mt-1">
                                     <div class="form-check form-check-inline mb-0">
-                                        <input class="form-check-input visible-check" type="radio" name="color_guide_return" id="color_guide_yes" value="yes" >
-                                        <label class="form-check-label extra-small" for="color_guide_yes">Yes</label>
+                                        <input class="form-check-input visible-check" type="radio" name="color_guide_return" value="Y" id="color_guide_yes">
+                                        <label class="form-check-label extra-small" for="color_guide_return">Yes</label>
                                     </div>
                                     <div class="form-check form-check-inline mb-0">
-                                        <input class="form-check-input visible-check" type="radio" name="color_guide_return" id="color_guide_no" value="no" >
-                                        <label class="form-check-label extra-small" for="color_guide_no">No</label>
+                                        <input class="form-check-input visible-check" type="radio" name="color_guide_return" value="N" id="color_guide_no"  >
+                                        <label class="form-check-label extra-small" for="color_guide_return">No</label>
                                     </div>
                                 </div>
                             </div>
@@ -264,12 +271,12 @@ CMF Entry
                                 <label class="fw-bold extra-small d-block mb-1 required-label">Is Low Cost?</label>
                                 <div class="d-flex gap-3 mt-1">
                                     <div class="form-check form-check-inline mb-0">
-                                        <input class="form-check-input visible-check" type="radio" name="is_low_cost" id="low_cost_yes" value="yes" >
-                                        <label class="form-check-label extra-small" for="low_cost_yes">Yes</label>
+                                        <input class="form-check-input visible-check" type="radio" name="is_low_cost" value="Y" id="low_cost_yes">
+                                        <label class="form-check-label extra-small" for="is_low_cost">Yes</label>
                                     </div>
                                     <div class="form-check form-check-inline mb-0">
-                                        <input class="form-check-input visible-check" type="radio" name="is_low_cost" id="low_cost_no" value="no" >
-                                        <label class="form-check-label extra-small" for="low_cost_no">No</label>
+                                        <input class="form-check-input visible-check" type="radio" name="is_low_cost" value="N" id="low_cost_no">
+                                        <label class="form-check-label extra-small" for="is_low_cost">No</label>
                                     </div>
                                 </div>
                             </div>
@@ -277,7 +284,7 @@ CMF Entry
 
                         <div class="mb-0">
                             <label class="fw-bold extra-small">Remarks:</label>
-                            <textarea class="form-control form-control-sm uniform-input" rows="2"></textarea>
+                            <textarea class="form-control form-control-sm uniform-input" name="remarks" rows="2"></textarea>
                         </div>
                     </div>
                 </div>
@@ -288,7 +295,7 @@ CMF Entry
                 <div class="card cmf-entry-card shadow-sm">
                     <div class="card-body p-3">
                         <h6 class="cmf-section-title mb-2">Additional Information</h6>
-                        <textarea class="form-control form-control-sm uniform-input" rows="3" placeholder="Technical details..."></textarea>
+                        <textarea class="form-control form-control-sm uniform-input" name="additional_info" rows="3" placeholder="Technical details..."></textarea>
                     </div>
                 </div>
             </div>
@@ -299,7 +306,7 @@ CMF Entry
                     <div class="card-body p-3">
                          <label class="fw-bold extra-small text-uppercase mb-1">Product Code:</label>
                          <!-- Added custom 'readonly-gray' class -->
-                         <input type="text" class="form-control form-control-sm uniform-input readonly-gray fw-bold" readonly>
+                         <input type="text" name="product_code" class="form-control form-control-sm uniform-input readonly-gray fw-bold" readonly>
                     </div>
                 </div>
             </div>
