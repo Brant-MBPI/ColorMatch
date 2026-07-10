@@ -3,7 +3,7 @@ from urllib import request
 from django.shortcuts import render
 from django.http import HttpResponse
 
-from main.models import tbl_internal_color_code, tbl_resins
+from main.models import tbl_internal_color_code, tbl_resin
 
 from .services import cmf_records_services
 # Create your views here.
@@ -52,7 +52,7 @@ def cmf_entry(request):
     ]
     primary_color = tbl_internal_color_code.objects.all().order_by('color')
 
-    resins_query = tbl_resins.objects.filter(is_deleted=False).order_by('abbreviation')
+    resins_query = tbl_resin.objects.filter(is_deleted=False).order_by('abbreviation')
 
     return render(request, "sidemenu/cmf/cmf_entry.html", {
         "customers": customers,
