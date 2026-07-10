@@ -20,11 +20,11 @@ CMF Entry
                         <div class="row g-2 mb-2">
                             <div class="col-md-12">
                                 <label class="fw-bold extra-small required-label">Color Matching No:</label>
-                                <input type="text" class="form-control form-control-sm uniform-input" required>
+                                <input type="text" class="form-control form-control-sm uniform-input" >
                             </div>
                             <div class="col-md-12">
                                 <label class="fw-bold extra-small required-label">Customer:</label>
-                                <select class="form-select form-select-sm ts-select" name="customer" placeholder="Select customer..." required>
+                                <select class="form-select form-select-sm ts-select" name="customer" placeholder="Select customer..." >
                                     <option value=""></option>
                                     {% for customer in customers %}
                                         <option value="{{ customer }}">{{ customer }}</option>
@@ -38,14 +38,14 @@ CMF Entry
                             <div class="col-6">
                                 <label class="fw-bold extra-small required-label">Date Created:</label>
                                 <div class="input-group input-group-sm flatpickr-container" data-wrap="true">
-                                    <input type="text" name="date_created" class="form-control uniform-input date-picker-single" placeholder="MM/DD/YYYY" data-input required>
+                                    <input type="text" name="date_created" class="form-control uniform-input date-picker-single" placeholder="MM/DD/YYYY" data-input >
                                     <span class="input-group-text uniform-input border-start-0" data-toggle><i class="bi bi-calendar3"></i></span>
                                 </div>
                             </div>
                             <div class="col-6">
                                 <label class="fw-bold extra-small required-label">Required Date:</label>
                                 <div class="input-group input-group-sm flatpickr-container" data-wrap="true">
-                                    <input type="text" name="required_date" class="form-control uniform-input date-picker-asap" placeholder="MM/DD/YYYY or ASAP" data-input required>
+                                    <input type="text" name="required_date" class="form-control uniform-input date-picker-asap" placeholder="MM/DD/YYYY or ASAP" data-input >
                                     <span class="input-group-text uniform-input border-start-0" data-toggle><i class="bi bi-calendar3"></i></span>
                                 </div>
                             </div>
@@ -55,14 +55,14 @@ CMF Entry
                             <div class="col-6">
                                 <label class="fw-bold extra-small required-label">Date Received:</label>
                                 <div class="input-group input-group-sm flatpickr-container" data-wrap="true">
-                                    <input type="text" name="date_received" class="form-control uniform-input date-picker-multiple" placeholder="MM/DD/YYYY, MM/DD/YYYY" data-input required>
+                                    <input type="text" name="date_received" class="form-control uniform-input date-picker-multiple" placeholder="MM/DD/YYYY, MM/DD/YYYY" data-input >
                                     <span class="input-group-text uniform-input border-start-0" data-toggle><i class="bi bi-calendar3"></i></span>
                                 </div>
                             </div>
                             <div class="col-6">
                                 <label class="fw-bold extra-small required-label">Due Date:</label>
                                 <div class="input-group input-group-sm flatpickr-container" data-wrap="true">
-                                    <input type="text" name="due_date" class="form-control uniform-input date-picker-single" placeholder="MM/DD/YYYY" data-input required>
+                                    <input type="text" name="due_date" class="form-control uniform-input date-picker-single" placeholder="MM/DD/YYYY" data-input >
                                     <span class="input-group-text uniform-input border-start-0" data-toggle><i class="bi bi-calendar3"></i></span>
                                 </div>
                             </div>
@@ -71,11 +71,11 @@ CMF Entry
                         <div class="mb-2">
                             <label class="fw-bold extra-small d-block mb-1 required-label">Matching Type:</label>
                             <div class="form-check form-check-inline">
-                                <input class="form-check-input visible-check" type="radio" name="matchType" id="newM" checked required>
+                                <input class="form-check-input visible-check" type="radio" name="matchType" id="newM" checked >
                                 <label class="form-check-label extra-small" for="newM">New Matching</label>
                             </div>
                             <div class="form-check form-check-inline">
-                                <input class="form-check-input visible-check" type="radio" name="matchType" id="reM" required>
+                                <input class="form-check-input visible-check" type="radio" name="matchType" id="reM" >
                                 <label class="form-check-label extra-small" for="reM">Re-Match</label>
                             </div>
                         </div>
@@ -83,7 +83,7 @@ CMF Entry
                         <div class="row g-2 mb-2">
                             <div class="col-md-12">
                                 <label class="fw-bold extra-small required-label">Sales Person:</label>
-                                <select class="form-select form-select-sm ts-select" name="salesman" placeholder="Select sales person..." required>
+                                <select class="form-select form-select-sm ts-select" name="salesman" placeholder="Select sales person..." >
                                     <option value=""></option>
                                     {% for salesman in salesman %}
                                         <option value="{{ salesman }}">{{ salesman }}</option>
@@ -92,23 +92,23 @@ CMF Entry
                             </div>
                             <div class="col-md-12">
                                 <label class="fw-bold extra-small required-label">Finished Product:</label>
-                                <input type="text" class="form-control form-control-sm uniform-input" required>
+                                <input type="text" class="form-control form-control-sm uniform-input" >
                             </div>
                         </div>
 
                         <div class="row g-2">
                             <div class="col-4">
                                 <label class="fw-bold extra-small required-label">Primary Color:</label>
-                                <select class="form-select form-select-sm ts-select" name="primary_color" placeholder="Select color" required>
+                                <select class="form-select form-select-sm ts-select" name="primary_color" placeholder="Select color" >
                                     <option value=""></option>
-                                    {% for primary_color in primary_color %}
-                                        <option value="{{ primary_color }}">{{ primary_color }}</option>
+                                    {% for c in primary_color %}
+                                        <option value="{{ c.in_code_no }}">{{ c.color }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
                             <div class="col-8">
                                 <label class="fw-bold extra-small required-label">Description:</label>
-                                <input type="text" class="form-control form-control-sm uniform-input" placeholder="Enter color description..." required>
+                                <input type="text" class="form-control form-control-sm uniform-input" placeholder="Enter color description..." >
                             </div>
                         </div>
                     </div>
@@ -119,16 +119,16 @@ CMF Entry
                     <div class="card-body p-3">
                         <h6 class="cmf-section-title mb-3 required-label">Color Requirement</h6>
                         <div class="d-flex flex-wrap gap-3 align-items-center">
-                            <div class="form-check"><input class="form-check-input visible-check" type="radio" name="colorReq" id="c1" required><label class="form-check-label extra-small" for="c1">Transparent</label></div>
-                            <div class="form-check"><input class="form-check-input visible-check" type="radio" name="colorReq" id="c2" required><label class="form-check-label extra-small" for="c2">Opaque</label></div>
-                            <div class="form-check"><input class="form-check-input visible-check" type="radio" name="colorReq" id="c3" required><label class="form-check-label extra-small" for="c3">Translucent</label></div>
-                            <div class="form-check"><input class="form-check-input visible-check" type="radio" name="colorReq" id="c4" required><label class="form-check-label extra-small" for="c4">Metallic</label></div>
-                            <div class="form-check"><input class="form-check-input visible-check" type="radio" name="colorReq" id="c5" required><label class="form-check-label extra-small" for="c5">Fluorescent</label></div>
-                            <div class="form-check"><input class="form-check-input visible-check" type="radio" name="colorReq" id="c6" required><label class="form-check-label extra-small" for="c6">Pearlescent</label></div>
+                            <div class="form-check"><input class="form-check-input visible-check" type="radio" name="colorReq" id="c1" ><label class="form-check-label extra-small" for="c1">Transparent</label></div>
+                            <div class="form-check"><input class="form-check-input visible-check" type="radio" name="colorReq" id="c2" ><label class="form-check-label extra-small" for="c2">Opaque</label></div>
+                            <div class="form-check"><input class="form-check-input visible-check" type="radio" name="colorReq" id="c3" ><label class="form-check-label extra-small" for="c3">Translucent</label></div>
+                            <div class="form-check"><input class="form-check-input visible-check" type="radio" name="colorReq" id="c4" ><label class="form-check-label extra-small" for="c4">Metallic</label></div>
+                            <div class="form-check"><input class="form-check-input visible-check" type="radio" name="colorReq" id="c5" ><label class="form-check-label extra-small" for="c5">Fluorescent</label></div>
+                            <div class="form-check"><input class="form-check-input visible-check" type="radio" name="colorReq" id="c6" ><label class="form-check-label extra-small" for="c6">Pearlescent</label></div>
                             
                             <div class="d-flex align-items-center gap-2">
                                 <div class="form-check mb-0">
-                                    <input class="form-check-input visible-check" type="radio" name="colorReq" id="c7" required>
+                                    <input class="form-check-input visible-check" type="radio" name="colorReq" id="c7" >
                                     <label class="form-check-label extra-small" for="c7">Others:</label>
                                 </div>
                                 <input type="text" class="form-control form-control-sm uniform-input" style="width: 150px; height: 26px;">
@@ -146,10 +146,10 @@ CMF Entry
                         
                         <div class="mb-2">
                             <label class="fw-bold extra-small required-label">Resin Type:</label>
-                            <select class="form-select form-select-sm ts-select" name="resin" placeholder="Select resin" required>
+                            <select class="form-select form-select-sm ts-select" name="resin" placeholder="Select resin" multiple >
                                 <option value=""></option>
-                                {% for resin in resin %}
-                                    <option value="{{ resin }}">{{ resin }}</option>
+                                {% for r in resin %}
+                                    <option value="{{ r.resin_no }}">{{ r.abbreviation }}</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -182,28 +182,28 @@ CMF Entry
                         </div>
 
                         <div class="row g-2 mb-2">
-                            <div class="col-7"><label class="fw-bold extra-small required-label">Qty Resin for Test:</label><input type="text" class="form-control form-control-sm uniform-input" required></div>
+                            <div class="col-7"><label class="fw-bold extra-small required-label">Qty Resin for Test:</label><input type="text" class="form-control form-control-sm uniform-input" ></div>
                             <div class="col-5">
                                 <label class="fw-bold extra-small d-block required-label">Customer Resin Provided:</label>
-                                <div class="form-check form-check-inline"><input class="form-check-input visible-check" type="radio" name="resPr" id="ry" required><label class="form-check-label extra-small" for="ry">Y</label></div>
-                                <div class="form-check form-check-inline"><input class="form-check-input visible-check" type="radio" name="resPr" id="rn" required><label class="form-check-label extra-small" for="rn">N</label></div>
+                                <div class="form-check form-check-inline"><input class="form-check-input visible-check" type="radio" name="resPr" id="ry" ><label class="form-check-label extra-small" for="ry">Y</label></div>
+                                <div class="form-check form-check-inline"><input class="form-check-input visible-check" type="radio" name="resPr" id="rn" ><label class="form-check-label extra-small" for="rn">N</label></div>
                             </div>
                         </div>
 
                         <div class="row g-2 mb-2">
-                            <div class="col-7"><label class="fw-bold extra-small required-label">MI Customer Resin:</label><input type="text" class="form-control form-control-sm uniform-input" required></div>
+                            <div class="col-7"><label class="fw-bold extra-small required-label">MI Customer Resin:</label><input type="text" class="form-control form-control-sm uniform-input" ></div>
                             <div class="col-5">
                                 <label class="fw-bold extra-small d-block required-label">Sample Colorant Available:</label>
-                                <div class="form-check form-check-inline"><input class="form-check-input visible-check" type="radio" name="sa" id="say" required><label class="form-check-label extra-small" for="say">Y</label></div>
-                                <div class="form-check form-check-inline"><input class="form-check-input visible-check" type="radio" name="sa" id="san" required><label class="form-check-label extra-small" for="san">N</label></div>
+                                <div class="form-check form-check-inline"><input class="form-check-input visible-check" type="radio" name="sa" id="say" ><label class="form-check-label extra-small" for="say">Y</label></div>
+                                <div class="form-check form-check-inline"><input class="form-check-input visible-check" type="radio" name="sa" id="san" ><label class="form-check-label extra-small" for="san">N</label></div>
                             </div>
                         </div>
 
                         <div class="mb-2">
                             <label class="fw-bold extra-small d-block mb-1 required-label">Colorant Type:</label>
                             <div class="d-flex align-items-center gap-3">
-                                <div class="form-check"><input class="form-check-input visible-check" type="radio" name="ct" id="mb" required><label class="form-check-label extra-small" for="mb">MB</label></div>
-                                <div class="form-check"><input class="form-check-input visible-check" type="radio" name="ct" id="dc" required><label class="form-check-label extra-small" for="dc">DC</label></div>
+                                <div class="form-check"><input class="form-check-input visible-check" type="radio" name="ct" id="mb" ><label class="form-check-label extra-small" for="mb">MB</label></div>
+                                <div class="form-check"><input class="form-check-input visible-check" type="radio" name="ct" id="dc" ><label class="form-check-label extra-small" for="dc">DC</label></div>
                                 <div class="d-flex align-items-center gap-1">
                                     <div class="form-check mb-0">
                                         <input class="form-check-input visible-check" type="radio" name="ct" id="ct_other">
@@ -217,11 +217,11 @@ CMF Entry
                         <div class="row g-2 mb-2">
                             <div class="col-6">
                                 <label class="fw-bold extra-small required-label">Dosage (%):</label>
-                                <input type="number" step="any" class="form-control form-control-sm uniform-input" placeholder="%" required>
+                                <input type="number" step="any" class="form-control form-control-sm uniform-input" placeholder="%" >
                             </div>
                             <div class="col-6">
                                 <label class="fw-bold extra-small required-label">Processing Temp (°C):</label>
-                                <input type="number" step="any" class="form-control form-control-sm uniform-input" placeholder="°C" required>
+                                <input type="number" step="any" class="form-control form-control-sm uniform-input" placeholder="°C" >
                             </div>
                         </div>
 
@@ -251,11 +251,11 @@ CMF Entry
                                 <label class="fw-bold extra-small d-block mb-1 required-label">Color Guide to be Returned:</label>
                                 <div class="d-flex gap-3 mt-1">
                                     <div class="form-check form-check-inline mb-0">
-                                        <input class="form-check-input visible-check" type="radio" name="color_guide_return" id="color_guide_yes" value="yes" required>
+                                        <input class="form-check-input visible-check" type="radio" name="color_guide_return" id="color_guide_yes" value="yes" >
                                         <label class="form-check-label extra-small" for="color_guide_yes">Yes</label>
                                     </div>
                                     <div class="form-check form-check-inline mb-0">
-                                        <input class="form-check-input visible-check" type="radio" name="color_guide_return" id="color_guide_no" value="no" required>
+                                        <input class="form-check-input visible-check" type="radio" name="color_guide_return" id="color_guide_no" value="no" >
                                         <label class="form-check-label extra-small" for="color_guide_no">No</label>
                                     </div>
                                 </div>
@@ -264,11 +264,11 @@ CMF Entry
                                 <label class="fw-bold extra-small d-block mb-1 required-label">Is Low Cost?</label>
                                 <div class="d-flex gap-3 mt-1">
                                     <div class="form-check form-check-inline mb-0">
-                                        <input class="form-check-input visible-check" type="radio" name="is_low_cost" id="low_cost_yes" value="yes" required>
+                                        <input class="form-check-input visible-check" type="radio" name="is_low_cost" id="low_cost_yes" value="yes" >
                                         <label class="form-check-label extra-small" for="low_cost_yes">Yes</label>
                                     </div>
                                     <div class="form-check form-check-inline mb-0">
-                                        <input class="form-check-input visible-check" type="radio" name="is_low_cost" id="low_cost_no" value="no" required>
+                                        <input class="form-check-input visible-check" type="radio" name="is_low_cost" id="low_cost_no" value="no" >
                                         <label class="form-check-label extra-small" for="low_cost_no">No</label>
                                     </div>
                                 </div>
