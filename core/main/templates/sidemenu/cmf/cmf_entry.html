@@ -259,11 +259,11 @@ CMF Entry
                                 <div class="d-flex gap-3 mt-1">
                                     <div class="form-check form-check-inline mb-0">
                                         <input class="form-check-input visible-check" type="radio" name="color_guide_return" value="Y" id="color_guide_yes">
-                                        <label class="form-check-label extra-small" for="color_guide_yes">Yes</label>
+                                        <label class="form-check-label extra-small" for="color_guide_return">Yes</label>
                                     </div>
                                     <div class="form-check form-check-inline mb-0">
-                                        <input class="form-check-input visible-check" type="radio" name="color_guide_return" value="N" id="color_guide_no">
-                                        <label class="form-check-label extra-small" for="color_guide_no">No</label>
+                                        <input class="form-check-input visible-check" type="radio" name="color_guide_return" value="N" id="color_guide_no"  >
+                                        <label class="form-check-label extra-small" for="color_guide_return">No</label>
                                     </div>
                                 </div>
                             </div>
@@ -272,32 +272,33 @@ CMF Entry
                                 <div class="d-flex gap-3 mt-1">
                                     <div class="form-check form-check-inline mb-0">
                                         <input class="form-check-input visible-check" type="radio" name="is_low_cost" value="Y" id="low_cost_yes">
-                                        <label class="form-check-label extra-small" for="low_cost_yes">Yes</label>
+                                        <label class="form-check-label extra-small" for="is_low_cost">Yes</label>
                                     </div>
                                     <div class="form-check form-check-inline mb-0">
                                         <input class="form-check-input visible-check" type="radio" name="is_low_cost" value="N" id="low_cost_no">
-                                        <label class="form-check-label extra-small" for="low_cost_no">No</label>
+                                        <label class="form-check-label extra-small" for="is_low_cost">No</label>
                                     </div>
                                 </div>
                             </div>
                         </div>
+
                     </div>
                 </div>
             </div>
 
-            <!-- REMARKS (Below Left) -->
+            <!-- ADDITIONAL INFO (Below Left) -->
             <div class="col-lg-7">
-                <div class="card cmf-entry-card shadow-sm h-100">
+                <div class="card cmf-entry-card shadow-sm">
                     <div class="card-body p-3">
                         <h6 class="cmf-section-title mb-2">Remarks</h6>
-                        <textarea class="form-control form-control-sm uniform-input" name="remarks" rows="4" placeholder="Enter remarks or technical details..."></textarea>
+                        <textarea class="form-control form-control-sm uniform-input" name="additional_info" rows="3" placeholder="Additional information..."></textarea>
                     </div>
                 </div>
             </div>
 
             <!-- PRODUCT CODE BAR (Below Right) -->
             <div class="col-lg-5">
-                <div class="card cmf-entry-card shadow-sm h-100">
+                <div class="card cmf-entry-card shadow-sm">
                     <div class="card-body p-3">
                          <label class="fw-bold extra-small text-uppercase mb-1">Product Code:</label>
                          <!-- Added custom 'readonly-gray' class -->
