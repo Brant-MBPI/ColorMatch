@@ -1,6 +1,6 @@
 from urllib import request
 
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.http import HttpResponse
 
 from main.models import tbl_internal_color_code, tbl_resin
@@ -10,11 +10,14 @@ from .services import cmf_records_services
 
 
 def index(request):
-    return render(request, "base.html")
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+    else:
+        return redirect('signin')
 
 
-def login(request):
-    return render(request, "login/login.html")
+def signin(request):
+    return render(request, "login/signin.html")
 
 
 def signup(request):
