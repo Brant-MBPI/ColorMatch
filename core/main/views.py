@@ -1,6 +1,6 @@
 from urllib import request
 
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login, logout, get_user_model 
 from django.contrib.auth.models import User
 from django.shortcuts import redirect, render
 from django.contrib import messages
@@ -9,7 +9,7 @@ from main.models import tbl_internal_color_code, tbl_resin
 
 from .services import cmf_records_services
 # Create your views here.
-
+User = get_user_model()
 
 def index(request):
     if request.user.is_authenticated:
