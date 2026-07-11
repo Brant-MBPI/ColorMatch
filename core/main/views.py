@@ -10,7 +10,7 @@ from .services import cmf_records_services
 
 
 def index(request):
-    return render(request, "base.html")
+    return render(request, "login/login.html")
 
 
 def dashboard(request):
