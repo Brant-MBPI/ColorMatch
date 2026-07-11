@@ -111,8 +111,8 @@
                 <div class="d-flex align-items-center">
                     <i class="bi bi-person-circle fs-4 text-teal"></i>
                     <div class="user-info ms-2">
-                        <span class="user-name d-block">Brant Jan</span>
-                        <small class="user-role d-block">Administrator</small>
+                        <span class="user-name d-block">{{ user.username|default:"User" }}</span>
+                        <small class="user-role d-block">{{ user.role.role|default:"No Role Assigned" }}</small>
                     </div>
                 </div>
             </a>
