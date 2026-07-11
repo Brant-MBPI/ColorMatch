@@ -1,7 +1,9 @@
 from urllib import request
 
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.models import User
 from django.shortcuts import redirect, render
-from django.http import HttpResponse
+from django.contrib import messages
 
 from main.models import tbl_internal_color_code, tbl_resin
 
@@ -17,11 +19,62 @@ def index(request):
 
 
 def signin(request):
-    return render(request, "login/signin.html")
+    next_url = request.GET.get('next', '') or request.POST.get('next', '')
+
+    if request.method == 'POST':
+        username = request.POST.get('username', '').strip()
+        password = request.POST.get('password', '')
+
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            return redirect(next_url or 'dashboard')
+
+        messages.error(request, "Incorrect username or password.")
+
+    return render(request, 'login/signin.html', {'next': next_url})
 
 
 def signup(request):
-    return render(request, "login/signup.html")
+    if request.method == 'POST':
+        first_name = request.POST.get('first_name', '').strip()
+        last_name = request.POST.get('last_name', '').strip()
+        username = request.POST.get('username', '').strip()
+        email = request.POST.get('email', '').strip()
+        password = request.POST.get('password', '')
+        confirm_password = request.POST.get('confirm_password', '')
+
+        errors = []
+        if not all([first_name, last_name, username, email, password]):
+            errors.append("All fields are required.")
+        if password != confirm_password:
+            errors.append("Passwords do not match.")
+        if User.objects.filter(username=username).exists():
+            errors.append("That username is already taken.")
+        if User.objects.filter(email=email).exists():
+            errors.append("That email is already registered.")
+
+        if errors:
+            for e in errors:
+                messages.error(request, e)
+            return render(request, 'login/signup.html')
+
+        user = User.objects.create_user(
+            username=username,
+            email=email,
+            password=password,
+            first_name=first_name,
+            last_name=last_name,
+        )
+        login(request, user)
+        return redirect('dashboard')
+
+    return render(request, 'login/signup.html')
+
+
+def signout(request):
+    logout(request)
+    return redirect('signin')
 
 
 def dashboard(request):

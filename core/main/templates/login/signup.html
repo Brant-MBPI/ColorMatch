@@ -9,6 +9,14 @@
     <div class="card-title">Create your account</div>
     <div class="card-subtitle">Fill in your details to get started.</div>
 
+    {% if messages %}
+    <div style="margin-bottom: 16px;">
+        {% for message in messages %}
+        <div class="field-hint error">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
     <form id="signupForm" method="post" novalidate>
         {% csrf_token %}
 

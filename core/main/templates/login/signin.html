@@ -7,8 +7,17 @@
     <div class="card-title">Sign in to your account</div>
     <div class="card-subtitle">Enter your credentials to continue.</div>
 
+    {% if messages %}
+    <div style="margin-bottom: 16px;">
+        {% for message in messages %}
+        <div class="field-hint error">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
     <form id="loginForm" method="post" novalidate>
         {% csrf_token %}
+        <input type="hidden" name="next" value="{{ next }}">
         <div class="field-group">
             <div class="input-wrap">
                 <i class="bi bi-person field-icon"></i>

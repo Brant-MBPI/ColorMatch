@@ -61,6 +61,11 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 ROOT_URLCONF = 'core.urls'
 
+LOGIN_URL = 'signin'
+LOGIN_REDIRECT_URL = 'dashboard'
+LOGOUT_REDIRECT_URL = 'signin'
+
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
