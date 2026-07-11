@@ -1,99 +1,51 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>MBPI Systems — Sign In</title>
+{% extends "login/login-base.html" %}
 
-        <!--
-            Bootstrap Icons: since this is offline, point this to your locally
-            hosted bootstrap-icons.min.css instead of a CDN. You're likely already
-            serving this somewhere since "bi bi-*" icons are used throughout your
-            other templates (cmf_entry, sidebar, etc.) — reuse that same static path.
-            Example if it lives under static/vendor/bootstrap-icons/:
-        -->
-        <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
-        <link rel="stylesheet" href="{% static 'css/bootstrap-icons.css' %}">
-        <link rel="stylesheet" href="{% static 'css/login/login.css' %}">
-    </head>
-    <body>
+{% block title %}MBPI Systems — Sign In{% endblock %}
 
-        <div class="auth-stage">
+{% block auth_card %}
 
-            <div class="glow-blob"></div>
-            <div class="glow-blob-secondary"></div>
+    <div class="card-title">Sign in to your account</div>
+    <div class="card-subtitle">Enter your credentials to continue.</div>
 
-            <!--
-                PRODUCT IMAGE SLOT
-                Swap the src below for your background-removed cutout
-                (the pellets / bottle / color swatches, transparent PNG).
-                It's positioned to sit inside the teal glow above.
-            -->
-            <div class="product-slot">
-                <img src="{% static '' %}" alt="Masterbatch pellets, bottle, and color swatches" onerror="this.style.display='none'">
+    <form id="loginForm" method="post" novalidate>
+        {% csrf_token %}
+        <div class="field-group">
+            <div class="input-wrap">
+                <i class="bi bi-person field-icon"></i>
+                <input type="text" id="loginUsername" name="username" class="field-input" placeholder="Email address or username" autocomplete="username" required>
             </div>
-
-            <div class="stage-copy">
-                <div class="stage-eyebrow">MBPI Systems</div>
-                <div class="stage-headline">Masterbatch<br>Philippines Inc.</div>
-                <div class="stage-tagline">COLOR. <span>FUNCTION.</span> PERFORMANCE.</div>
-                <p class="stage-desc">Sign in to manage color matching records, formulas, and production data — all in one system.</p>
-            </div>
-
-            <div class="auth-card">
-                <div class="card-logo-row">
-                    <div class="card-logo-box">M</div>
-                    <div class="card-logo-text">MBPI<span>SYSTEMS</span></div>
-                </div>
-
-                <div class="card-title">Sign in to your account</div>
-                <div class="card-subtitle">Enter your credentials to continue.</div>
-
-                <form id="loginForm" method="post" novalidate>
-                    {% csrf_token %}
-                    <div class="field-group">
-                        <div class="input-wrap">
-                            <i class="bi bi-person field-icon"></i>
-                            <input type="text" id="loginUsername" name="username" class="field-input" placeholder="Email address or username" autocomplete="username" required>
-                        </div>
-                    </div>
-
-                    <div class="field-group">
-                        <div class="input-wrap">
-                            <i class="bi bi-lock field-icon"></i>
-                            <input type="password" id="loginPassword" name="password" class="field-input" placeholder="Password" autocomplete="current-password" required>
-                            <button type="button" class="toggle-visibility" data-target="loginPassword">
-                                <i class="bi bi-eye"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="row-options">
-                        <label class="remember-check">
-                            <input type="checkbox" id="rememberMe" name="remember_me">
-                            Remember me
-                        </label>
-                        <a href="#" class="link-teal">Forgot password?</a>
-                    </div>
-
-                    <button type="submit" class="btn-submit">
-                        <i class="bi bi-box-arrow-in-right"></i> Login
-                    </button>
-                </form>
-
-                <div class="switch-view-text">
-                    Don't have an account? <a href="#" class="link-teal" id="registerLink">Register here</a>
-                </div>
-
-                <div class="card-footer-links">
-                    <a href="#">Terms of use</a>
-                    <a href="#">Privacy policy</a>
-                </div>
-            </div>
-
         </div>
 
-        <script src="{% static 'js/login/login.js' %}"></script>
-    </body>
-</html>
+        <div class="field-group">
+            <div class="input-wrap">
+                <i class="bi bi-lock field-icon"></i>
+                <input type="password" id="loginPassword" name="password" class="field-input" placeholder="Password" autocomplete="current-password" required>
+                <button type="button" class="toggle-visibility" data-target="loginPassword">
+                    <i class="bi bi-eye"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="row-options">
+            <label class="remember-check">
+                <input type="checkbox" id="rememberMe" name="remember_me">
+                Remember me
+            </label>
+            <a href="#" class="link-teal">Forgot password?</a>
+        </div>
+
+        <button type="submit" class="btn-submit">
+            <i class="bi bi-box-arrow-in-right"></i> Login
+        </button>
+    </form>
+
+    <div class="switch-view-text">
+        Don't have an account? <a href="{% url 'signup' %}" class="link-teal">Register here</a>
+    </div>
+
+    <div class="card-footer-links">
+        <a href="#">Terms of use</a>
+        <a href="#">Privacy policy</a>
+    </div>
+
+{% endblock %}

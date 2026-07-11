@@ -1,0 +1,44 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>{% block title %}MBPI Systems{% endblock %}</title>
+
+        <link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet">
+        <link rel="stylesheet" href="{% static 'css/bootstrap-icons.css' %}">
+        <link rel="stylesheet" href="{% static 'css/login/login.css' %}">
+        {% block extra_css %}{% endblock %}
+    </head>
+    <body>
+
+        <div class="auth-stage">
+            <div class="auth-content">
+
+                <div class="stage-copy">
+                    <div class="glow-blob"></div>
+                    <div class="glow-blob-secondary"></div>
+
+                    <div class="stage-eyebrow">MBPI Systems</div>
+                    <div class="stage-headline">Masterbatch<br>Philippines Inc.</div>
+                    <div class="stage-tagline">COLOR. <span>FUNCTION.</span> PERFORMANCE.</div>
+                    <p class="stage-desc">{% block stage_desc %}Sign in to manage color matching records, formulas, and production data — all in one system.{% endblock %}</p>
+                </div>
+
+                <div class="auth-card">
+                    <div class="card-logo-row">
+                        <div class="card-logo-box">M</div>
+                        <div class="card-logo-text">MBPI<span>SYSTEMS</span></div>
+                    </div>
+
+                    {% block auth_card %}{% endblock %}
+                </div>
+
+            </div>
+        </div>
+
+        <script src="{% static 'js/login/login.js' %}"></script>
+        {% block extra_js %}{% endblock %}
+    </body>
+</html>

@@ -10,7 +10,15 @@ from .services import cmf_records_services
 
 
 def index(request):
+    return render(request, "base.html")
+
+
+def login(request):
     return render(request, "login/login.html")
+
+
+def signup(request):
+    return render(request, "login/signup.html")
 
 
 def dashboard(request):
