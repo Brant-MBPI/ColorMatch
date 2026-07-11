@@ -5,6 +5,7 @@ from django.contrib.auth.models import User
 from django.shortcuts import redirect, render
 from django.contrib import messages
 
+from core.main.decorators import role_required
 from main.models import tbl_internal_color_code, tbl_resin
 
 from .services import cmf_records_services
@@ -13,9 +14,17 @@ User = get_user_model()
 
 def index(request):
     if request.user.is_authenticated:
-        return redirect('dashboard')
+        if request.user.role:
+            return redirect('dashboard')
+        else:
+            return redirect('pending_role')
     else:
         return redirect('signin')
+
+def pending_role(request):
+    if request.user.is_authenticated and request.user.role:
+        return redirect('dashboard')
+    return render(request, 'login/pending_role.html')
 
 
 def signin(request):
@@ -76,7 +85,7 @@ def signout(request):
     logout(request)
     return redirect('signin')
 
-
+@role_required # This now handles both login AND role check
 def dashboard(request):
     return render(request, "sidemenu/dashboard/dashboard.html")
 
