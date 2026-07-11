@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 from django.shortcuts import redirect, render
 from django.contrib import messages
 
-from core.main.decorators import role_required
+from main.decorators import role_required
 from main.models import tbl_internal_color_code, tbl_resin
 
 from .services import cmf_records_services
@@ -24,7 +24,7 @@ def index(request):
 def pending_role(request):
     if request.user.is_authenticated and request.user.role:
         return redirect('dashboard')
-    return render(request, 'login/pending_role.html')
+    return render(request, 'login/pending-role.html')
 
 
 def signin(request):
