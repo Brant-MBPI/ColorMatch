@@ -65,6 +65,8 @@ LOGIN_URL = 'signin'
 LOGIN_REDIRECT_URL = 'dashboard'
 LOGOUT_REDIRECT_URL = 'signin'
 
+AUTH_USER_MODEL = 'main.tbl_user'
+
 
 TEMPLATES = [
     {

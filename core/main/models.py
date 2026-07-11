@@ -1,5 +1,5 @@
 from django.db import models
-
+from django.contrib.auth.models import AbstractUser
 
 # ==========================================
 # 1. USER & ACCESS CONTROL MODULE
@@ -18,17 +18,10 @@ class tbl_role(models.Model):
         return f"{self.department} - {self.role}"
 
 
-class tbl_user(models.Model):
-    user_id = models.AutoField(primary_key=True)
+class tbl_user(AbstractUser):
     hostname = models.CharField(max_length=100, blank=True, null=True)
-    email = models.EmailField(max_length=255, unique=True)
-    first_name = models.CharField(max_length=100, null=True, blank=True)
-    last_name = models.CharField(max_length=100, null=True, blank=True)
     mac_address = models.CharField(max_length=50, unique=True, blank=True, null=True)
-    username = models.CharField(max_length=100, unique=True)
-    password = models.CharField(max_length=100)
-    role = models.ForeignKey(tbl_role, on_delete=models.SET_NULL, null=True, blank=True, db_column="role_id")
-
+    role = models.ForeignKey('tbl_role', on_delete=models.SET_NULL, null=True, blank=True)
     class Meta:
         db_table = "tbl_user"
 
