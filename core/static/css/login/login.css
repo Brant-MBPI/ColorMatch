@@ -1,0 +1,331 @@
+/* ==============================================
+   login.css
+   MBPI Systems — Login Page (Teal Theme)
+   ============================================== */
+
+:root {
+    --teal: #0d9488;
+    --teal-light: #2dd4bf;
+    --teal-dark: #0f766e;
+    --deep-navy: #0f172a;
+    --card-dark: #1e293b;
+    --card-border: #334155;
+    --text-muted: #94a3b8;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background: var(--deep-navy);
+    overflow-x: hidden;
+}
+
+.auth-stage {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    background: radial-gradient(ellipse at 20% 30%, #134e4a 0%, #0f172a 55%, #0f172a 100%);
+}
+
+/* --- Ambient teal glow blob (stand-in for the product background) --- */
+.glow-blob {
+    position: absolute;
+    width: 620px;
+    height: 620px;
+    border-radius: 50%;
+    top: 50%;
+    left: 20%;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(circle at 35% 35%, #2dd4bf 0%, #0d9488 45%, rgba(13,148,136,0) 72%);
+    filter: blur(2px);
+    opacity: 0.9;
+}
+
+.glow-blob-secondary {
+    position: absolute;
+    width: 340px;
+    height: 340px;
+    border-radius: 50%;
+    bottom: 6%;
+    left: 6%;
+    background: radial-gradient(circle at 40% 40%, #134e4a 0%, rgba(19,78,74,0) 70%);
+    opacity: 0.8;
+}
+
+/* --- Slot for the real product cutout image --- */
+.product-slot {
+    position: absolute;
+    left: 20%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 480px;
+    max-width: 46vw;
+    z-index: 2;
+    pointer-events: none;
+    user-select: none;
+}
+
+.product-slot img {
+    width: 100%;
+    height: auto;
+    display: block;
+    filter: drop-shadow(0 30px 40px rgba(0,0,0,0.35));
+}
+
+/* --- Left-side copy --- */
+.stage-copy {
+    position: relative;
+    z-index: 3;
+    max-width: 480px;
+    padding: 0 6vw;
+    color: white;
+}
+
+.stage-eyebrow {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.18rem;
+    text-transform: uppercase;
+    color: var(--teal-light);
+    margin-bottom: 14px;
+}
+
+.stage-headline {
+    font-size: clamp(1.9rem, 3.4vw, 2.6rem);
+    font-weight: 800;
+    line-height: 1.15;
+    margin-bottom: 16px;
+    letter-spacing: -0.01rem;
+}
+
+.stage-tagline {
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 0.04rem;
+    color: rgba(255,255,255,0.85);
+    margin-bottom: 18px;
+}
+
+.stage-tagline span {
+    color: var(--teal-light);
+}
+
+.stage-copy p.stage-desc {
+    font-size: 0.85rem;
+    line-height: 1.7;
+    color: rgba(226,232,240,0.65);
+    max-width: 380px;
+}
+
+/* --- Floating auth card --- */
+.auth-card {
+    position: relative;
+    z-index: 4;
+    margin-left: auto;
+    margin-right: 8vw;
+    width: 380px;
+    background: var(--card-dark);
+    border: 1px solid var(--card-border);
+    border-radius: 1.1rem;
+    padding: 36px 34px;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.45);
+}
+
+.card-logo-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 30px;
+}
+
+.card-logo-box {
+    width: 34px;
+    height: 34px;
+    background: rgba(45, 212, 191, 0.14);
+    border: 1px solid rgba(45, 212, 191, 0.4);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    color: var(--teal-light);
+    font-size: 1.05rem;
+}
+
+.card-logo-text {
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    color: white;
+    font-size: 1rem;
+    line-height: 1.1;
+}
+
+.card-logo-text span {
+    display: block;
+    font-size: 0.55rem;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: var(--text-muted);
+}
+
+.card-title {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: white;
+    margin-bottom: 4px;
+}
+
+.card-subtitle {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-bottom: 26px;
+}
+
+.field-group {
+    margin-bottom: 18px;
+}
+
+.input-wrap {
+    position: relative;
+}
+
+.input-wrap i.field-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    pointer-events: none;
+}
+
+.field-input {
+    width: 100%;
+    padding: 12px 14px 12px 40px;
+    border: 1px solid var(--card-border);
+    border-radius: 0.6rem;
+    font-size: 0.85rem;
+    color: white;
+    background: rgba(255,255,255,0.03);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.field-input::placeholder {
+    color: #64748b;
+}
+
+.field-input:focus {
+    outline: none;
+    border-color: var(--teal);
+    background: rgba(13, 148, 136, 0.06);
+    box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.12);
+}
+
+.toggle-visibility {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 0.95rem;
+    padding: 4px;
+    line-height: 1;
+}
+
+.toggle-visibility:hover { color: white; }
+
+.row-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 6px 0 22px;
+    font-size: 0.76rem;
+}
+
+.remember-check {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-muted);
+}
+
+.remember-check input {
+    width: 14px;
+    height: 14px;
+    accent-color: var(--teal);
+    cursor: pointer;
+}
+
+.link-teal {
+    color: var(--teal-light);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.link-teal:hover { text-decoration: underline; }
+
+.btn-submit {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 0.6rem;
+    background: var(--teal);
+    color: white;
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 0.03rem;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.1s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-submit:hover { background: var(--teal-light); color: #0f172a; }
+.btn-submit:active { transform: scale(0.98); }
+
+.switch-view-text {
+    text-align: left;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin-top: 22px;
+}
+
+.card-footer-links {
+    margin-top: 28px;
+    padding-top: 18px;
+    border-top: 1px solid var(--card-border);
+    font-size: 0.68rem;
+    color: #64748b;
+    display: flex;
+    gap: 14px;
+}
+
+.card-footer-links a {
+    color: #64748b;
+    text-decoration: none;
+}
+
+.card-footer-links a:hover { color: var(--text-muted); }
+
+/* ============ RESPONSIVE ============ */
+@media (max-width: 992px) {
+    .stage-copy { display: none; }
+    .product-slot { display: none; }
+    .glow-blob, .glow-blob-secondary { opacity: 0.35; }
+    .auth-card { margin: 0 auto; }
+}
+
+@media (max-width: 460px) {
+    .auth-card { width: 92vw; padding: 30px 24px; }
+}
