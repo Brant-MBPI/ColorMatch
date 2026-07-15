@@ -1,0 +1,32 @@
+document.addEventListener('DOMContentLoaded', function() {
+    
+    // --- DOSAGE LOGIC (% Auto-concat) ---
+    document.querySelectorAll('.dosage-input').forEach(function(input) {
+        input.addEventListener('blur', function() {
+            let value = this.value.trim();
+            if (value !== "" && value !== "N/A") {
+                // Remove existing % to prevent "10%%" then add one back
+                value = value.replace(/%/g, "");
+                this.value = value + "%";
+            }
+        });
+    });
+
+    // --- TEMPERATURE LOGIC (N/A Default & Range support) ---
+    document.querySelectorAll('.temp-input').forEach(function(input) {
+        // Clear "N/A" when user clicks in to type
+        input.addEventListener('focus', function() {
+            if (this.value === "N/A") {
+                this.value = "";
+            }
+        });
+
+        // If user leaves it empty, put "N/A" back
+        input.addEventListener('blur', function() {
+            if (this.value.trim() === "") {
+                this.value = "N/A";
+            }
+        });
+    });
+
+});
