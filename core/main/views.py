@@ -127,6 +127,7 @@ def cmf_entry(request):
 
     resins_query = tbl_resin.objects.filter(is_deleted=False).order_by('abbreviation')
 
+    messages.success(request, "CMF Entry has been saved successfully!")
     return render(request, "sidemenu/cmf/cmf_entry.html", {
         "customers": customers,
         "salesman": salesman,

@@ -1,64 +1,85 @@
+/* --- THEME VARIABLES --- */
 :root {
-    --preline-navy: #0f172a;
-    --preline-teal: #00c896;
-    --preline-border: rgba(255, 255, 255, 0.1);
-    --preline-glass: rgba(15, 23, 42, 0.8);
+    --pl-glass: rgba(255, 255, 255, 0.85);
+    --pl-text: #1e293b;
+    --pl-border: rgba(0, 0, 0, 0.08);
+    --pl-teal: #00c896;
+    --pl-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
 
-/* Modal Styling */
-.preline-modal .modal-content {
-    background: var(--preline-glass);
-    backdrop-filter: blur(15px);
-    border: 1px solid var(--preline-border);
-    border-radius: 1.5rem;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-    color: white;
+body.dark-mode {
+    --pl-glass: rgba(15, 23, 42, 0.8);
+    --pl-text: #f8fafc;
+    --pl-border: rgba(255, 255, 255, 0.1);
+    --pl-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
 }
 
-.preline-modal .modal-header, .preline-modal .modal-footer {
-    border: none;
-    padding: 1.5rem;
-}
-
-.preline-modal .btn-close {
-    filter: invert(1) grayscale(100%) brightness(200%);
-}
-
-/* Icon Styles */
-.modal-icon-circle {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 1rem;
-    font-size: 1.8rem;
-}
-
-.icon-success { background: rgba(0, 200, 150, 0.1); color: var(--preline-teal); }
-.icon-danger { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
-.icon-warning { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
-
-/* Toast Notifications (Preline Style) */
-.preline-toast {
+/* --- TOAST CONTAINER (Upper Right) --- */
+#preline-toast-container {
     position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 9999;
-    min-width: 300px;
-    background: var(--preline-glass);
-    backdrop-filter: blur(10px);
-    border-left: 4px solid var(--preline-teal);
-    border-radius: 0.75rem;
+    top: 25px;
+    right: 25px;
+    z-index: 1100; /* Higher than Bootstrap Modals */
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    pointer-events: none;
+}
+
+.preline-toast {
+    pointer-events: auto;
+    min-width: 320px;
+    max-width: 420px;
+    background: var(--pl-glass);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--pl-border);
+    border-left: 4px solid var(--pl-teal);
+    border-radius: 1rem;
     padding: 1rem;
     display: flex;
     align-items: center;
     gap: 12px;
-    animation: slideIn 0.3s ease-out;
+    box-shadow: var(--pl-shadow);
+    color: var(--pl-text);
+    animation: toastSlideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: all 0.4s ease;
 }
 
-@keyframes slideIn {
+@keyframes toastSlideIn {
     from { transform: translateX(100%); opacity: 0; }
     to { transform: translateX(0); opacity: 1; }
 }
+
+/* Toast Variants */
+.preline-toast.danger, .preline-toast.error { border-left-color: #ef4444; }
+.preline-toast.warning { border-left-color: #f59e0b; }
+.preline-toast.info { border-left-color: #3b82f6; }
+
+/* --- MODAL STYLING --- */
+.preline-modal .modal-content {
+    background: var(--pl-glass) !important;
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid var(--pl-border);
+    border-radius: 1.5rem;
+    color: var(--pl-text);
+    box-shadow: var(--pl-shadow);
+}
+
+.modal-icon-circle {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.25rem;
+    font-size: 1.5rem;
+}
+
+.icon-success { background: rgba(0, 200, 150, 0.15); color: #00c896; }
+.icon-danger { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+.icon-warning { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+
+body.dark-mode .btn-close { filter: invert(1) grayscale(100%) brightness(200%); }

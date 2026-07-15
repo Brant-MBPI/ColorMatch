@@ -1,6 +1,5 @@
 // Use a function to ensure it runs even if content is dynamic
 function initFormattingLogic() {
-    console.log("Formatting Logic Initialized"); // Check your browser console (F12) for this!
 
     // --- DOSAGE LOGIC ---
     document.querySelectorAll('.dosage-input').forEach(function(input) {
@@ -67,8 +66,6 @@ if (saveBtn) {
             'Are you sure you want to save this color matching entry? Please verify all technical specs before confirming.', 
             'success', 
             () => {
-                // This only runs if they click "Confirm"
-                console.log("Form Submitted Successfully");
                 cmfForm.submit(); 
             }
         );

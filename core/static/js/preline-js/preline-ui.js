@@ -1,42 +1,64 @@
 const Preline = {
-    // 1. CONFIRMATION MODAL
-    // Usage: Preline.confirm('Delete?', 'This is permanent', 'danger', () => { doDelete(); });
-    confirm: function(title, message, type, callback) {
-        const modal = new bootstrap.Modal(document.getElementById('dynamicModal'));
-        const iconContainer = document.getElementById('modalIcon');
-        const icon = document.getElementById('modalIconClass');
-        const confirmBtn = document.getElementById('modalConfirmBtn');
+    // 1. TOAST SYSTEM
+    toast: function(message, type = 'success') {
+        let container = document.getElementById('preline-toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'preline-toast-container';
+            document.body.appendChild(container);
+        }
 
+        const toast = document.createElement('div');
+        const cleanType = type.includes('error') ? 'danger' : type;
+        toast.className = `preline-toast ${cleanType}`;
+        
+        let icon = 'check-circle-fill';
+        if (cleanType === 'danger' || cleanType === 'error') icon = 'exclamation-triangle-fill';
+        if (cleanType === 'warning') icon = 'exclamation-circle-fill';
+
+        toast.innerHTML = `
+            <i class="bi bi-${icon} fs-5"></i>
+            <div class="flex-grow-1 mr-2">
+                <span class="small fw-semibold d-block">${cleanType.toUpperCase()}</span>
+                <span class="small opacity-75">${message}</span>
+            </div>
+            <button type="button" class="btn-close ms-2" style="font-size: 0.7rem" onclick="this.parentElement.remove()"></button>
+        `;
+
+        container.appendChild(toast);
+
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(40px)';
+            setTimeout(() => toast.remove(), 500);
+        }, 4000);
+    },
+
+    // 2. CONFIRMATION MODAL
+    confirm: function(title, message, type, onConfirm) {
+        const modalEl = document.getElementById('dynamicModal');
+        const modal = new bootstrap.Modal(modalEl);
+        
         document.getElementById('modalTitle').innerText = title;
         document.getElementById('modalMessage').innerText = message;
-
-        // Set Icon and Color based on type
-        iconContainer.className = 'modal-icon-circle icon-' + (type || 'success');
-        icon.className = type === 'danger' ? 'bi bi-exclamation-triangle' : 'bi bi-check-lg';
         
-        // Handle Confirmation
-        confirmBtn.onclick = () => {
-            callback();
+        const iconContainer = document.getElementById('modalIconContainer');
+        const icon = document.getElementById('modalIcon');
+        
+        // Reset classes
+        iconContainer.className = 'modal-icon-circle icon-' + (type || 'success');
+        icon.className = 'bi ' + (type === 'danger' ? 'bi-exclamation-triangle' : 'bi-check-lg');
+
+        const confirmBtn = document.getElementById('modalConfirmBtn');
+        // Clear previous listeners
+        const newConfirmBtn = confirmBtn.cloneNode(true);
+        confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+
+        newConfirmBtn.onclick = () => {
+            onConfirm();
             modal.hide();
         };
 
         modal.show();
-    },
-
-    // 2. TOAST NOTIFICATION
-    // Usage: Preline.toast('Saved successfully!', 'success');
-    toast: function(message, type = 'success') {
-        const toast = document.createElement('div');
-        toast.className = `preline-toast border-${type}`;
-        toast.innerHTML = `
-            <i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-circle'} text-${type}"></i>
-            <span class="small text-white">${message}</span>
-        `;
-        document.body.appendChild(toast);
-
-        setTimeout(() => {
-            toast.style.opacity = '0';
-            setTimeout(() => toast.remove(), 500);
-        }, 3000);
     }
 };

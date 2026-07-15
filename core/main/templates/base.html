@@ -48,7 +48,7 @@
             {% include 'footer.html' %}
         </div>
     </div>
-
+    {% include "partials/after-reload-msgs.html" %}
     <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
     <script src="{% static 'js/tom-select.complete.min.js' %}"></script>
     <script src="{% static 'js/flatpickr.js' %}"></script>
@@ -65,8 +65,6 @@
     <script src="{% static 'js/cmf/datepicker.js' %}"></script>
     <script src="{% static 'js/modal/uploadfile-handler.js' %}"></script>
     <script src="{% static 'js/cmf/cmf-entry.js' %}"></script>
-
-    <!-- Django Messages to Preline Toasts -->
 
     {% block scripts %}{% endblock %}
 </body>

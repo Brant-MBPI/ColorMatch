@@ -1,0 +1,25 @@
+<!-- Django Messages Bridge -->
+<div id="django-messages" style="display: none;">
+    {% if messages %}
+        {% for message in messages %}
+            <span class="django-msg" 
+                  data-message="{{ message|escapejs }}" 
+                  data-tags="{{ message.tags|default:'success'|escapejs }}">
+            </span>
+        {% endfor %}
+    {% endif %}
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // 1. Trigger Django Toasts
+        const messageElements = document.querySelectorAll('.django-msg');
+        messageElements.forEach(el => {
+            Preline.toast(el.dataset.message, el.dataset.tags);
+        });
+
+        // 2. Sync Bootstrap Theme with your dark-mode class
+        const isDark = document.body.classList.contains('dark-mode');
+        document.documentElement.setAttribute('data-bs-theme', isDark ? 'dark' : 'light');
+    });
+</script>
