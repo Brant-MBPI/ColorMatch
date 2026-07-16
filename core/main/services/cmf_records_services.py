@@ -1,111 +1,117 @@
-from django.db import transaction
-from datetime import datetime
-from .models import (
-    tbl_cmf, tbl_cmf_color_req, tbl_cmf_dates, tbl_cmf_formula, 
-    tbl_cmf_process, tbl_cmf_process02, tbl_resin, tbl_resins_selected,
-    tbl_cmf_specification, tbl_cmf_specification02, tbl_cmf_salesman
-)
+ALL_HEADERS = [
+    "No.", "Customer", "Primary Color", "Color Description",
+    "Finished Product", "Required Date", "Target Date", "Matching Type",
+    "Product Code", "Status", "Submitted Date", "AR No.", "Reason"
+]
 
-def save_cmf_complete_entry(request):
-    data = request.POST
-    
-    # --- 1. STRICT VALIDATION ---
-    # List of all required keys from your HTML names
-    required_fields = [
-        'cmf_no', 'customer', 'date_created', 'required_date', 'date_received', 
-        'due_date', 'matchType', 'salesman', 'finished_product', 'primary_color', 
-        'color_description', 'colorReq', 'qty_resin_test', 'customerResin', 
-        'mi_customer_resin', 'sampleColorant', 'colorantType', 'dosage', 
-        'processing_temp', 'color_guide_return', 'is_low_cost'
+COLS_BOTH = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+COLS_COMPLETED = [0, 1, 2, 3, 4, 7, 8, 10, 11]
+COLS_PENDING = [0, 1, 2, 3, 4, 5, 6, 7, 12]
+
+
+def get_cmf_records():
+    """
+    Fetches CMF records fresh on every call.
+    Replace the hardcoded list below with a real DB query later, e.g.:
+        return list(CMFRecord.objects.values(
+            'no', 'customer', 'primary_color', 'description', 'product',
+            'required_date', 'target_date', 'type', 'code', 'status',
+            'submitted_date', 'ar_no', 'reason'
+        ))
+    """
+    return [
+        {
+            "no": "A8722a", "customer": "Masterbatch PH", "primary_color": "Red",
+            "description": "Gloss", "product": "Cap", "required_date": "10/25/24",
+            "target_date": "10/30/24", "type": "New", "code": "PC-001",
+            "status": "Completed", "submitted_date": "10/29/24", "ar_no": "AR-1001", "reason": "",
+        },
+        {
+            "no": "A8735a", "customer": "Generic Co.", "primary_color": "Blue",
+            "description": "Matte", "product": "Tray", "required_date": "11/01/24",
+            "target_date": "11/05/24", "type": "Re-Match", "code": "PC-002",
+            "status": "Pending", "submitted_date": "", "ar_no": "", "reason": "Awaiting resin sample",
+        },
+        {
+            "no": "A8735b", "customer": "Generic Co.", "primary_color": "Blue",
+            "description": "Matte", "product": "Tray", "required_date": "11/01/24",
+            "target_date": "11/05/24", "type": "Re-Match", "code": "PC-002",
+            "status": "Completed", "submitted_date": "11/04/24", "ar_no": "AR-1002", "reason": "",
+        },
+        {
+            "no": "A8801a", "customer": "Plasti-Wrap Corp", "primary_color": "Green",
+            "description": "Translucent", "product": "Bottle", "required_date": "11/10/24",
+            "target_date": "11/15/24", "type": "New", "code": "PC-003",
+            "status": "Pending", "submitted_date": "", "ar_no": "", "reason": "Pending customer approval",
+        },
+        {
+            "no": "A8812a", "customer": "Nova Packaging", "primary_color": "Black",
+            "description": "Opaque", "product": "Closure", "required_date": "11/12/24",
+            "target_date": "11/18/24", "type": "Re-Match", "code": "PC-004",
+            "status": "Completed", "submitted_date": "11/17/24", "ar_no": "AR-1003", "reason": "",
+        },
     ]
-    
-    for field in required_fields:
-        if not data.get(field):
-            raise Exception(f"The field '{field.replace('_', ' ').title()}' is required and cannot be empty.")
 
-    # Check for many-to-many lists
-    if not data.getlist('resin'): raise Exception("At least one Resin Type must be selected.")
-    if not data.getlist('process'): raise Exception("At least one Process must be selected.")
-    if not data.getlist('specification'): raise Exception("At least one Specification must be selected.")
 
-    # --- 2. HELPERS ---
-    def format_date(d_str):
-        try:
-            return datetime.strptime(d_str.split(',')[0].strip(), '%m/%d/%Y').strftime('%Y-%m-%d')
-        except: return None
+def get_rs_records():
+    """
+    Fetches RS records fresh on every call.
+    Replace the hardcoded list below with a real DB query later, e.g.:
+        return list(RSRecord.objects.values(
+            'no', 'customer', 'primary_color', 'description', 'product',
+            'required_date', 'target_date', 'type', 'code', 'status',
+            'submitted_date', 'ar_no', 'reason'
+        ))
+    """
+    return [
+        {
+            "no": "RS-3301", "customer": "Masterbatch PH", "primary_color": "Red",
+            "description": "Gloss", "product": "Cap", "required_date": "10/20/24",
+            "target_date": "10/28/24", "type": "New", "code": "PC-001",
+            "status": "Completed", "submitted_date": "10/27/24", "ar_no": "AR-2001", "reason": "",
+        },
+        {
+            "no": "RS-3312", "customer": "Generic Co.", "primary_color": "Blue",
+            "description": "Matte", "product": "Tray", "required_date": "10/29/24",
+            "target_date": "11/03/24", "type": "Re-Match", "code": "PC-002",
+            "status": "Pending", "submitted_date": "", "ar_no": "", "reason": "Waiting for lab result",
+        },
+        {
+            "no": "RS-3320", "customer": "Plasti-Wrap Corp", "primary_color": "Green",
+            "description": "Translucent", "product": "Bottle", "required_date": "11/08/24",
+            "target_date": "11/14/24", "type": "New", "code": "PC-003",
+            "status": "Completed", "submitted_date": "11/13/24", "ar_no": "AR-2002", "reason": "",
+        },
+        {
+            "no": "RS-3325", "customer": "Nova Packaging", "primary_color": "Black",
+            "description": "Opaque", "product": "Closure", "required_date": "11/11/24",
+            "target_date": "11/16/24", "type": "Re-Match", "code": "PC-004",
+            "status": "Pending", "submitted_date": "", "ar_no": "", "reason": "Awaiting AR submission",
+        },
+    ]
 
-    def clean_num(val):
-        return ''.join(filter(lambda x: x.isdigit() or x == '.', str(val)))
 
-    # --- 3. DATABASE TRANSACTION ---
-    with transaction.atomic():
-        # A. Lookup Salesman
-        salesman_obj = tbl_cmf_salesman.objects.filter(name=data.get('salesman')).first()
-        if not salesman_obj:
-            raise Exception("Selected salesman not found in database.")
+def get_active_columns(show_completed, show_pending):
+    if show_completed and show_pending:
+        return COLS_BOTH
+    elif show_completed:
+        return COLS_COMPLETED
+    elif show_pending:
+        return COLS_PENDING
+    return []
 
-        # B. tbl_cmf (Main)
-        cm_no = data.get('cmf_no')
-        if tbl_cmf.objects.filter(cm_no=cm_no).exists():
-            raise Exception(f"CMF Number {cm_no} already exists.")
 
-        colorant_type = data.get('colorantType')
-        if colorant_type == "Other": colorant_type = data.get('colorantTypeOther')
+def get_filtered_records(mode, show_completed, show_pending):
+    """
+    Single entry point the view calls: handles mode selection (CMF vs RS)
+    and status filtering in one place.
+    """
+    source = get_rs_records() if mode == 'rs' else get_cmf_records()
 
-        cmf_main = tbl_cmf.objects.create(
-            cm_no=cm_no,
-            matching_type=data.get('matchType'),
-            primary_color_id=data.get('primary_color'),
-            color_description=data.get('color_description'),
-            qty_resin_testing=data.get('qty_resin_test'),
-            is_resin_provided=data.get('customerResin'),
-            mi_c_resin=data.get('mi_customer_resin'),
-            is_sample_available=data.get('sampleColorant'),
-            colorant_type=colorant_type,
-            is_guide_to_return=data.get('color_guide_return'),
-            temperature=data.get('processing_temp'),
-            is_low_cost=data.get('is_low_cost'),
-            remarks=data.get('remarks'),
-            user=request.user,
-            sm_no=salesman_obj
-        )
-
-        # C. tbl_cmf_color_req
-        c_req = data.get('colorReq')
-        if c_req == "other": c_req = data.get('colorReq_other')
-        tbl_cmf_color_req.objects.create(name=c_req, cm_no=cm_no)
-
-        # D. tbl_cmf_dates
-        tbl_cmf_dates.objects.create(
-            form_made=format_date(data.get('date_created')),
-            date_required=data.get('required_date'),
-            date_received_lab=data.get('date_received'),
-            due_date_lab=format_date(data.get('due_date'))
-        )
-
-        # E. tbl_cmf_formula
-        formula_obj = tbl_cmf_formula.objects.create(
-            customer=data.get('customer'),
-            finished_product=data.get('finished_product'),
-            dosage=clean_num(data.get('dosage')),
-            cm_no=cm_no
-        )
-
-        # F. tbl_cmf_process02
-        for p_name in data.getlist('process'):
-            if p_name == "others": p_name = data.get('otherProcess')
-            p_ref, _ = tbl_cmf_process.objects.get_or_create(name=p_name)
-            tbl_cmf_process02.objects.create(cmf_formula_no=formula_obj, process_no=p_ref)
-
-        # G. tbl_resins_selected
-        for r_id in data.getlist('resin'):
-            r_ref = tbl_resin.objects.get(resin_no=r_id)
-            tbl_resins_selected.objects.create(cm_no=cm_no, resin_no=r_ref)
-
-        # H. tbl_cmf_specification02
-        for s_name in data.getlist('specification'):
-            if s_name == "Others": s_name = data.get('specificationOther')
-            s_ref, _ = tbl_cmf_specification.objects.get_or_create(name=s_name)
-            tbl_cmf_specification02.objects.create(cm_no=cm_no, spec_no=s_ref)
-
-    return cmf_main
+    if show_completed and show_pending:
+        return source
+    elif show_completed:
+        return [r for r in source if r['status'] == 'Completed']
+    elif show_pending:
+        return [r for r in source if r['status'] == 'Pending']
+    return []

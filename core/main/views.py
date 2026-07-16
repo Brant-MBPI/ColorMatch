@@ -10,6 +10,7 @@ from main.decorators import role_required
 from main.models import tbl_internal_color_code, tbl_resin
 
 from .services import cmf_records_services
+from .services.save import cmf_entry_save
 # Create your views here.
 User = get_user_model()
 
@@ -118,7 +119,7 @@ def cmf_entry(request):
     form_data = {}
     if request.method == "POST":
         try:
-            saved_record = save_cmf_complete_entry(request)
+            saved_record = cmf_entry_save.save_cmf_complete_entry(request)
             messages.success(request, f"Successfully saved CMF No. {saved_record.cm_no}")
             return redirect('cmf_entry')
         except Exception as e:
