@@ -121,14 +121,14 @@ class tbl_resin(models.Model):
 class tbl_resins_selected(models.Model):
     selected_resin_no = models.AutoField(primary_key=True)
     # References tbl_cmf (the parent)
-    cm = models.ForeignKey(
+    cm_no = models.ForeignKey(
         'tbl_cmf', 
         to_field="cm_no", 
         on_delete=models.CASCADE, 
         db_column="cm_no"
     )
     # References tbl_resin (the lookup)
-    resin = models.ForeignKey(
+    resin_no = models.ForeignKey(
         'tbl_resin', 
         on_delete=models.CASCADE, 
         db_column="resin_no"
@@ -210,7 +210,7 @@ class tbl_cmf(models.Model):
 class tbl_cmf_color_req(models.Model):
     color_req_no = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100, blank=True, null=True)
-    cm = models.ForeignKey(tbl_cmf, to_field="cm_no", on_delete=models.CASCADE, null=True, blank=True, db_column="cm_no")
+    cm_no = models.ForeignKey(tbl_cmf, to_field="cm_no", on_delete=models.CASCADE, null=True, blank=True, db_column="cm_no")
 
     class Meta:
         db_table = "tbl_cmf_color_req"
@@ -240,7 +240,7 @@ class tbl_cmf_dates(models.Model):
     date_required = models.CharField(max_length=36, blank=True, null=True)
     date_received_lab = models.CharField(max_length=36, blank=True, null=True)
     due_date_lab = models.DateField(blank=True, null=True)
-    cm = models.ForeignKey(tbl_cmf, to_field="cm_no", on_delete=models.CASCADE, db_column="cm_no")
+    cm_no = models.ForeignKey(tbl_cmf, to_field="cm_no", on_delete=models.CASCADE, db_column="cm_no")
 
     class Meta:
         db_table = "tbl_cmf_dates"
@@ -254,7 +254,7 @@ class tbl_cmf_formula(models.Model):
     customer = models.CharField(max_length=150, blank=True, null=True)
     finished_product = models.CharField(max_length=150, blank=True, null=True)
     dosage = models.DecimalField(max_digits=12, decimal_places=6, null=True, blank=True)
-    cm = models.ForeignKey(tbl_cmf, to_field="cm_no", on_delete=models.CASCADE, db_column="cm_no")
+    cm_no = models.ForeignKey(tbl_cmf, to_field="cm_no", on_delete=models.CASCADE, db_column="cm_no")
 
     class Meta:
         db_table = "tbl_cmf_formula"
@@ -265,8 +265,8 @@ class tbl_cmf_formula(models.Model):
 
 class tbl_cmf_process02(models.Model):
     chosen_process_no = models.AutoField(primary_key=True)
-    cmf_formula = models.ForeignKey(tbl_cmf_formula, on_delete=models.CASCADE, db_column="cmf_formula_no")
-    process = models.ForeignKey(tbl_cmf_process, on_delete=models.SET_NULL, null=True, blank=True, db_column="process_no")
+    cmf_formula_no = models.ForeignKey(tbl_cmf_formula, on_delete=models.CASCADE, db_column="cmf_formula_no")
+    process_no = models.ForeignKey(tbl_cmf_process, on_delete=models.SET_NULL, null=True, blank=True, db_column="process_no")
 
     class Meta:
         db_table = "tbl_cmf_process02"
@@ -274,7 +274,7 @@ class tbl_cmf_process02(models.Model):
 
 class tbl_cmf_specification02(models.Model):
     chosen_spec_no = models.AutoField(primary_key=True)
-    cm = models.ForeignKey(tbl_cmf, to_field="cm_no", on_delete=models.CASCADE, db_column="cm_no")
+    cm_no = models.ForeignKey(tbl_cmf, to_field="cm_no", on_delete=models.CASCADE, db_column="cm_no")
     spec = models.ForeignKey(tbl_cmf_specification, on_delete=models.SET_NULL, null=True, blank=True, db_column="spec_no")
 
     class Meta:
