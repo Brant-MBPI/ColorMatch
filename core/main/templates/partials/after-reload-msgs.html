@@ -3,8 +3,8 @@
     {% if messages %}
         {% for message in messages %}
             <span class="django-msg" 
-                  data-message="{{ message|escapejs }}" 
-                  data-tags="{{ message.tags|default:'success'|escapejs }}">
+                  data-message="{{ message }}" 
+                  data-tags="{{ message.tags|default:'success' }}">
             </span>
         {% endfor %}
     {% endif %}

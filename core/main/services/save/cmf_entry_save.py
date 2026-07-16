@@ -18,16 +18,31 @@ def save_cmf_complete_entry(request):
         'mi_customer_resin', 'sampleColorant', 'colorantType', 'dosage', 
         'processing_temp', 'color_guide_return', 'is_low_cost'
     ]
+    # Helper for cleaner error labels
+    def clean_label(name):
+        mapping = {
+            'cmf_no': 'CMF No.',
+            'matchType': 'Matching Type',
+            'colorReq': 'Color Requirement',
+            'qty_resin_test': 'Qty Resin for Test',
+            'customerResin': 'Customer Resin Provided',
+            'mi_customer_resin': 'MI Customer Resin',
+            'sampleColorant': 'Sample Colorant Available',
+            'colorantType': 'Colorant Type',
+            'is_low_cost': 'Is Low Cost',
+        }
+        return mapping.get(name, name.replace('_', ' ').title())
     
     for field in required_fields:
         if not data.get(field):
-            raise Exception(f"The field '{field.replace('_', ' ').title()}' is required and cannot be empty.")
+            # REMOVED the single quotes here to avoid \u0027 issues
+            label = clean_label(field)
+            raise Exception(f"Field required: {label} This cannot be empty.")
 
     # Check for many-to-many lists
     if not data.getlist('resin'): raise Exception("At least one Resin Type must be selected.")
     if not data.getlist('process'): raise Exception("At least one Process must be selected.")
-    if not data.getlist('specification'): raise Exception("At least one Specification must be selected.")
-
+    
     # --- 2. HELPERS ---
     def format_date(d_str):
         try:
@@ -55,8 +70,8 @@ def save_cmf_complete_entry(request):
         cmf_main = tbl_cmf.objects.create(
             cm_no=cm_no,
             matching_type=data.get('matchType'),
-            primary_color_id=data.get('primary_color'),
-            color_description=data.get('color_description'),
+            primary_color=data.get('primary_color'),
+            color_desc=data.get('color_description'),
             qty_resin_testing=data.get('qty_resin_test'),
             is_resin_provided=data.get('customerResin'),
             mi_c_resin=data.get('mi_customer_resin'),
@@ -67,7 +82,7 @@ def save_cmf_complete_entry(request):
             is_low_cost=data.get('is_low_cost'),
             remarks=data.get('remarks'),
             user=request.user,
-            sm_no=salesman_obj
+            sm=salesman_obj
         )
 
         # C. tbl_cmf_color_req

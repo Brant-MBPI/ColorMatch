@@ -85,8 +85,10 @@ document.querySelectorAll('.temp-input').forEach(function(input) {
 const updateOtherInputState = (trigger, input) => {
     if (trigger.checked) {
         input.disabled = false;
+        input.required = true;
     } else {
         input.disabled = true;
+        input.required = false;
         input.value = ""; 
     }
 };
@@ -114,14 +116,17 @@ document.querySelectorAll('.js-other-container').forEach(container => {
 
 
 // --- BUTTON LISTENERS ---
-document.addEventListener('DOMContentLoaded', function() {
-    const cmfForm = document.querySelector('.cmf-entry-form');
-    const saveBtn = document.querySelector('.btn-save');
-    const newBtn = document.querySelector('.btn-new');
-    const printBtn = document.querySelector('.btn-dark-teal');
+const cmfForm = document.querySelector('.cmf-entry-form');
+const saveBtn = document.querySelector('.btn-save');
+const newBtn = document.querySelector('.btn-new');
+const printBtn = document.querySelector('.btn-dark-teal');
 
-    if (saveBtn && cmfForm) {
-        saveBtn.addEventListener('click', function() {
+
+if (saveBtn && cmfForm) {
+    saveBtn.addEventListener('click', function() {
+        // 1. Check if the form is valid according to 'required' attributes
+        if (cmfForm.reportValidity()) {
+            // 2. Only show the modal if the form passes validation
             Preline.confirm(
                 'Save Entry?', 
                 'Are you sure you want to save this color matching entry? Please verify all technical specs before confirming.', 
@@ -130,25 +135,25 @@ document.addEventListener('DOMContentLoaded', function() {
                     cmfForm.submit(); 
                 }
             );
-        });
-    }
+        }
+    });
+}
 
-    if (newBtn) {
-        newBtn.addEventListener('click', function() {
-            Preline.confirm(
-                'Create New?', 
-                'Any unsaved changes on this form will be lost. Do you want to continue?', 
-                'warning', 
-                () => {
-                    window.location.reload(); 
-                }
-            );
-        });
-    }
+if (newBtn) {
+    newBtn.addEventListener('click', function() {
+        Preline.confirm(
+            'Create New?', 
+            'Any unsaved changes on this form will be lost. Do you want to continue?', 
+            'warning', 
+            () => {
+                window.location.href = window.location.pathname; 
+            }
+        );
+    });
+}
 
-    if (printBtn) {
-        printBtn.addEventListener('click', () => {
-            window.print();
-        });
-    }
-});
+if (printBtn) {
+    printBtn.addEventListener('click', () => {
+        window.print();
+    });
+}
