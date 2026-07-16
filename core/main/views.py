@@ -7,7 +7,7 @@ from django.contrib import messages
 from datetime import datetime
 
 from main.decorators import role_required
-from main.models import tbl_internal_color_code, tbl_resin
+from main.models import tbl_internal_color_code, tbl_resin, tbl_cmf_salesman
 
 from .services import cmf_records_services
 from .services.save import cmf_entry_save
@@ -128,7 +128,7 @@ def cmf_entry(request):
 
     context = {
         "customers": ["Masterbatch PH", "Generic Co."],
-        "salesman": ["Brant Jan Abillanoza", "Francis Candedlaria"],
+        "salesman": tbl_cmf_salesman.objects.all().order_by('name'),
         "primary_color": tbl_internal_color_code.objects.all().order_by('color'),
         "resin": tbl_resin.objects.filter(is_deleted=False).order_by('abbreviation'),
         "form_data": form_data # This allows the HTML to keep user input
