@@ -26,6 +26,16 @@
     cursor: not-allowed;
     border-color: #dee2e6;
 }
+.js-other-input:disabled {
+    background-color: rgb(180, 179, 179) !important;
+    border-color: transparent !important;
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+body.dark-mode .js-other-input:disabled {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+}
 
 input[type=number]::-webkit-inner-spin-button, 
 input[type=number]::-webkit-outer-spin-button { 

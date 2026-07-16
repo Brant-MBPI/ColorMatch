@@ -132,12 +132,12 @@ CMF Entry
                                     class="form-check-label extra-small" for="c5">Fluorescent</label></div>
                             <div class="form-check"><input class="form-check-input visible-check" type="radio" name="colorReq" value="pearlescent" id="c6"><label
                                     class="form-check-label extra-small" for="c6">Pearlescent</label></div>
-                            <div class="d-flex align-items-center gap-2">
+                            <div class="d-flex align-items-center gap-2 js-other-container">
                                 <div class="form-check mb-0">
-                                    <input class="form-check-input visible-check" type="radio" name="colorReq" value="other" id="c7" >
+                                    <input class="form-check-input visible-check js-other-trigger" type="radio" name="colorReq" value="other" id="c7" >
                                     <label class="form-check-label extra-small" for="c7">Others:</label>
                                 </div>
-                                <input type="text" class="form-control form-control-sm uniform-input" name="colorReq_other" id="colorReq_other_input" style="width: 150px; height: 26px;">
+                                <input type="text" class="form-control form-control-sm uniform-input js-other-input" name="colorReq_other" id="colorReq_other_input" style="width: 150px; height: 26px;">
                             </div>
                         </div>
                     </div>
@@ -179,10 +179,10 @@ CMF Entry
                                     <input class="form-check-input visible-check" name="process" value="pipe-extrusion" type="checkbox" id="p4">
                                     <label class="form-check-label extra-small ms-2" name="process" for="p4">Pipe Extrusion</label>
                                 </div>
-                                <div class="form-check d-flex align-items-center mb-0">
-                                    <input class="form-check-input visible-check" name="process" value="others" type="checkbox" id="p5">
+                                <div class="form-check d-flex align-items-center mb-0 js-other-container">
+                                    <input class="form-check-input visible-check js-other-trigger" name="process" value="others" type="checkbox" id="p5">
                                     <label class="form-check-label extra-small ms-2 me-1" name="process" for="p5">Others:</label>
-                                    <input type="text" class="form-control form-control-sm uniform-input ms-1" name="otherProcess" id="otherProcessInput"  style="width: 120px; height: 26px;">
+                                    <input type="text" class="form-control form-control-sm uniform-input ms-1 js-other-input" name="otherProcess" id="otherProcessInput"  style="width: 120px; height: 26px;">
                                 </div>
                             </div>          
                         </div>
@@ -218,12 +218,12 @@ CMF Entry
                             <div class="d-flex align-items-center gap-3">
                                 <div class="form-check"><input class="form-check-input visible-check" type="radio" value="MB" name="colorantType" id="colorant_mb" ><label class="form-check-label extra-small" for="colorant_mb">MB</label></div>
                                 <div class="form-check"><input class="form-check-input visible-check" type="radio" value="DC" name="colorantType" id="colorant_dc" ><label class="form-check-label extra-small" for="colorant_dc">DC</label></div>
-                                <div class="d-flex align-items-center gap-1">
+                                <div class="d-flex align-items-center gap-1 js-other-container">
                                     <div class="form-check mb-0">
-                                        <input class="form-check-input visible-check" type="radio" value="Other" name="colorantType" id="colorant_type_other">
+                                        <input class="form-check-input visible-check js-other-trigger" type="radio" value="Other" name="colorantType" id="colorant_type_other">
                                         <label class="form-check-label extra-small" for="colorant_type_other">Others:</label>
                                     </div>
-                                    <input type="text" name="colorantTypeOther" id="colorantTypeOtherInput" class="form-control form-control-sm uniform-input" style="width: 100px; height: 26px;">
+                                    <input type="text" name="colorantTypeOther" id="colorantTypeOtherInput" class="form-control form-control-sm uniform-input js-other-input" style="width: 100px; height: 26px;">
                                 </div>
                             </div>
                         </div>
@@ -250,12 +250,12 @@ CMF Entry
                                     <input class="form-check-input visible-check" type="checkbox" name="specification" value="Sunlight Exposure" id="spec_sunlight_exposure">
                                     <label class="form-check-label extra-small" for="spec_sunlight_exposure">Sunlight Exposure</label>
                                 </div>
-                                <div class="d-flex align-items-center gap-1">
+                                <div class="d-flex align-items-center gap-1 js-other-container">
                                     <div class="form-check mb-0">
-                                        <input class="form-check-input visible-check" type="checkbox" name="specification" value="Others" id="spec_others">
+                                        <input class="form-check-input visible-check js-other-trigger" type="checkbox" name="specification" value="Others" id="spec_others">
                                         <label class="form-check-label extra-small" for="spec_others">Others</label>
                                     </div>
-                                    <input type="text" class="form-control form-control-sm uniform-input" name="specificationOther" id="specificationOtherInput" style="width: 110px; height: 26px;" placeholder="Specify">
+                                    <input type="text" class="form-control form-control-sm uniform-input js-other-input" name="specificationOther" id="specificationOtherInput" style="width: 110px; height: 26px;" placeholder="Specify">
                                 </div>
                             </div>
                         </div>
