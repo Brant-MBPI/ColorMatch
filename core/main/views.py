@@ -115,30 +115,24 @@ def cmf_records(request):
     return render(request, "sidemenu/cmf/cmf_records.html", context)
 
 def cmf_entry(request):
+    form_data = {}
     if request.method == "POST":
-    
-        # 9. SAVE TO DATABASE
         try:
-            messages.success(request, f"Entry saved successfully!")
-            return redirect('cmf_entry') 
-
+            saved_record = save_cmf_complete_entry(request)
+            messages.success(request, f"Successfully saved CMF No. {saved_record.cm_no}")
+            return redirect('cmf_entry')
         except Exception as e:
-            print(f"Error: {e}") # View this in your terminal
-            messages.error(request, "Error saving to database. Check console.")
+            messages.error(request, str(e))
+            form_data = request.POST # Keep data to send back to template
 
-    # --- GET DATA FOR PAGE LOAD ---
-    customers = ["Masterbatch PH", "Generic Co."]
-    salesman = ["Brant Jan Abillanoza", "Francis Candedlaria"]
-    primary_color = tbl_internal_color_code.objects.all().order_by('color')
-    resins_query = tbl_resin.objects.filter(is_deleted=False).order_by('abbreviation')
-
-    return render(request, "sidemenu/cmf/cmf_entry.html", {
-        "customers": customers,
-        "salesman": salesman,
-        "primary_color": primary_color,
-        "resin": resins_query,
-    })
-
+    context = {
+        "customers": ["Masterbatch PH", "Generic Co."],
+        "salesman": ["Brant Jan Abillanoza", "Francis Candedlaria"],
+        "primary_color": tbl_internal_color_code.objects.all().order_by('color'),
+        "resin": tbl_resin.objects.filter(is_deleted=False).order_by('abbreviation'),
+        "form_data": form_data # This allows the HTML to keep user input
+    }
+    return render(request, "sidemenu/cmf/cmf_entry.html", context)
 
 def cmf_rs_entry(request):
     return render(request, "sidemenu/cmf/rs_entry.html")

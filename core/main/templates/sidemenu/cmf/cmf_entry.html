@@ -21,14 +21,14 @@ CMF Entry
                         <div class="row g-2 mb-2">
                             <div class="col-md-12">
                                 <label class="fw-bold extra-small required-label">Color Matching No:</label>
-                                <input type="text" name="cmf_no" class="form-control form-control-sm uniform-input" >
+                                <input type="text" name="cmf_no" value="{{ form_data.cmf_no|default:'' }}" class="form-control form-control-sm uniform-input" >
                             </div>
                             <div class="col-md-12">
                                 <label class="fw-bold extra-small required-label">Customer:</label>
                                 <select class="form-select form-select-sm ts-select" name="customer" placeholder="Select customer..." >
                                     <option value=""></option>
                                     {% for customer in customers %}
-                                        <option value="{{ customer }}">{{ customer }}</option>
+                                        <option value="{{ customer }}" {% if form_data.customer == customer %}selected{% endif %}>{{ customer }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
@@ -39,14 +39,14 @@ CMF Entry
                             <div class="col-6">
                                 <label class="fw-bold extra-small required-label">Date Created:</label>
                                 <div class="input-group input-group-sm flatpickr-container" data-wrap="true">
-                                    <input type="text" name="date_created" class="form-control uniform-input date-picker-single" placeholder="MM/DD/YYYY" data-input >
+                                    <input type="text" name="date_created" value="{{ form_data.date_created|default:'' }}" class="form-control uniform-input date-picker-single" placeholder="MM/DD/YYYY" data-input >
                                     <span class="input-group-text uniform-input border-start-0" data-toggle><i class="bi bi-calendar3"></i></span>
                                 </div>
                             </div>
                             <div class="col-6">
                                 <label class="fw-bold extra-small required-label">Required Date:</label>
                                 <div class="input-group input-group-sm flatpickr-container" data-wrap="true">
-                                    <input type="text" name="required_date" class="form-control uniform-input date-picker-asap" placeholder="MM/DD/YYYY or ASAP" data-input >
+                                    <input type="text" name="required_date" value="{{ form_data.required_date|default:'' }}" class="form-control uniform-input date-picker-asap" placeholder="MM/DD/YYYY or ASAP" data-input >
                                     <span class="input-group-text uniform-input border-start-0" data-toggle><i class="bi bi-calendar3"></i></span>
                                 </div>
                             </div>
@@ -56,14 +56,14 @@ CMF Entry
                             <div class="col-6">
                                 <label class="fw-bold extra-small required-label">Date Received:</label>
                                 <div class="input-group input-group-sm flatpickr-container" data-wrap="true">
-                                    <input type="text" name="date_received" class="form-control uniform-input date-picker-multiple" placeholder="MM/DD/YYYY, MM/DD/YYYY" data-input >
+                                    <input type="text" name="date_received" value="{{ form_data.date_received|default:'' }}" class="form-control uniform-input date-picker-multiple" placeholder="MM/DD/YYYY, MM/DD/YYYY" data-input >
                                     <span class="input-group-text uniform-input border-start-0" data-toggle><i class="bi bi-calendar3"></i></span>
                                 </div>
                             </div>
                             <div class="col-6">
                                 <label class="fw-bold extra-small required-label">Due Date:</label>
                                 <div class="input-group input-group-sm flatpickr-container" data-wrap="true">
-                                    <input type="text" name="due_date" class="form-control uniform-input date-picker-single" placeholder="MM/DD/YYYY" data-input >
+                                    <input type="text" name="due_date" value="{{ form_data.due_date|default:'' }}" class="form-control uniform-input date-picker-single" placeholder="MM/DD/YYYY" data-input >
                                     <span class="input-group-text uniform-input border-start-0" data-toggle><i class="bi bi-calendar3"></i></span>
                                 </div>
                             </div>
@@ -72,11 +72,11 @@ CMF Entry
                         <div class="mb-2">
                             <label class="fw-bold extra-small d-block mb-1 required-label">Matching Type:</label>
                             <div class="form-check form-check-inline">
-                                <input class="form-check-input visible-check" type="radio" name="matchType" value="new" id="new">
+                                <input class="form-check-input visible-check" type="radio" name="matchType" value="new" id="new" {% if form_data.matchType == 'new' or not form_data.matchType %}checked{% endif %}>
                                 <label class="form-check-label extra-small" for="new">New Matching</label>
                             </div>
                             <div class="form-check form-check-inline">
-                                <input class="form-check-input visible-check" type="radio" name="matchType" value="rematch" id="re" >
+                                <input class="form-check-input visible-check" type="radio" name="matchType" value="rematch" id="re" {% if form_data.matchType == 'rematch' %}checked{% endif %}>
                                 <label class="form-check-label extra-small" for="re">Re-Match</label>
                             </div>
                         </div>
@@ -87,13 +87,13 @@ CMF Entry
                                 <select class="form-select form-select-sm ts-select" name="salesman" placeholder="Select sales person..." >
                                     <option value=""></option>
                                     {% for salesman in salesman %}
-                                        <option value="{{ salesman }}">{{ salesman }}</option>
+                                        <option value="{{ salesman }}" {% if form_data.salesman == salesman %}selected{% endif %}>{{ salesman }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
                             <div class="col-md-12">
                                 <label class="fw-bold extra-small required-label">Finished Product:</label>
-                                <input type="text" name="finished_product" class="form-control form-control-sm uniform-input" >
+                                <input type="text" name="finished_product" value="{{ form_data.finished_product|default:'' }}" class="form-control form-control-sm uniform-input" >
                             </div>
                         </div>
 
@@ -103,13 +103,13 @@ CMF Entry
                                 <select class="form-select form-select-sm ts-select" name="primary_color" placeholder="Select color" >
                                     <option value=""></option>
                                     {% for c in primary_color %}
-                                        <option value="{{ c.in_code_no }}">{{ c.color }}</option>
+                                        <option value="{{ c.in_code_no }}" {% if form_data.primary_color == c.in_code_no|stringformat:"s" %}selected{% endif %}>{{ c.color }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
                             <div class="col-8">
                                 <label class="fw-bold extra-small required-label">Description:</label>
-                                <input type="text" name="color_description" class="form-control form-control-sm uniform-input" placeholder="Enter color description..." >
+                                <input type="text" name="color_description" value="{{ form_data.color_description|default:'' }}" class="form-control form-control-sm uniform-input" placeholder="Enter color description..." >
                             </div>
                         </div>
                     </div>
@@ -120,24 +120,18 @@ CMF Entry
                     <div class="card-body p-3">
                         <h6 class="cmf-section-title mb-3 required-label">Color Requirement</h6>
                         <div class="d-flex flex-wrap gap-3 align-items-center">
-                            <div class="form-check"><input class="form-check-input visible-check" type="radio" name="colorReq" value="transparent" id="c1"><label
-                                    class="form-check-label extra-small" for="c1">Transparent</label></div>
-                            <div class="form-check"><input class="form-check-input visible-check" type="radio" name="colorReq" value="opaque" id="c2"><label
-                                    class="form-check-label extra-small" for="c2">Opaque</label></div>
-                            <div class="form-check"><input class="form-check-input visible-check" type="radio" name="colorReq" value="translucent" id="c3"><label
-                                    class="form-check-label extra-small" for="c3">Translucent</label></div>
-                            <div class="form-check"><input class="form-check-input visible-check" type="radio" name="colorReq" value="metallic" id="c4"><label
-                                    class="form-check-label extra-small" for="c4">Metallic</label></div>
-                            <div class="form-check"><input class="form-check-input visible-check" type="radio" name="colorReq" value="fluorescent" id="c5"><label
-                                    class="form-check-label extra-small" for="c5">Fluorescent</label></div>
-                            <div class="form-check"><input class="form-check-input visible-check" type="radio" name="colorReq" value="pearlescent" id="c6"><label
-                                    class="form-check-label extra-small" for="c6">Pearlescent</label></div>
+                            <div class="form-check"><input class="form-check-input visible-check" type="radio" name="colorReq" value="transparent" id="c1" {% if form_data.colorReq == 'transparent' %}checked{% endif %}><label class="form-check-label extra-small" for="c1">Transparent</label></div>
+                            <div class="form-check"><input class="form-check-input visible-check" type="radio" name="colorReq" value="opaque" id="c2" {% if form_data.colorReq == 'opaque' %}checked{% endif %}><label class="form-check-label extra-small" for="c2">Opaque</label></div>
+                            <div class="form-check"><input class="form-check-input visible-check" type="radio" name="colorReq" value="translucent" id="c3" {% if form_data.colorReq == 'translucent' %}checked{% endif %}><label class="form-check-label extra-small" for="c3">Translucent</label></div>
+                            <div class="form-check"><input class="form-check-input visible-check" type="radio" name="colorReq" value="metallic" id="c4" {% if form_data.colorReq == 'metallic' %}checked{% endif %}><label class="form-check-label extra-small" for="c4">Metallic</label></div>
+                            <div class="form-check"><input class="form-check-input visible-check" type="radio" name="colorReq" value="fluorescent" id="c5" {% if form_data.colorReq == 'fluorescent' %}checked{% endif %}><label class="form-check-label extra-small" for="c5">Fluorescent</label></div>
+                            <div class="form-check"><input class="form-check-input visible-check" type="radio" name="colorReq" value="pearlescent" id="c6" {% if form_data.colorReq == 'pearlescent' %}checked{% endif %}><label class="form-check-label extra-small" for="c6">Pearlescent</label></div>
                             <div class="d-flex align-items-center gap-2 js-other-container">
                                 <div class="form-check mb-0">
-                                    <input class="form-check-input visible-check js-other-trigger" type="radio" name="colorReq" value="other" id="c7" >
+                                    <input class="form-check-input visible-check js-other-trigger" type="radio" name="colorReq" value="other" id="c7" {% if form_data.colorReq == 'other' %}checked{% endif %}>
                                     <label class="form-check-label extra-small" for="c7">Others:</label>
                                 </div>
-                                <input type="text" class="form-control form-control-sm uniform-input js-other-input" name="colorReq_other" id="colorReq_other_input" style="width: 150px; height: 26px;">
+                                <input type="text" class="form-control form-control-sm uniform-input js-other-input" name="colorReq_other" id="colorReq_other_input" value="{{ form_data.colorReq_other|default:'' }}" style="width: 150px; height: 26px;">
                             </div>
                         </div>
                     </div>
@@ -155,7 +149,7 @@ CMF Entry
                             <select class="form-select form-select-sm ts-select" name="resin" placeholder="Select resin" multiple >
                                 <option value=""></option>
                                 {% for r in resin %}
-                                    <option value="{{ r.resin_no }}">{{ r.abbreviation }}</option>
+                                    <option value="{{ r.resin_no }}" {% if r.resin_no|stringformat:"s" in form_data.getlist.resin %}selected{% endif %}>{{ r.abbreviation }}</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -164,25 +158,25 @@ CMF Entry
                             <label class="fw-bold extra-small d-block mb-1 required-label">Process:</label>
                             <div class="d-flex flex-wrap gap-2">
                                 <div class="form-check d-flex align-items-center mb-0">
-                                    <input class="form-check-input visible-check" name="process" value="injection" type="checkbox" id="p1">
-                                    <label class="form-check-label extra-small ms-2" name="process" for="p1">Injection</label>
+                                    <input class="form-check-input visible-check" name="process" value="injection" type="checkbox" id="p1" {% if 'injection' in form_data.getlist.process %}checked{% endif %}>
+                                    <label class="form-check-label extra-small ms-2" for="p1">Injection</label>
                                 </div>
                                 <div class="form-check d-flex align-items-center mb-0">
-                                    <input class="form-check-input visible-check" name="process" value="blow-molding" type="checkbox" id="p2">
-                                    <label class="form-check-label extra-small ms-2" name="process" for="p2">Blow-Molding</label>
+                                    <input class="form-check-input visible-check" name="process" value="blow-molding" type="checkbox" id="p2" {% if 'blow-molding' in form_data.getlist.process %}checked{% endif %}>
+                                    <label class="form-check-label extra-small ms-2" for="p2">Blow-Molding</label>
                                 </div>
                                 <div class="form-check d-flex align-items-center mb-0">
-                                    <input class="form-check-input visible-check" name="process" value="film" type="checkbox" id="p3">
-                                    <label class="form-check-label extra-small ms-2" name="process" for="p3">Film</label>
+                                    <input class="form-check-input visible-check" name="process" value="film" type="checkbox" id="p3" {% if 'film' in form_data.getlist.process %}checked{% endif %}>
+                                    <label class="form-check-label extra-small ms-2" for="p3">Film</label>
                                 </div>
                                 <div class="form-check d-flex align-items-center mb-0">
-                                    <input class="form-check-input visible-check" name="process" value="pipe-extrusion" type="checkbox" id="p4">
-                                    <label class="form-check-label extra-small ms-2" name="process" for="p4">Pipe Extrusion</label>
+                                    <input class="form-check-input visible-check" name="process" value="pipe-extrusion" type="checkbox" id="p4" {% if 'pipe-extrusion' in form_data.getlist.process %}checked{% endif %}>
+                                    <label class="form-check-label extra-small ms-2" for="p4">Pipe Extrusion</label>
                                 </div>
                                 <div class="form-check d-flex align-items-center mb-0 js-other-container">
-                                    <input class="form-check-input visible-check js-other-trigger" name="process" value="others" type="checkbox" id="p5">
-                                    <label class="form-check-label extra-small ms-2 me-1" name="process" for="p5">Others:</label>
-                                    <input type="text" class="form-control form-control-sm uniform-input ms-1 js-other-input" name="otherProcess" id="otherProcessInput"  style="width: 120px; height: 26px;">
+                                    <input class="form-check-input visible-check js-other-trigger" name="process" value="others" type="checkbox" id="p5" {% if 'others' in form_data.getlist.process %}checked{% endif %}>
+                                    <label class="form-check-label extra-small ms-2 me-1" for="p5">Others:</label>
+                                    <input type="text" class="form-control form-control-sm uniform-input ms-1 js-other-input" name="otherProcess" id="otherProcessInput" value="{{ form_data.otherProcess|default:'' }}" style="width: 120px; height: 26px;">
                                 </div>
                             </div>          
                         </div>
@@ -190,40 +184,35 @@ CMF Entry
                         <div class="row g-2 mb-2">
                             <div class="col-7">
                                 <label class="fw-bold extra-small required-label">Qty Resin for Test:</label>
-                                <input type="text" 
-                                    name="qty_resin_test" 
-                                    class="form-control form-control-sm uniform-input qty-resin-input" 
-                                    placeholder="Enter amount">
+                                <input type="text" name="qty_resin_test" value="{{ form_data.qty_resin_test|default:'' }}" class="form-control form-control-sm uniform-input qty-resin-input" placeholder="Enter amount">
                             </div>
                             <div class="col-5">
                                 <label class="fw-bold extra-small d-block required-label">Customer Resin Provided:</label>
-                                <div class="form-check form-check-inline"><input class="form-check-input visible-check" value="Y" type="radio" name="customerResin"
-                                        id="resin_yes"><label class="form-check-label extra-small" for="resin_yes">Y</label></div>
-                                <div class="form-check form-check-inline"><input class="form-check-input visible-check" value="N" type="radio" name="customerResin"
-                                        id="resin_no"><label class="form-check-label extra-small" for="resin_no">N</label></div>
+                                <div class="form-check form-check-inline"><input class="form-check-input visible-check" value="Y" type="radio" name="customerResin" id="resin_yes" {% if form_data.customerResin == 'Y' %}checked{% endif %}><label class="form-check-label extra-small" for="resin_yes">Y</label></div>
+                                <div class="form-check form-check-inline"><input class="form-check-input visible-check" value="N" type="radio" name="customerResin" id="resin_no" {% if form_data.customerResin == 'N' %}checked{% endif %}><label class="form-check-label extra-small" for="resin_no">N</label></div>
                             </div>
                         </div>
 
                         <div class="row g-2 mb-2">
-                            <div class="col-7"><label class="fw-bold extra-small required-label">MI Customer Resin:</label><input type="text" name="mi_customer_resin" class="form-control form-control-sm uniform-input" ></div>
+                            <div class="col-7"><label class="fw-bold extra-small required-label">MI Customer Resin:</label><input type="text" name="mi_customer_resin" value="{{ form_data.mi_customer_resin|default:'' }}" class="form-control form-control-sm uniform-input" ></div>
                             <div class="col-5">
                                 <label class="fw-bold extra-small d-block required-label">Sample Colorant Available:</label>
-                                <div class="form-check form-check-inline"><input class="form-check-input visible-check" type="radio" value="Y" name="sampleColorant" id="sample_yes" ><label class="form-check-label extra-small" for="sample_yes">Y</label></div>
-                                <div class="form-check form-check-inline"><input class="form-check-input visible-check" type="radio" value="N" name="sampleColorant" id="sample_no" ><label class="form-check-label extra-small" for="sample_no">N</label></div>
+                                <div class="form-check form-check-inline"><input class="form-check-input visible-check" type="radio" value="Y" name="sampleColorant" id="sample_yes" {% if form_data.sampleColorant == 'Y' %}checked{% endif %}><label class="form-check-label extra-small" for="sample_yes">Y</label></div>
+                                <div class="form-check form-check-inline"><input class="form-check-input visible-check" type="radio" value="N" name="sampleColorant" id="sample_no" {% if form_data.sampleColorant == 'N' %}checked{% endif %}><label class="form-check-label extra-small" for="sample_no">N</label></div>
                             </div>
                         </div>
 
                         <div class="mb-2">
                             <label class="fw-bold extra-small d-block mb-1 required-label">Colorant Type:</label>
                             <div class="d-flex align-items-center gap-3">
-                                <div class="form-check"><input class="form-check-input visible-check" type="radio" value="MB" name="colorantType" id="colorant_mb" ><label class="form-check-label extra-small" for="colorant_mb">MB</label></div>
-                                <div class="form-check"><input class="form-check-input visible-check" type="radio" value="DC" name="colorantType" id="colorant_dc" ><label class="form-check-label extra-small" for="colorant_dc">DC</label></div>
+                                <div class="form-check"><input class="form-check-input visible-check" type="radio" value="MB" name="colorantType" id="colorant_mb" {% if form_data.colorantType == 'MB' %}checked{% endif %}><label class="form-check-label extra-small" for="colorant_mb">MB</label></div>
+                                <div class="form-check"><input class="form-check-input visible-check" type="radio" value="DC" name="colorantType" id="colorant_dc" {% if form_data.colorantType == 'DC' %}checked{% endif %}><label class="form-check-label extra-small" for="colorant_dc">DC</label></div>
                                 <div class="d-flex align-items-center gap-1 js-other-container">
                                     <div class="form-check mb-0">
-                                        <input class="form-check-input visible-check js-other-trigger" type="radio" value="Other" name="colorantType" id="colorant_type_other">
+                                        <input class="form-check-input visible-check js-other-trigger" type="radio" value="Other" name="colorantType" id="colorant_type_other" {% if form_data.colorantType == 'Other' %}checked{% endif %}>
                                         <label class="form-check-label extra-small" for="colorant_type_other">Others:</label>
                                     </div>
-                                    <input type="text" name="colorantTypeOther" id="colorantTypeOtherInput" class="form-control form-control-sm uniform-input js-other-input" style="width: 100px; height: 26px;">
+                                    <input type="text" name="colorantTypeOther" value="{{ form_data.colorantTypeOther|default:'' }}" id="colorantTypeOtherInput" class="form-control form-control-sm uniform-input js-other-input" style="width: 100px; height: 26px;">
                                 </div>
                             </div>
                         </div>
@@ -231,11 +220,11 @@ CMF Entry
                         <div class="row g-2 mb-2">
                             <div class="col-6">
                                 <label class="fw-bold extra-small required-label">Dosage (%):</label>
-                                <input type="text" name="dosage" class="form-control form-control-sm uniform-input dosage-input" placeholder="Enter Dosage" >
+                                <input type="text" name="dosage" value="{{ form_data.dosage|default:'' }}" class="form-control form-control-sm uniform-input dosage-input" placeholder="Enter Dosage" >
                             </div>
                             <div class="col-6">
                                 <label class="fw-bold extra-small required-label">Processing Temp (°C):</label>
-                                <input type="text" name="processing_temp" class="form-control form-control-sm uniform-input temp-input" value="N/A">
+                                <input type="text" name="processing_temp" value="{{ form_data.processing_temp|default:'N/A' }}" class="form-control form-control-sm uniform-input temp-input">
                             </div>
                         </div>
 
@@ -243,19 +232,19 @@ CMF Entry
                             <label class="fw-bold extra-small d-block mb-1 required-label">Other Specification:</label>
                             <div class="d-flex flex-wrap align-items-center gap-3 row-gap-2">
                                 <div class="form-check mb-0">
-                                    <input class="form-check-input visible-check" type="checkbox" name="specification" value="Food Contact" id="spec_food_contact">
+                                    <input class="form-check-input visible-check" type="checkbox" name="specification" value="Food Contact" id="spec_food_contact" {% if 'Food Contact' in form_data.getlist.specification %}checked{% endif %}>
                                     <label class="form-check-label extra-small" for="spec_food_contact">Food Contact</label>
                                 </div>
                                 <div class="form-check mb-0">
-                                    <input class="form-check-input visible-check" type="checkbox" name="specification" value="Sunlight Exposure" id="spec_sunlight_exposure">
+                                    <input class="form-check-input visible-check" type="checkbox" name="specification" value="Sunlight Exposure" id="spec_sunlight_exposure" {% if 'Sunlight Exposure' in form_data.getlist.specification %}checked{% endif %}>
                                     <label class="form-check-label extra-small" for="spec_sunlight_exposure">Sunlight Exposure</label>
                                 </div>
                                 <div class="d-flex align-items-center gap-1 js-other-container">
                                     <div class="form-check mb-0">
-                                        <input class="form-check-input visible-check js-other-trigger" type="checkbox" name="specification" value="Others" id="spec_others">
+                                        <input class="form-check-input visible-check js-other-trigger" type="checkbox" name="specification" value="Others" id="spec_others" {% if 'Others' in form_data.getlist.specification %}checked{% endif %}>
                                         <label class="form-check-label extra-small" for="spec_others">Others</label>
                                     </div>
-                                    <input type="text" class="form-control form-control-sm uniform-input js-other-input" name="specificationOther" id="specificationOtherInput" style="width: 110px; height: 26px;" placeholder="Specify">
+                                    <input type="text" class="form-control form-control-sm uniform-input js-other-input" name="specificationOther" value="{{ form_data.specificationOther|default:'' }}" id="specificationOtherInput" style="width: 110px; height: 26px;" placeholder="Specify">
                                 </div>
                             </div>
                         </div>
@@ -265,11 +254,11 @@ CMF Entry
                                 <label class="fw-bold extra-small d-block mb-1 required-label">Color Guide to be Returned:</label>
                                 <div class="d-flex gap-3 mt-1">
                                     <div class="form-check form-check-inline mb-0">
-                                        <input class="form-check-input visible-check" type="radio" name="color_guide_return" value="Y" id="color_guide_yes">
+                                        <input class="form-check-input visible-check" type="radio" name="color_guide_return" value="Y" id="color_guide_yes" {% if form_data.color_guide_return == 'Y' %}checked{% endif %}>
                                         <label class="form-check-label extra-small" for="color_guide_yes">Yes</label>
                                     </div>
                                     <div class="form-check form-check-inline mb-0">
-                                        <input class="form-check-input visible-check" type="radio" name="color_guide_return" value="N" id="color_guide_no"  >
+                                        <input class="form-check-input visible-check" type="radio" name="color_guide_return" value="N" id="color_guide_no" {% if form_data.color_guide_return == 'N' %}checked{% endif %}>
                                         <label class="form-check-label extra-small" for="color_guide_no">No</label>
                                     </div>
                                 </div>
@@ -278,11 +267,11 @@ CMF Entry
                                 <label class="fw-bold extra-small d-block mb-1 required-label">Is Low Cost?</label>
                                 <div class="d-flex gap-3 mt-1">
                                     <div class="form-check form-check-inline mb-0">
-                                        <input class="form-check-input visible-check" type="radio" name="is_low_cost" value="Y" id="low_cost_yes">
+                                        <input class="form-check-input visible-check" type="radio" name="is_low_cost" value="Y" id="low_cost_yes" {% if form_data.is_low_cost == 'Y' %}checked{% endif %}>
                                         <label class="form-check-label extra-small" for="low_cost_yes">Yes</label>
                                     </div>
                                     <div class="form-check form-check-inline mb-0">
-                                        <input class="form-check-input visible-check" type="radio" name="is_low_cost" value="N" id="low_cost_no">
+                                        <input class="form-check-input visible-check" type="radio" name="is_low_cost" value="N" id="low_cost_no" {% if form_data.is_low_cost == 'N' %}checked{% endif %}>
                                         <label class="form-check-label extra-small" for="low_cost_no">No</label>
                                     </div>
                                 </div>
@@ -298,7 +287,7 @@ CMF Entry
                 <div class="card cmf-entry-card shadow-sm">
                     <div class="card-body p-3">
                         <h6 class="cmf-section-title mb-2">Remarks</h6>
-                        <textarea class="form-control form-control-sm uniform-input" name="remarks" rows="3" placeholder="Additional information..."></textarea>
+                        <textarea class="form-control form-control-sm uniform-input" name="remarks" rows="3" placeholder="Additional information...">{{ form_data.remarks|default:'' }}</textarea>
                     </div>
                 </div>
             </div>
@@ -308,8 +297,7 @@ CMF Entry
                 <div class="card cmf-entry-card shadow-sm">
                     <div class="card-body p-3">
                          <label class="fw-bold extra-small text-uppercase mb-1">Product Code:</label>
-                         <!-- Added custom 'readonly-gray' class -->
-                         <input type="text" name="product_code" class="form-control form-control-sm uniform-input readonly-gray fw-bold" readonly>
+                         <input type="text" name="product_code" value="{{ form_data.product_code|default:'' }}" class="form-control form-control-sm uniform-input readonly-gray fw-bold" readonly>
                     </div>
                 </div>
             </div>
