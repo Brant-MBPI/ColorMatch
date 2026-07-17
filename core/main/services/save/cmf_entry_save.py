@@ -1,6 +1,7 @@
 import re
 from django.db import transaction
 from datetime import datetime
+from core.main.utils.log_audit_trail import log_audit
 from main.models import (
     tbl_cmf, tbl_cmf_color_req, tbl_cmf_dates, tbl_cmf_formula, 
     tbl_cmf_process, tbl_cmf_process02, tbl_resin, tbl_resins_selected,
@@ -137,4 +138,6 @@ def save_cmf_complete_entry(request):
         
         tbl_cmf_pending_completed.objects.create(cm_no=cmf_main)
         tbl_feedback_details.objects.create(cm_no=cmf_main)
+
+        log_audit(request, "Saved", f"Created new CMF Entry: {cmf_main.cm_no}")
     return cmf_main
