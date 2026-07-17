@@ -326,7 +326,7 @@ class tbl_rs(models.Model):
     date_submitted = models.DateField(blank=True, null=True)
     status = models.CharField(max_length=50, blank=True, null=True)
     user = models.ForeignKey(tbl_user, on_delete=models.SET_NULL, null=True, blank=True, db_column="user_id")
-    cm = models.ForeignKey(tbl_cmf, to_field="cm_no", on_delete=models.SET_NULL, null=True, blank=True, db_column="cm_no")
+    cm_no = models.ForeignKey(tbl_cmf, to_field="cm_no", on_delete=models.SET_NULL, null=True, blank=True, db_column="cm_no")
 
     class Meta:
         db_table = "tbl_rs"
