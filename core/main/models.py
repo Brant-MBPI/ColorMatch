@@ -283,8 +283,16 @@ class tbl_cmf_specification02(models.Model):
 
 class tbl_cmf_pending_completed(models.Model):
     id = models.AutoField(primary_key=True)
-    cm_no = models.CharField(max_length=50, blank=True, null=True)
-    matching_type = models.CharField(max_length=50, blank=True, null=True)
+    # References tbl_cmf.cm_no (string)
+    cm_no = models.ForeignKey(
+        'tbl_cmf', on_delete=models.SET_NULL, to_field='cm_no', 
+        db_column='cm_no', blank=True, null=True
+    )
+    # References tbl_rs.rs_no (string)
+    rs_no = models.ForeignKey(
+        'tbl_rs', on_delete=models.SET_NULL, to_field='rs_no', 
+        db_column='rs_no', blank=True, null=True
+    )
     reason = models.TextField(blank=True, null=True)
     prod_code = models.CharField(max_length=100, blank=True, null=True)
     code_details = models.TextField(blank=True, null=True)
@@ -346,11 +354,19 @@ class tbl_rs_prod_codes(models.Model):
 
 class tbl_feedback_details(models.Model):
     feedback_no = models.AutoField(primary_key=True)
-    rm_feedback_no = models.CharField(max_length=50, blank=True, null=True)
-    status = models.CharField(max_length=50, blank=True, null=True)
+    pieces = models.IntegerField(blank=True, null=True)
+    quantity_given = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    code_submitted = models.CharField(max_length=60, blank=True, null=True)
+    lot_no = models.CharField(max_length=60, blank=True, null=True)
+    ar_no = models.CharField(max_length=10, blank=True, null=True)
+    date_sample_received = models.DateField(blank=True, null=True)
+    status = models.CharField(max_length=10, default='pending')
     comment = models.TextField(blank=True, null=True)
     storage_details = models.CharField(max_length=100, blank=True, null=True)
-    cm_rs_no = models.CharField(max_length=14, blank=True, null=True)
+    
+    # Foreign Keys
+    cm_no = models.ForeignKey('tbl_cmf', on_delete=models.CASCADE, to_field='cm_no', db_column='cm_no', null=True)
+    rs_no = models.ForeignKey('tbl_rs', on_delete=models.CASCADE, to_field='rs_no', db_column='rs_no', null=True)
 
     class Meta:
         db_table = "tbl_feedback_details"
@@ -373,8 +389,17 @@ class tbl_mb_extruder_formula(models.Model):
     weighted_by = models.CharField(max_length=100, blank=True, null=True)
     encoded_by = models.CharField(max_length=100, blank=True, null=True)
     total_weight = models.DecimalField(max_digits=12, decimal_places=4, null=True, blank=True)
-    cm = models.ForeignKey(tbl_cmf, to_field="cm_no", on_delete=models.SET_NULL, null=True, blank=True, db_column="cm_no")
-
+    cm_no = models.ForeignKey(tbl_cmf, to_field="cm_no", on_delete=models.SET_NULL, null=True, blank=True, db_column="cm_no")
+    L = models.DecimalField(max_digits=10, decimal_places=3, blank=True, null=True)
+    A = models.DecimalField(max_digits=10, decimal_places=3, blank=True, null=True)
+    B = models.DecimalField(max_digits=10, decimal_places=3, blank=True, null=True)
+    C = models.DecimalField(max_digits=10, decimal_places=3, blank=True, null=True)
+    H = models.DecimalField(max_digits=10, decimal_places=3, blank=True, null=True)
+    html = models.CharField(max_length=10, blank=True, null=True)
+    c = models.IntegerField(blank=True, null=True)
+    m = models.IntegerField(blank=True, null=True)
+    y = models.IntegerField(blank=True, null=True)
+    k = models.IntegerField(blank=True, null=True)
     class Meta:
         db_table = "tbl_mb_extruder_formula"
 
@@ -404,8 +429,17 @@ class tbl_dc_extruder_formula(models.Model):
     weighted_by = models.CharField(max_length=100, blank=True, null=True)
     encoded_by = models.CharField(max_length=100, blank=True, null=True)
     total_weight = models.DecimalField(max_digits=12, decimal_places=4, null=True, blank=True)
-    cm = models.ForeignKey(tbl_cmf, to_field="cm_no", on_delete=models.SET_NULL, null=True, blank=True, db_column="cm_no")
-
+    cm_no = models.ForeignKey(tbl_cmf, to_field="cm_no", on_delete=models.SET_NULL, null=True, blank=True, db_column="cm_no")
+    L = models.DecimalField(max_digits=10, decimal_places=3, blank=True, null=True)
+    A = models.DecimalField(max_digits=10, decimal_places=3, blank=True, null=True)
+    B = models.DecimalField(max_digits=10, decimal_places=3, blank=True, null=True)
+    C = models.DecimalField(max_digits=10, decimal_places=3, blank=True, null=True)
+    H = models.DecimalField(max_digits=10, decimal_places=3, blank=True, null=True)
+    html = models.CharField(max_length=10, blank=True, null=True)
+    c = models.IntegerField(blank=True, null=True)
+    m = models.IntegerField(blank=True, null=True)
+    y = models.IntegerField(blank=True, null=True)
+    k = models.IntegerField(blank=True, null=True)
     class Meta:
         db_table = "tbl_dc_extruder_formula"
 
