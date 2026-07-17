@@ -98,23 +98,10 @@ def otherPage(request):
 
 
 def cmf_records(request):
-    mode = request.GET.get('mode', 'cmf')
-    show_completed = request.GET.get('completed', '1') == '1'
-    show_pending = request.GET.get('pending', '1') == '1'
-
-    records = cmf_records_services.get_filtered_records(mode, show_completed, show_pending)
-    active_cols = cmf_records_services.get_active_columns(show_completed, show_pending)
-
-    context = {
-        'records': records,
-        'active_cols': active_cols,
-        'col_no_label': "RS No." if mode == 'rs' else "CMF No.",
-        'mode': mode,
-        'show_completed': show_completed,
-        'show_pending': show_pending,
-    }
-
-    return render(request, "sidemenu/cmf/cmf_records.html", context)
+    all_records = cmf_records_services.get_all_records_combined()
+    return render(request, "sidemenu/cmf/cmf_records.html", {
+        "records": all_records,
+    })
 
 def cmf_entry(request):
     form_data = {}

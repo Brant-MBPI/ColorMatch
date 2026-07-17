@@ -9,45 +9,45 @@ Color Matching Records
 
 <div class="d-flex flex-column">
 
-    <!-- Updated Search Row -->
+    <!-- Search Row -->
     <div class="row g-2 mb-3 align-items-center">
 
         <div class="col-md-2">
-            <select class="form-select form-select-sm uniform-input">
-                <option selected>All Fields</option>
-                <option>{{ col_no_label }}</option>
-                {% if 1 in active_cols %}<option>Customer</option>{% endif %}
-                {% if 2 in active_cols %}<option>Primary Color</option>{% endif %}
-                {% if 3 in active_cols %}<option>Color Description</option>{% endif %}
-                {% if 4 in active_cols %}<option>Finished Product</option>{% endif %}
-                {% if 5 in active_cols %}<option>Required Date</option>{% endif %}
-                {% if 6 in active_cols %}<option>Target Date</option>{% endif %}
-                {% if 7 in active_cols %}<option>Matching Type</option>{% endif %}
-                {% if 8 in active_cols %}<option>Product Code</option>{% endif %}
-                {% if 9 in active_cols %}<option>Status</option>{% endif %}
-                {% if 10 in active_cols %}<option>Submitted Date</option>{% endif %}
-                {% if 11 in active_cols %}<option>AR No.</option>{% endif %}
-                {% if 12 in active_cols %}<option>Reason</option>{% endif %}
+            <select class="form-select form-select-sm uniform-input" id="searchFieldSelect">
+                <option value="all" selected>All Fields</option>
+                <option value="0" id="optNoLabel">CMF No.</option>
+                <option value="1">Customer</option>
+                <option value="2">Primary Color</option>
+                <option value="3">Color Description</option>
+                <option value="4">Finished Product</option>
+                <option value="5">Required Date</option>
+                <option value="6">Target Date</option>
+                <option value="7">Matching Type</option>
+                <option value="8">Product Code</option>
+                <option value="9">Status</option>
+                <option value="10">Submitted Date</option>
+                <option value="11">AR No.</option>
+                <option value="12">Reason</option>
             </select>
         </div>
 
         <div class="col">
             <div class="input-group input-group-sm">
-                <input type="text" class="form-control form-control-sm uniform-input ps-2 border-end-0" placeholder="Search records...">
+                <input type="text" id="recordSearchInput" class="form-control form-control-sm uniform-input ps-2 border-end-0" placeholder="Search records...">
                 <span class="input-group-text uniform-input border-start-0">
                     <i class="bi bi-search text-muted"></i>
                 </span>
             </div>
         </div>
 
-        <!-- CMF / RS Teal Toggle -->
+        <!-- CMF / RS Toggle Switch -->
         <div class="col-auto d-flex align-items-center gap-2">
-            <span class="extra-small fw-bold {% if mode == 'cmf' %}text-teal{% else %}text-muted{% endif %}" id="modeLabelCmf">CMF</span>
+            <span class="extra-small fw-bold text-teal" id="modeLabelCmf">CMF</span>
             <label class="teal-toggle-switch mb-0">
-                <input type="checkbox" id="modeToggle" {% if mode == 'rs' %}checked{% endif %}>
+                <input type="checkbox" id="modeToggle">
                 <span class="teal-toggle-slider"></span>
             </label>
-            <span class="extra-small fw-bold {% if mode == 'rs' %}text-teal{% else %}text-muted{% endif %}" id="modeLabelRs">RS</span>
+            <span class="extra-small fw-bold text-muted" id="modeLabelRs">RS</span>
         </div>
 
         <div class="col-auto">
@@ -65,35 +65,35 @@ Color Matching Records
             <table class="table table-hover align-middle mb-0 cmf-records-table">
                 <thead>
                     <tr class="small text-uppercase">
-                        <th class="ps-3">{{ col_no_label }}</th>
-                        <th {% if 1 not in active_cols %}style="display:none;"{% endif %}>Customer</th>
-                        <th {% if 2 not in active_cols %}style="display:none;"{% endif %}>Primary Color</th>
-                        <th {% if 3 not in active_cols %}style="display:none;"{% endif %}>Color Description</th>
-                        <th {% if 4 not in active_cols %}style="display:none;"{% endif %}>Finished Product</th>
-                        <th {% if 5 not in active_cols %}style="display:none;"{% endif %}>Required Date</th>
-                        <th {% if 6 not in active_cols %}style="display:none;"{% endif %}>Target Date</th>
-                        <th {% if 7 not in active_cols %}style="display:none;"{% endif %}>Matching Type</th>
-                        <th {% if 8 not in active_cols %}style="display:none;"{% endif %}>Product Code</th>
-                        <th {% if 9 not in active_cols %}style="display:none;"{% endif %}>Status</th>
-                        <th {% if 10 not in active_cols %}style="display:none;"{% endif %}>Submitted Date</th>
-                        <th {% if 11 not in active_cols %}style="display:none;"{% endif %}>AR No.</th>
-                        <th class="pe-3" {% if 12 not in active_cols %}style="display:none;"{% endif %}>Reason</th>
+                        <th class="ps-3" data-col-index="0" id="tableHeaderNo">CMF No.</th>
+                        <th data-col-index="1">Customer</th>
+                        <th data-col-index="2">Primary Color</th>
+                        <th data-col-index="3">Color Description</th>
+                        <th data-col-index="4">Finished Product</th>
+                        <th data-col-index="5">Required Date</th>
+                        <th data-col-index="6">Target Date</th>
+                        <th data-col-index="7">Matching Type</th>
+                        <th data-col-index="8">Product Code</th>
+                        <th data-col-index="9">Status</th>
+                        <th data-col-index="10">Submitted Date</th>
+                        <th data-col-index="11">AR No.</th>
+                        <th class="pe-3" data-col-index="12">Reason</th>
                     </tr>
                 </thead>
 
-                <tbody class="small">
+                <tbody class="small" id="recordsTbody">
                     {% for record in records %}
-                    <tr>
-                        <td class="ps-3 fw-bold">{{ record.no }}</td>
-                        <td {% if 1 not in active_cols %}style="display:none;"{% endif %}>{{ record.customer }}</td>
-                        <td {% if 2 not in active_cols %}style="display:none;"{% endif %}>{{ record.primary_color }}</td>
-                        <td {% if 3 not in active_cols %}style="display:none;"{% endif %}>{{ record.description }}</td>
-                        <td {% if 4 not in active_cols %}style="display:none;"{% endif %}>{{ record.product }}</td>
-                        <td {% if 5 not in active_cols %}style="display:none;"{% endif %}>{{ record.required_date }}</td>
-                        <td {% if 6 not in active_cols %}style="display:none;"{% endif %}>{{ record.target_date }}</td>
-                        <td {% if 7 not in active_cols %}style="display:none;"{% endif %}>{{ record.type }}</td>
-                        <td {% if 8 not in active_cols %}style="display:none;"{% endif %}>{{ record.code }}</td>
-                        <td {% if 9 not in active_cols %}style="display:none;"{% endif %}>
+                    <tr class="record-row" data-mode="{{ record.mode }}" data-status="{{ record.status }}">
+                        <td class="ps-3 fw-bold" data-col-index="0">{{ record.no }}</td>
+                        <td data-col-index="1">{{ record.customer }}</td>
+                        <td data-col-index="2">{{ record.primary_color }}</td>
+                        <td data-col-index="3">{{ record.description }}</td>
+                        <td data-col-index="4">{{ record.product }}</td>
+                        <td data-col-index="5">{{ record.required_date }}</td>
+                        <td data-col-index="6">{{ record.target_date }}</td>
+                        <td data-col-index="7">{{ record.type }}</td>
+                        <td data-col-index="8">{{ record.code }}</td>
+                        <td data-col-index="9">
                             <span class="badge
                                 {% if record.status == 'Completed' %}
                                     bg-success-subtle text-success border border-success
@@ -103,14 +103,14 @@ Color Matching Records
                                 {{ record.status }}
                             </span>
                         </td>
-                        <td {% if 10 not in active_cols %}style="display:none;"{% endif %}>{{ record.submitted_date }}</td>
-                        <td {% if 11 not in active_cols %}style="display:none;"{% endif %}>{{ record.ar_no }}</td>
-                        <td class="pe-3" {% if 12 not in active_cols %}style="display:none;"{% endif %}>{{ record.reason }}</td>
+                        <td data-col-index="10">{{ record.submitted_date }}</td>
+                        <td data-col-index="11">{{ record.ar_no }}</td>
+                        <td class="pe-3" data-col-index="12">{{ record.reason }}</td>
                     </tr>
                     {% empty %}
-                    <tr>
+                    <tr id="emptyRow">
                         <td colspan="13" class="text-center py-5 text-muted">
-                            No records found.
+                            No records found in database.
                         </td>
                     </tr>
                     {% endfor %}
@@ -126,18 +126,18 @@ Color Matching Records
                 <span class="small fw-bold">Filter Status:</span>
                 <div class="d-flex flex-wrap gap-3">
                     <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="completed" {% if show_completed %}checked{% endif %}>
+                        <input class="form-check-input" type="checkbox" id="completed" checked>
                         <label class="form-check-label" for="completed">Completed</label>
                     </div>
                     <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="pending" {% if show_pending %}checked{% endif %}>
+                        <input class="form-check-input" type="checkbox" id="pending" checked>
                         <label class="form-check-label" for="pending">Pending</label>
                     </div>
                 </div>
                 <div class="vr d-none d-sm-block"></div>
-                <small class="text-muted">Showing {{ records|length }} records</small>
+                <small class="text-muted" id="recordCounter">Showing 0 records</small>
             </div>
-            <button class="btn btn-success btn-sm px-4">
+            <button class="btn btn-success btn-sm px-4" type="button">
                 <i class="bi bi-file-earmark-excel"></i>
                 Export to Excel
             </button>
@@ -146,6 +146,7 @@ Color Matching Records
 </div>
 
 {% endblock %}
+
 {% block scripts %}
     <script src="{% static 'js/cmf/cmf_records.js' %}"></script>
 {% endblock %}
