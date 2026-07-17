@@ -138,6 +138,6 @@ def save_cmf_complete_entry(request):
         
         tbl_cmf_pending_completed.objects.create(cm_no=cmf_main)
         tbl_feedback_details.objects.create(cm_no=cmf_main)
-
+        
         log_audit(request, "Saved", f"Created new CMF Entry: {cmf_main.cm_no}")
     return cmf_main

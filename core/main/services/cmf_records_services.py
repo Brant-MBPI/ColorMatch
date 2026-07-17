@@ -1,5 +1,5 @@
 from main.models import tbl_cmf_dates, tbl_cmf_formula, tbl_cmf_pending_completed
-
+from django.core.cache import cache
 
 ALL_HEADERS = [
     "No.", "Customer", "Primary Color", "Color Description",
@@ -16,6 +16,12 @@ def get_cmf_records():
     """
     Fetches real CMF records by joining tbl_cmf, formula, dates, and pending status.
     """
+
+    # Try to get data from cache
+    cached_data = cache.get('cmf_records_list')
+    
+    if cached_data is not None:
+        return cached_data  # Return immediately without touching the DB
     # We query the status table and 'follow' the relationships
     # .select_related optimizes the query (JOIN)
     status_records = tbl_cmf_pending_completed.objects.filter(cm_no__isnull=False).select_related('cm_no')
@@ -44,8 +50,12 @@ def get_cmf_records():
             "reason": entry.reason or "",
         })
     
-    # Sort by No. descending
-    return sorted(results, key=lambda x: x['no'], reverse=True)
+    final_results = sorted(results, key=lambda x: x['no'], reverse=True)
+
+    # Store in cache for 1 hour (3600 seconds)
+    cache.set('cmf_records_list', final_results, 3600)
+    
+    return final_results
 
 
 def get_rs_records():

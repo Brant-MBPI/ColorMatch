@@ -1,5 +1,6 @@
 from urllib import request
 
+from django.core.cache import cache
 from django.contrib.auth import authenticate, login, logout, get_user_model 
 from django.contrib.auth.models import User
 from django.shortcuts import redirect, render
@@ -121,6 +122,7 @@ def cmf_entry(request):
         try:
             saved_record = cmf_entry_save.save_cmf_complete_entry(request)
             messages.success(request, f"Successfully saved CMF No. {saved_record.cm_no}")
+            cache.delete('cmf_records_list') 
             return redirect('cmf_entry')
         except Exception as e:
             messages.error(request, str(e))
