@@ -4,7 +4,8 @@ from datetime import datetime
 from main.models import (
     tbl_cmf, tbl_cmf_color_req, tbl_cmf_dates, tbl_cmf_formula, 
     tbl_cmf_process, tbl_cmf_process02, tbl_resin, tbl_resins_selected,
-    tbl_cmf_specification, tbl_cmf_specification02, tbl_cmf_salesman
+    tbl_cmf_specification, tbl_cmf_specification02, tbl_cmf_salesman,
+    tbl_cmf_pending_completed, tbl_feedback_details
 )
 
 def save_cmf_complete_entry(request):
@@ -133,5 +134,7 @@ def save_cmf_complete_entry(request):
             if s_name:
                 s_ref, _ = tbl_cmf_specification.objects.get_or_create(name=s_name.strip())
                 tbl_cmf_specification02.objects.create(cm_no=cmf_main, spec_no=s_ref)
-
+        
+        tbl_cmf_pending_completed.objects.create(cm_no=cmf_main)
+        tbl_feedback_details.objects.create(cm_no=cmf_main)
     return cmf_main
