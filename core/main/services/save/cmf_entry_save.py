@@ -1,7 +1,7 @@
 import re
 from django.db import transaction
 from datetime import datetime
-from core.main.utils.log_audit_trail import log_audit
+from main.utils.log_audit_trail import log_audit
 from main.models import (
     tbl_cmf, tbl_cmf_color_req, tbl_cmf_dates, tbl_cmf_formula, 
     tbl_cmf_process, tbl_cmf_process02, tbl_resin, tbl_resins_selected,

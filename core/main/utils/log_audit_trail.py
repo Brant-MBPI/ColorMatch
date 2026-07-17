@@ -7,7 +7,7 @@ def log_audit(request, action, details):
     """
     try:
         tbl_audit_trail.objects.create(
-            user=request.user,
+            user_id=request.user,
             action_type=action,
             details=details
         )
