@@ -57,7 +57,7 @@ class tbl_role_permissions(models.Model):
 class tbl_audit_trail(models.Model):
     id = models.AutoField(primary_key=True)
     timestamp = models.DateTimeField(auto_now_add=True)
-    user_id = models.ForeignKey(tbl_user, on_delete=models.SET_NULL, null=True, blank=True, db_column="user_id")
+    user = models.ForeignKey(tbl_user, on_delete=models.SET_NULL, null=True, blank=True, db_column="user_id")
     action_type = models.CharField(max_length=50, blank=True, null=True)
     details = models.TextField(blank=True, null=True)
 
