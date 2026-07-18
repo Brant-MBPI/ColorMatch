@@ -1,8 +1,9 @@
 from datetime import datetime
 from django.core.cache import cache
+from django.http import JsonResponse
 from ...models import (
     tbl_cmf, tbl_cmf_formula, tbl_cmf_dates, 
-    tbl_cmf_pending_completed, tbl_rs
+    tbl_cmf_pending_completed, tbl_dc_extruder_formula, tbl_dc_extruder_formula02, tbl_mb_extruder_formula, tbl_mb_extruder_formula02, tbl_rs
 )
 
 ALL_HEADERS = [
@@ -79,3 +80,41 @@ def get_all_records_combined():
     Returns all CMF and RS records loaded once for instant JS filtering.
     """
     return get_cmf_records() + get_rs_records()
+
+
+def get_cmf_formulas(request, cm_no):
+    formula = []
+
+    # 1. Fetch MB Formulas
+    mb_headers = tbl_mb_extruder_formula.objects.filter(cm_no=cm_no).select_related('code')
+    for header in mb_headers:
+        # Fetch ingredients for this specific MB header
+        ingredients = tbl_mb_extruder_formula02.objects.filter(mb=header).values('material', 'value', 'weight')
+        
+        formula.append({
+            'type': 'MB Extruder',
+            'formula_no': f"MB-{header.mb_no}",
+            'lot_no': header.lot_no or '---',
+            'matched_by': header.matched_by or '---',
+            'date': header.date.strftime('%Y-%m-%d') if header.date else '---',
+            'status': 'Completed', # Or fetch from a field if available
+            'ingredients': list(ingredients)
+        })
+
+    # 2. Fetch DC Formulas
+    dc_headers = tbl_dc_extruder_formula.objects.filter(cm_no=cm_no).select_related('code')
+    for header in dc_headers:
+        # Fetch ingredients for this specific DC header
+        ingredients = tbl_dc_extruder_formula02.objects.filter(dc=header).values('material', 'value', 'weight')
+        
+        formula.append({
+            'type': 'DC Extruder',
+            'formula_no': f"DC-{header.dc_no}",
+            'lot_no': '---', # DC header doesn't have lot_no in your model
+            'matched_by': header.matched_by or '---',
+            'date': header.date.strftime('%Y-%m-%d') if header.date else '---',
+            'status': 'Completed',
+            'ingredients': list(ingredients)
+        })
+
+    return JsonResponse(formula, safe=False)
