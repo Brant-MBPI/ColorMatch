@@ -10,7 +10,7 @@ from datetime import datetime
 from main.decorators import role_required
 from main.models import tbl_internal_color_code, tbl_resin, tbl_cmf_salesman
 
-from .services import cmf_records_services
+from .services.cmf_records import cmf_records_services
 from .services.save import cmf_entry_save
 # Create your views here.
 User = get_user_model()

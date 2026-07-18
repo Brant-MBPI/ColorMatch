@@ -1,6 +1,6 @@
 from datetime import datetime
 from django.core.cache import cache
-from ..models import (
+from ...models import (
     tbl_cmf, tbl_cmf_formula, tbl_cmf_dates, 
     tbl_cmf_pending_completed, tbl_rs
 )
