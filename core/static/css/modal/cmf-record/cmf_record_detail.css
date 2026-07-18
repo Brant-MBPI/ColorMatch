@@ -1,68 +1,23 @@
-/* 1. Modal Theme & Structure */
-#cmfDetailModal .modal-content {
-    background-color: var(--card-bg);
-    color: var(--text-main);
-    border: 1px solid var(--sidebar-border);
-    border-radius: 0.8rem;
-    overflow: hidden; /* Important for clean rounded corners */
+.text-teal {
+    color: var(--sidebar-header-bg) !important;
 }
 
-/* HERE'S YOUR TEAL HEADER */
-#cmfDetailModal .modal-header {
-    background-color: var(--sidebar-header-bg); /* Your Global Teal */
-    color: #ffffff;
-    border-bottom: none;
-}
-
-#cmfDetailModal .modal-footer {
-    background-color: var(--sidebar-hover-bg);
-    border-top: 1px solid var(--sidebar-border);
-}
-
-/* 2. Modal Table Header */
-#modalDataTable thead th {
-    background-color: var(--table-header) !important;
-    color: #ffffff !important;
-    font-size: 0.7rem;
-    padding: 12px;
-}
-
-/* 3. Sub-row (Formula) Styling */
+/* Formula Container indentation and style */
 .formula-container {
     background-color: var(--sidebar-hover-bg);
-    margin: 10px 15px 15px 50px; /* Indented for visual hierarchy */
-    border: 1px solid var(--sidebar-border) !important;
-    border-radius: 8px;
-    overflow: hidden; /* Ensures child elements respect border-radius */
+    margin-left: 40px;
+    border-left: 3px solid var(--sidebar-header-bg) !important;
 }
 
+/* Individual Formula Card inside the sub-row */
 .formula-card-header {
     background-color: var(--sidebar-active-bg);
     color: var(--sidebar-active-text);
-    padding: 8px 12px;
+    padding: 6px 12px;
     border-bottom: 1px solid var(--sidebar-border);
 }
 
-.formula-row .table {
+/* Dark mode adjustment for the white tables inside sub-rows */
+body.dark-mode .formula-container table {
     background-color: var(--card-bg) !important;
-}
-
-/* 4. Row Hover & Interaction */
-.main-detail-row {
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-}
-
-.main-detail-row:hover {
-    background-color: var(--sidebar-hover-bg) !important;
-}
-
-.toggle-icon {
-    font-size: 1.2rem;
-    transition: transform 0.2s ease, color 0.2s ease;
-}
-
-/* Dark Mode Safety Net */
-body.dark-mode .formula-container {
-    background-color: #1e293b; /* A bit darker than card-bg */
 }

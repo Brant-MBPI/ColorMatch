@@ -6,77 +6,82 @@ document.addEventListener('DOMContentLoaded', function () {
     const modalTableBody = modalElement.querySelector('#modalTableBody');
     const bsModal = new bootstrap.Modal(modalElement);
 
-    // 1. ASYNC DOUBLE CLICK TRIGGER
     recordsTbody.addEventListener('dblclick', async function (e) {
         const tr = e.target.closest('.record-row');
         if (!tr) return;
 
         const cmfNo = tr.cells[0].innerText.trim();
-        modalTableBody.innerHTML = '<tr><td colspan="7" class="text-center py-4">Loading history...</td></tr>';
+        modalTableBody.innerHTML = '<tr><td colspan="7" class="text-center py-4">Fetching CMF Details...</td></tr>';
         bsModal.show();
 
         try {
-            const response = await fetch(`/cmf/records/${cmfNo}/`);
-            const historyData = await response.json();
+            const response = await fetch(`/cmf/records/${encodeURIComponent(cmfNo)}/`);
+            const dataList = await response.json(); // This is a list of CMF objects
 
-            modalTableBody.innerHTML = ''; // Clear loader
+            modalTableBody.innerHTML = ''; 
 
-            if (historyData.length > 0) {
-                // Loop through every formula found in database (MB and DC)
-                historyData.forEach(item => {
-                    addFormulaSetToModal(item);
+            if (dataList.length > 0) {
+                dataList.forEach(cmf => {
+                    addCmfRowToModal(cmf);
                 });
             } else {
-                modalTableBody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">No formula history found for this CMF.</td></tr>';
+                modalTableBody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">No records found.</td></tr>';
             }
         } catch (error) {
-            modalTableBody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-danger">Error loading data.</td></tr>';
+            console.log('Error fetching CMF details:', error);
+            modalTableBody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-danger">Error fetching database records.</td></tr>';
         }
     });
 
-    // 2. RENDER MULTIPLE FORMULA SETS
-    function addFormulaSetToModal(data) {
-        // Unique ID for toggling: e.g., "formula-MB-10"
-        const rowId = `row-${data.formula_no.replace(/[^a-zA-Z0-9]/g, '-')}`;
-
+    function addCmfRowToModal(cmf) {
         const html = `
-            <!-- Formula Header Row -->
+            <!-- CMF PARENT ROW -->
             <tr class="main-detail-row" style="cursor:pointer;">
                 <td class="text-center">
                     <i class="bi bi-plus-circle-fill toggle-icon" style="color: var(--sidebar-header-bg);"></i>
                 </td>
-                <td class="fw-bold">${data.formula_no}</td>
-                <td><span class="badge bg-dark-subtle text-dark border">${data.type}</span></td>
-                <td>${data.lot_no}</td>
-                <td>${data.matched_by}</td>
-                <td>${data.date}</td>
-                <td><span class="badge bg-success-subtle text-success border border-success">${data.status}</span></td>
+                <td class="fw-bold">${cmf.cm_no}</td>
+                <td>${cmf.customer}</td>
+                <td>${cmf.color}</td>
+                <td>${cmf.type}</td>
+                <td><code>${cmf.code}</code></td>
+                <td><span class="badge bg-success-subtle text-success border border-success">${cmf.status}</span></td>
             </tr>
-            <!-- Ingredient Sub-row -->
+            
+            <!-- SUB-ROW CONTAINING ALL FORMULAS -->
             <tr class="formula-row d-none">
-                <td colspan="7" class="p-2 border-0">
-                    <div class="formula-container shadow-sm border rounded">
-                        <div class="formula-card-header">
-                            <span class="extra-small fw-bold"><i class="bi bi-flask me-1"></i> INGREDIENTS BREAKDOWN</span>
-                        </div>
-                        <table class="table table-sm mb-0">
-                            <thead>
-                                <tr class="extra-small">
-                                    <th class="ps-4 border-0">Material Name</th>
-                                    <th class="text-end border-0">Value (%)</th>
-                                    <th class="text-end border-0 pe-4">Weight (g)</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${data.ingredients.map(f => `
-                                    <tr class="extra-small">
-                                        <td class="ps-4 border-0">${f.material}</td>
-                                        <td class="text-end border-0 fw-bold" style="color: var(--sidebar-header-bg);">${parseFloat(f.value).toFixed(4)}%</td>
-                                        <td class="text-end border-0 pe-4">${parseFloat(f.weight).toFixed(2)}g</td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
+                <td colspan="7" class="p-3 border-0">
+                    <div class="formula-container shadow-sm border rounded p-3">
+                        <h6 class="extra-small fw-bold text-teal mb-3">
+                            <i class="bi bi-layers-fill me-1"></i> ASSOCIATED FORMULAS FOR ${cmf.cm_no}
+                        </h6>
+                        
+                        ${cmf.formulas.length > 0 ? cmf.formulas.map(form => `
+                            <div class="mb-4 border rounded overflow-hidden">
+                                <div class="formula-card-header d-flex justify-content-between align-items-center">
+                                    <span class="small fw-bold text-uppercase">${form.id} (${form.type})</span>
+                                    <span class="extra-small text-muted">Matched by: ${form.matched_by} | ${form.date}</span>
+                                </div>
+                                <table class="table table-sm mb-0">
+                                    <thead class="bg-light extra-small">
+                                        <tr>
+                                            <th class="ps-3">Material</th>
+                                            <th class="text-end">Value (%)</th>
+                                            <th class="text-end pe-3">Weight (g)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="extra-small">
+                                        ${form.ingredients.map(ing => `
+                                            <tr>
+                                                <td class="ps-3">${ing.material}</td>
+                                                <td class="text-end fw-bold text-teal">${parseFloat(ing.value).toFixed(4)}%</td>
+                                                <td class="text-end pe-3">${parseFloat(ing.weight).toFixed(2)}g</td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        `).join('') : '<p class="text-muted small text-center my-3">No formulas found for this CMF.</p>'}
                     </div>
                 </td>
             </tr>
@@ -84,7 +89,7 @@ document.addEventListener('DOMContentLoaded', function () {
         modalTableBody.insertAdjacentHTML('beforeend', html);
     }
 
-    // 3. TOGGLE LOGIC (Handles multiple rows)
+    // TOGGLE LOGIC
     modalTableBody.addEventListener('click', function (e) {
         const mainRow = e.target.closest('.main-detail-row');
         if (!mainRow) return;
