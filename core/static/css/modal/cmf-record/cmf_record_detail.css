@@ -1,70 +1,62 @@
-/* 1. Main Table Interaction */
-.record-row {
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-    user-select: none; /* Prevents text selection on double-click */
-}
-
-/* Hover state using Bootstrap color variables for theme compatibility */
-.record-row:hover {
-    background-color: rgba(var(--bs-primary-rgb), 0.1) !important;
-}
-
-/* 2. Modal DataTable Styling */
-#modalDataTable {
-    border-collapse: collapse !important;
-    border-color: var(--bs-border-color) !important;
-}
-
-#modalDataTable thead th {
-    background-color: var(--bs-tertiary-bg);
-    color: var(--bs-body-color);
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    border-bottom: 2px solid var(--bs-border-color);
-}
-
-/* 3. Child Row (Formula) Styling */
-.formula-container {
-    padding: 1.25rem;
-    background-color: var(--bs-tertiary-bg); /* Adjusts to dark/light automatically */
-    border: 1px solid var(--bs-border-color);
-    border-radius: 8px;
-    margin: 10px;
-}
-
-.formula-table {
-    margin-bottom: 0;
-    background-color: var(--bs-body-bg) !important;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-}
-
-.formula-table thead th {
-    background-color: var(--bs-secondary-bg) !important;
-    font-size: 0.7rem;
-}
-
-/* Formula Container (Adjusts to light/dark mode) */
-.formula-details {
-    background-color: var(--bs-body-bg);
-    margin: 10px;
-}
-/* 4. Expansion Control (The Plus/Minus icon) */
-.dt-control {
-    cursor: pointer;
-    text-align: center;
-    font-size: 1.1rem;
-    transition: color 0.2s;
-}
-
-.dt-control i {
-    font-size: 1.1rem;
-    pointer-events: none; /* Prevents icon from stealing click from cell */
-}
-
-/* Modal "Floating" tweak */
+/* 1. Modal Container Styling */
 #cmfDetailModal .modal-content {
-    border: 1px solid var(--bs-border-color);
-    box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175) !important;
+    background-color: var(--card-bg);
+    color: var(--text-main);
+    border: 1px solid var(--sidebar-border);
+    border-radius: 0.6rem;
+}
+
+#cmfDetailModal .modal-header {
+    background-color: var(--sidebar-header-bg);
+    color: #ffffff;
+    border-bottom: none;
+}
+
+/* 2. Modal Table Header - Inherits Global Table Style */
+#modalDataTable thead th {
+    background-color: var(--table-header) !important;
+    color: #ffffff !important;
+    font-size: 0.72rem;
+    padding: 10px;
+    text-transform: uppercase;
+}
+
+/* 3. Sub-row (Formula) Styling */
+.formula-container {
+    background-color: var(--sidebar-hover-bg); /* Use light grey inherited from theme */
+    margin: 5px 15px 15px 50px;
+    border: 1px solid var(--sidebar-border) !important;
+    overflow: hidden;
+}
+
+.formula-card-header {
+    background-color: var(--sidebar-active-bg);
+    color: var(--sidebar-active-text);
+}
+
+.formula-row .table {
+    background-color: var(--card-bg) !important;
+    color: var(--text-main) !important;
+}
+
+/* 4. Row Hover Fix (Inherited from Theme) */
+.main-detail-row:hover {
+    background-color: var(--sidebar-hover-bg) !important;
+}
+
+/* Expansion icons size */
+.toggle-icon {
+    font-size: 1.15rem;
+    transition: transform 0.2s;
+}
+
+/* Dark Mode Overrides for internal sub-table */
+body.dark-mode .formula-container {
+    background-color: #1e293b;
+    border-color: #334155 !important;
+}
+
+body.dark-mode .formula-card-header {
+    background-color: var(--sidebar-header-bg);
+    color: white;
 }
