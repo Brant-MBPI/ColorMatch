@@ -27,7 +27,7 @@ def get_cmf_records():
         results.append({
             "no": cmf.cm_no,
             "customer": formula.customer if formula else "---",
-            "primary_color": cmf.primary_color or "---",
+            "primary_color": cmf.in_code_no.color if cmf.in_code_no else "---",
             "description": cmf.color_desc or "---",
             "product": formula.finished_product if formula else "---",
             "required_date": dates.date_required if dates else "---",

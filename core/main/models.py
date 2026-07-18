@@ -186,7 +186,13 @@ class tbl_cmf(models.Model):
     cm_no = models.CharField(max_length=50, unique=True)
     matching_type = models.CharField(max_length=50, blank=True, null=True)
     sm = models.ForeignKey(tbl_cmf_salesman, on_delete=models.SET_NULL, null=True, blank=True, db_column="sm_no")
-    primary_color = models.CharField(max_length=100, blank=True, null=True)
+    in_code_no = models.ForeignKey(
+        'tbl_internal_color_code', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        db_column="in_code_no"
+    )
     color_desc = models.TextField(blank=True, null=True)
     qty_resin_testing = models.CharField(max_length=100, blank=True, null=True)
     is_resin_provided = models.BooleanField(null=True, blank=True)

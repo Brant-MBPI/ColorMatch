@@ -81,7 +81,7 @@ def save_cmf_complete_entry(request):
         cmf_main = tbl_cmf.objects.create(
             cm_no=cm_no,
             matching_type=data.get('matchType'),
-            primary_color=data.get('primary_color'),
+            in_code_no_id=data.get('primary_color'),
             color_desc=data.get('color_description'),
             qty_resin_testing=data.get('qty_resin_test'),
             is_resin_provided=to_bool(data.get('customerResin')),
