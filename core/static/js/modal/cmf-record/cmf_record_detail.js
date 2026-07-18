@@ -6,12 +6,12 @@ document.addEventListener('DOMContentLoaded', function () {
     const modalTableBody = modalElement.querySelector('#modalTableBody');
     const bsModal = new bootstrap.Modal(modalElement);
 
-    // 1. DOUBLE CLICK TRIGGER (Main Records Table)
+    // 1. Double Click Trigger
     recordsTbody.addEventListener('dblclick', function (e) {
         const tr = e.target.closest('.record-row');
         if (!tr) return;
 
-        modalTableBody.innerHTML = ''; // Fresh modal content
+        modalTableBody.innerHTML = '';
 
         const data = {
             no: tr.cells[0].innerText.trim(),
@@ -30,10 +30,9 @@ document.addEventListener('DOMContentLoaded', function () {
         bsModal.show();
     });
 
-    // 2. APPEND ROWS
+    // 2. Append Rows
     function addRecordToModal(data) {
         const html = `
-            <!-- Parent Row -->
             <tr class="main-detail-row" style="cursor:pointer;">
                 <td class="text-center">
                     <i class="bi bi-plus-circle-fill toggle-icon" style="color: var(--sidebar-header-bg);"></i>
@@ -45,11 +44,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 <td><code>${data.code}</code></td>
                 <td>${data.status}</td>
             </tr>
-            <!-- Sub Row (Formula) - Always follows parent -->
             <tr class="formula-row d-none">
-                <td colspan="7" class="p-0 border-0">
+                <!-- THE FIX IS HERE: Changed p-0 to p-2 -->
+                <td colspan="7" class="p-2 border-0">
                     <div class="formula-container shadow-sm border rounded">
-                        <div class="formula-card-header p-2 d-flex justify-content-between align-items-center">
+                        <div class="formula-card-header">
                             <span class="extra-small fw-bold"><i class="bi bi-flask me-1"></i> FORMULA DETAILS</span>
                         </div>
                         <table class="table table-sm mb-0">
@@ -81,13 +80,11 @@ document.addEventListener('DOMContentLoaded', function () {
         modalTableBody.insertAdjacentHTML('beforeend', html);
     }
 
-    // 3. TOGGLE LOGIC (Robust Sibling-based approach)
+    // 3. Toggle Logic (No changes needed here)
     modalTableBody.addEventListener('click', function (e) {
-        // Find the parent row that was clicked
         const mainRow = e.target.closest('.main-detail-row');
         if (!mainRow) return;
 
-        // The formula row is ALWAYS the next sibling in the DOM
         const formulaRow = mainRow.nextElementSibling;
         const icon = mainRow.querySelector('.toggle-icon');
 

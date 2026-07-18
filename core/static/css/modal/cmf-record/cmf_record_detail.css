@@ -1,62 +1,68 @@
-/* 1. Modal Container Styling */
+/* 1. Modal Theme & Structure */
 #cmfDetailModal .modal-content {
     background-color: var(--card-bg);
     color: var(--text-main);
     border: 1px solid var(--sidebar-border);
-    border-radius: 0.6rem;
+    border-radius: 0.8rem;
+    overflow: hidden; /* Important for clean rounded corners */
 }
 
+/* HERE'S YOUR TEAL HEADER */
 #cmfDetailModal .modal-header {
-    background-color: var(--sidebar-header-bg);
+    background-color: var(--sidebar-header-bg); /* Your Global Teal */
     color: #ffffff;
     border-bottom: none;
 }
 
-/* 2. Modal Table Header - Inherits Global Table Style */
+#cmfDetailModal .modal-footer {
+    background-color: var(--sidebar-hover-bg);
+    border-top: 1px solid var(--sidebar-border);
+}
+
+/* 2. Modal Table Header */
 #modalDataTable thead th {
     background-color: var(--table-header) !important;
     color: #ffffff !important;
-    font-size: 0.72rem;
-    padding: 10px;
-    text-transform: uppercase;
+    font-size: 0.7rem;
+    padding: 12px;
 }
 
 /* 3. Sub-row (Formula) Styling */
 .formula-container {
-    background-color: var(--sidebar-hover-bg); /* Use light grey inherited from theme */
-    margin: 5px 15px 15px 50px;
+    background-color: var(--sidebar-hover-bg);
+    margin: 10px 15px 15px 50px; /* Indented for visual hierarchy */
     border: 1px solid var(--sidebar-border) !important;
-    overflow: hidden;
+    border-radius: 8px;
+    overflow: hidden; /* Ensures child elements respect border-radius */
 }
 
 .formula-card-header {
     background-color: var(--sidebar-active-bg);
     color: var(--sidebar-active-text);
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--sidebar-border);
 }
 
 .formula-row .table {
     background-color: var(--card-bg) !important;
-    color: var(--text-main) !important;
 }
 
-/* 4. Row Hover Fix (Inherited from Theme) */
+/* 4. Row Hover & Interaction */
+.main-detail-row {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
 .main-detail-row:hover {
     background-color: var(--sidebar-hover-bg) !important;
 }
 
-/* Expansion icons size */
 .toggle-icon {
-    font-size: 1.15rem;
-    transition: transform 0.2s;
+    font-size: 1.2rem;
+    transition: transform 0.2s ease, color 0.2s ease;
 }
 
-/* Dark Mode Overrides for internal sub-table */
+/* Dark Mode Safety Net */
 body.dark-mode .formula-container {
-    background-color: #1e293b;
-    border-color: #334155 !important;
-}
-
-body.dark-mode .formula-card-header {
-    background-color: var(--sidebar-header-bg);
-    color: white;
+    background-color: #1e293b; /* A bit darker than card-bg */
 }
