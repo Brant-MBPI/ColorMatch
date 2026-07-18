@@ -1,32 +1,70 @@
-/* Styling for the Child Row (Formula Table) */
-.formula-sub-table-container {
-    background-color: rgba(var(--bs-tertiary-bg-rgb), 0.6);
-    padding: 15px;
-    border-radius: 8px;
+/* 1. Main Table Interaction */
+.record-row {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    user-select: none; /* Prevents text selection on double-click */
+}
+
+/* Hover state using Bootstrap color variables for theme compatibility */
+.record-row:hover {
+    background-color: rgba(var(--bs-primary-rgb), 0.1) !important;
+}
+
+/* 2. Modal DataTable Styling */
+#modalDataTable {
+    border-collapse: collapse !important;
+    border-color: var(--bs-border-color) !important;
+}
+
+#modalDataTable thead th {
+    background-color: var(--bs-tertiary-bg);
+    color: var(--bs-body-color);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid var(--bs-border-color);
+}
+
+/* 3. Child Row (Formula) Styling */
+.formula-container {
+    padding: 1.25rem;
+    background-color: var(--bs-tertiary-bg); /* Adjusts to dark/light automatically */
     border: 1px solid var(--bs-border-color);
-    margin: 5px;
+    border-radius: 8px;
+    margin: 10px;
 }
 
-.formula-sub-table {
-    background-color: var(--bs-body-bg) !important;
-    font-size: 0.85rem;
+.formula-table {
     margin-bottom: 0;
+    background-color: var(--bs-body-bg) !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
-/* Expansion Control Icon */
-td.dt-control {
+.formula-table thead th {
+    background-color: var(--bs-secondary-bg) !important;
+    font-size: 0.7rem;
+}
+
+/* Formula Container (Adjusts to light/dark mode) */
+.formula-details {
+    background-color: var(--bs-body-bg);
+    margin: 10px;
+}
+/* 4. Expansion Control (The Plus/Minus icon) */
+.dt-control {
     cursor: pointer;
     text-align: center;
-    color: #0d6efd;
-    font-size: 1.2rem;
+    font-size: 1.1rem;
+    transition: color 0.2s;
 }
 
-tr.shown td.dt-control i::before {
-    content: "\F2EA"; /* bi-dash-square */
-    color: #dc3545;
+.dt-control i {
+    font-size: 1.1rem;
+    pointer-events: none; /* Prevents icon from stealing click from cell */
 }
 
-/* Ensure modal works in dark mode */
-[data-bs-theme="dark"] .formula-sub-table-container {
-    background-color: #2b3035;
+/* Modal "Floating" tweak */
+#cmfDetailModal .modal-content {
+    border: 1px solid var(--bs-border-color);
+    box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175) !important;
 }
