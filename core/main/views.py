@@ -7,7 +7,7 @@ from django.shortcuts import redirect, render
 from django.contrib import messages
 from datetime import datetime
 
-from main.services.save import mb_formula_save
+from main.services.save import mb_formula_save, dc_formula_save
 from main.decorators import role_required
 from main.models import tbl_cmf, tbl_cmf_formula, tbl_cmf_process02, tbl_cmf_process02, tbl_internal_color_code, tbl_resin, tbl_cmf_salesman, tbl_resins_selected
 
@@ -183,7 +183,47 @@ def cmf_mb_formula(request):
 
 
 def cmf_dc_formula(request):
-    return render(request, "sidemenu/cmf/formula_dc.html")
+    form_data = {}
+    
+    # --- 1. HANDLING POST (SAVING) ---
+    if request.method == "POST":
+        try:
+            saved_record = dc_formula_save.save_dc_complete_formula(request)
+            messages.success(request, f"Successfully saved DC Formula for CMF No. {saved_record.cm_no.cm_no}")
+            cache.delete('cmf_records_list')
+            return redirect('cmf_dc_formula')
+        except Exception as e:
+            messages.error(request, f"Error saving formula: {str(e)}")
+            form_data = request.POST
+
+    # --- 2. HANDLING GET (PRE-FILL) ---
+    else:
+        cm_no = request.GET.get('no')
+        if cm_no:
+            cmf = tbl_cmf.objects.filter(cm_no=cm_no).first()
+            if cmf:
+                formula_info = tbl_cmf_formula.objects.filter(cm_no=cm_no).first()
+
+                # Get Comma Separated Resins
+                resins_list = tbl_resins_selected.objects.filter(cm_no=cm_no).values_list('resin_no__abbreviation', flat=True)
+                resin_str = ", ".join(resins_list)
+
+                # Get Comma Separated Processes
+                processes = tbl_cmf_process02.objects.filter(cmf_formula_no__cm_no=cm_no).values_list('process_no__name', flat=True)
+                app_str = ", ".join(processes)
+
+                form_data = {
+                    'cm_form_no': cm_no,
+                    'customer': formula_info.customer if formula_info else "",
+                    'resin': resin_str,
+                    'dosage': formula_info.dosage if formula_info else "",
+                    'finished_product': formula_info.finished_product if formula_info else "",
+                    'color': cmf.in_code_no.color if cmf.in_code_no else "",
+                    'application': app_str,
+                }
+
+    context = {"form_data": form_data}
+    return render(request, "sidemenu/cmf/formula_dc.html", context)
 
 
 def cmf_pending_completed(request):
