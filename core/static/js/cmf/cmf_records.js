@@ -142,8 +142,8 @@ document.addEventListener('DOMContentLoaded', function() {
             // Update Links based on CMF Number
             // Ensure these match your Django URLs
             linkCmfEntry.href = `/cmf/entry/?no=${encodeURIComponent(cmfNo)}`;
-            linkMbFormula.href = `/formula/mb/?no=${encodeURIComponent(cmfNo)}`;
-            linkDcFormula.href = `/formula/dc/?no=${encodeURIComponent(cmfNo)}`;
+            linkMbFormula.href = `/cmf/mb-formula/?no=${encodeURIComponent(cmfNo)}`;
+            linkDcFormula.href = `/cmf/dc-formula/?no=${encodeURIComponent(cmfNo)}`;
 
             // Positioning
             const x = e.clientX;
