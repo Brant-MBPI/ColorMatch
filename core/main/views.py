@@ -9,7 +9,7 @@ from datetime import datetime
 
 from main.services.save import mb_formula_save
 from main.decorators import role_required
-from main.models import tbl_cmf, tbl_cmf_formula, tbl_internal_color_code, tbl_resin, tbl_cmf_salesman
+from main.models import tbl_cmf, tbl_cmf_formula, tbl_cmf_process02, tbl_cmf_process02, tbl_internal_color_code, tbl_resin, tbl_cmf_salesman, tbl_resins_selected
 
 from .services.cmf_records import cmf_records_services
 from .services.save import cmf_entry_save
@@ -132,38 +132,52 @@ def cmf_rs_entry(request):
 def cmf_mb_formula(request):
     form_data = {}
     
-    # --- 1. HANDLING POST (SAVING) ---
     if request.method == "POST":
+        # ... (keep your existing POST saving logic) ...
         try:
             saved_record = mb_formula_save.save_mb_complete_formula(request)
             messages.success(request, f"Successfully saved MB Formula for CMF No. {saved_record.cm_no.cm_no}")
-            
-            # Clear caches so the new formula shows up in records
             cache.delete('cmf_records_list')
             return redirect('cmf_mb_formula')
         except Exception as e:
             messages.error(request, f"Error saving formula: {str(e)}")
-            form_data = request.POST # Keep input data on error
+            form_data = request.POST 
 
-    # --- 2. HANDLING GET (PRE-FILL FROM RECORDS) ---
     else:
         cm_no = request.GET.get('no')
         if cm_no:
             cmf = tbl_cmf.objects.filter(cm_no=cm_no).first()
             if cmf:
+                # 1. Fetch the CMF Formula Entry
                 formula_info = tbl_cmf_formula.objects.filter(cm_no=cm_no).first()
+
+                # 2. GET MULTIPLE RESINS (Joined by Comma)
+                resins_list = tbl_resins_selected.objects.filter(
+                    cm_no=cm_no
+                ).values_list('resin_no__abbreviation', flat=True)
+                resin_used_str = ", ".join(resins_list)
+
+                # 3. GET PROCESS/APPLICATION (Based on your new ERD)
+                # We filter tbl_cmf_process02 by the cm_no (via the formula FK) 
+                # and grab the 'name' from the related tbl_cmf_process table
+                processes = tbl_cmf_process02.objects.filter(
+                    cmf_formula_no__cm_no=cm_no
+                ).values_list('process_no__name', flat=True)
+                
+                application_str = ", ".join(processes)
+
                 form_data = {
                     'cm_form_no': cm_no,
                     'customer': formula_info.customer if formula_info else "",
-                    'resin_used': formula_info.resin_used if formula_info else "",
+                    'resin_used': resin_used_str,
                     'dosage': formula_info.dosage if formula_info else "",
                     'finished_product': formula_info.finished_product if formula_info else "",
                     'color': cmf.in_code_no.color if cmf.in_code_no else "",
-                    'application': formula_info.application if formula_info else "",
+                    'application': application_str, # Updated logic
                 }
 
     context = {
-        "form_data": form_data # Injected into the template
+        "form_data": form_data 
     }
     return render(request, "sidemenu/cmf/formula_mb.html", context)
 
