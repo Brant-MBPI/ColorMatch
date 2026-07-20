@@ -7,8 +7,9 @@ from django.shortcuts import redirect, render
 from django.contrib import messages
 from datetime import datetime
 
+from main.services.save import mb_formula_save
 from main.decorators import role_required
-from main.models import tbl_internal_color_code, tbl_resin, tbl_cmf_salesman
+from main.models import tbl_cmf, tbl_cmf_formula, tbl_internal_color_code, tbl_resin, tbl_cmf_salesman
 
 from .services.cmf_records import cmf_records_services
 from .services.save import cmf_entry_save
@@ -129,7 +130,42 @@ def cmf_rs_entry(request):
 
 
 def cmf_mb_formula(request):
-    return render(request, "sidemenu/cmf/formula_mb.html")
+    form_data = {}
+    
+    # --- 1. HANDLING POST (SAVING) ---
+    if request.method == "POST":
+        try:
+            saved_record = mb_formula_save.save_mb_complete_formula(request)
+            messages.success(request, f"Successfully saved MB Formula for CMF No. {saved_record.cm_no.cm_no}")
+            
+            # Clear caches so the new formula shows up in records
+            cache.delete('cmf_records_list')
+            return redirect('cmf_mb_formula')
+        except Exception as e:
+            messages.error(request, f"Error saving formula: {str(e)}")
+            form_data = request.POST # Keep input data on error
+
+    # --- 2. HANDLING GET (PRE-FILL FROM RECORDS) ---
+    else:
+        cm_no = request.GET.get('no')
+        if cm_no:
+            cmf = tbl_cmf.objects.filter(cm_no=cm_no).first()
+            if cmf:
+                formula_info = tbl_cmf_formula.objects.filter(cm_no=cm_no).first()
+                form_data = {
+                    'cm_form_no': cm_no,
+                    'customer': formula_info.customer if formula_info else "",
+                    'resin_used': formula_info.resin_used if formula_info else "",
+                    'dosage': formula_info.dosage if formula_info else "",
+                    'finished_product': formula_info.finished_product if formula_info else "",
+                    'color': cmf.in_code_no.color if cmf.in_code_no else "",
+                    'application': formula_info.application if formula_info else "",
+                }
+
+    context = {
+        "form_data": form_data # Injected into the template
+    }
+    return render(request, "sidemenu/cmf/formula_mb.html", context)
 
 
 def cmf_dc_formula(request):

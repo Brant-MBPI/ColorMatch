@@ -1,10 +1,12 @@
-{% extends "base.html" %} {% load static %}
+{% extends "base.html" %} 
+{% load static %}
 
 {% block navigation %} Formula MB {% endblock navigation %}
 
 {% block content %}
 
-<form id="formulaForm">
+<form id="formulaForm" method="POST">
+    {% csrf_token %}
     <div class="row g-4">
         <!-- LEFT COLUMN: Input Sections -->
         <div class="col-lg-3 col-md-4">
@@ -17,14 +19,21 @@
                         <div class="col-5"><label class="extra-small fw-bold">Date:</label></div>
                         <div class="col-7">
                             <div class="input-group input-group-sm flatpickr-container" data-wrap="true">
-                                <input type="text" name="date" id="id_date" class="form-control uniform-input date-picker-single" placeholder="MM/DD/YYYY" data-input>
+                                <input type="text" name="date" id="id_date" 
+                                       class="form-control uniform-input date-picker-single" 
+                                       placeholder="MM/DD/YYYY" data-input 
+                                       value="{% if form_data.date %}{{ form_data.date }}{% else %}{% now 'm/d/Y' %}{% endif %}">
                                 <span class="input-group-text uniform-input border-start-0" data-toggle><i class="bi bi-calendar3"></i></span>
                             </div>
                         </div>
                     </div>
                     <div class="row g-2 align-items-center">
                         <div class="col-5"><label class="extra-small fw-bold">CM Form #:</label></div>
-                        <div class="col-7"><input type="text" name="cm_form_no" id="id_cm_form_no" class="form-control form-control-sm uniform-input"></div>
+                        <div class="col-7">
+                            <input type="text" name="cm_form_no" id="id_cm_form_no" 
+                                   value="{{ form_data.cm_form_no|default:'' }}" 
+                                   class="form-control form-control-sm uniform-input" readonly>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -35,39 +44,75 @@
                     <h6 class="mb-section-title mb-3">Formulation Details</h6>
                     <div class="row g-2 align-items-center mb-2">
                         <div class="col-5"><label class="extra-small fw-bold">Product Code:</label></div>
-                        <div class="col-7"><input type="text" name="product" id="id_product" class="form-control form-control-sm uniform-input"></div>
+                        <div class="col-7">
+                            <input type="text" name="product" id="id_product" 
+                                   value="{{ form_data.product|default:'' }}" 
+                                   class="form-control form-control-sm uniform-input">
+                        </div>
                     </div>
                     <div class="row g-2 align-items-center mb-2">
                         <div class="col-5"><label class="extra-small fw-bold">Resin Used:</label></div>
-                        <div class="col-7"><input type="text" name="resin_used" id="id_resin_used" class="form-control form-control-sm uniform-input"></div>
+                        <div class="col-7">
+                            <input type="text" name="resin_used" id="id_resin_used" 
+                                   value="{{ form_data.resin_used|default:'' }}" 
+                                   class="form-control form-control-sm uniform-input">
+                        </div>
                     </div>
                     <div class="row g-2 align-items-center mb-2">
                         <div class="col-5"><label class="extra-small fw-bold">Customer:</label></div>
-                        <div class="col-7"><input type="text" name="customer" id="id_customer" class="form-control form-control-sm uniform-input"></div>
+                        <div class="col-7">
+                            <input type="text" name="customer" id="id_customer" 
+                                   value="{{ form_data.customer|default:'' }}" 
+                                   class="form-control form-control-sm uniform-input">
+                        </div>
                     </div>
                     <div class="row g-2 align-items-center mb-2">
                         <div class="col-5"><label class="extra-small fw-bold">Dosage:</label></div>
-                        <div class="col-7"><input type="text" name="dosage" id="id_dosage" class="form-control form-control-sm uniform-input"></div>
+                        <div class="col-7">
+                            <input type="text" name="dosage" id="id_dosage" 
+                                   value="{{ form_data.dosage|default:'' }}" 
+                                   class="form-control form-control-sm uniform-input">
+                        </div>
                     </div>
                     <div class="row g-2 align-items-center mb-2">
                         <div class="col-5"><label class="extra-small fw-bold">Lot Number:</label></div>
-                        <div class="col-7"><input type="text" name="lot_number" id="id_lot_number" class="form-control form-control-sm uniform-input"></div>
+                        <div class="col-7">
+                            <input type="text" name="lot_number" id="id_lot_number" 
+                                   value="{{ form_data.lot_number|default:'' }}" 
+                                   class="form-control form-control-sm uniform-input">
+                        </div>
                     </div>
                     <div class="row g-2 align-items-center mb-2">
                         <div class="col-5"><label class="extra-small fw-bold">Mixing Time:</label></div>
-                        <div class="col-7"><input type="text" name="mixing_time" id="id_mixing_time" class="form-control form-control-sm uniform-input"></div>
+                        <div class="col-7">
+                            <input type="text" name="mixing_time" id="id_mixing_time" 
+                                   value="{{ form_data.mixing_time|default:'' }}" 
+                                   class="form-control form-control-sm uniform-input">
+                        </div>
                     </div>
                     <div class="row g-2 align-items-center mb-2">
                         <div class="col-5"><label class="extra-small fw-bold">Color:</label></div>
-                        <div class="col-7"><input type="text" name="color" id="id_color" class="form-control form-control-sm uniform-input"></div>
+                        <div class="col-7">
+                            <input type="text" name="color" id="id_color" 
+                                   value="{{ form_data.color|default:'' }}" 
+                                   class="form-control form-control-sm uniform-input">
+                        </div>
                     </div>
                     <div class="row g-2 align-items-center mb-2">
                         <div class="col-5"><label class="extra-small fw-bold">Application:</label></div>
-                        <div class="col-7"><input type="text" name="application" id="id_application" class="form-control form-control-sm uniform-input"></div>
+                        <div class="col-7">
+                            <input type="text" name="application" id="id_application" 
+                                   value="{{ form_data.application|default:'' }}" 
+                                   class="form-control form-control-sm uniform-input">
+                        </div>
                     </div>
                     <div class="row g-2 align-items-center">
                         <div class="col-5"><label class="extra-small fw-bold">Finished Product:</label></div>
-                        <div class="col-7"><input type="text" name="finished_product" id="id_finished_product" class="form-control form-control-sm uniform-input"></div>
+                        <div class="col-7">
+                            <input type="text" name="finished_product" id="id_finished_product" 
+                                   value="{{ form_data.finished_product|default:'' }}" 
+                                   class="form-control form-control-sm uniform-input">
+                        </div>
                     </div>
                 </div>
             </div>
@@ -78,15 +123,27 @@
                     <h6 class="mb-section-title mb-3">Personnel</h6>
                     <div class="row g-2 align-items-center mb-2">
                         <div class="col-5"><label class="extra-small fw-bold">Matched by:</label></div>
-                        <div class="col-7"><input type="text" name="matched_by" id="id_matched_by" class="form-control form-control-sm uniform-input"></div>
+                        <div class="col-7">
+                            <input type="text" name="matched_by" id="id_matched_by" 
+                                   value="{{ form_data.matched_by|default:'' }}" 
+                                   class="form-control form-control-sm uniform-input">
+                        </div>
                     </div>
                     <div class="row g-2 align-items-center mb-2">
                         <div class="col-5"><label class="extra-small fw-bold">Weighed by:</label></div>
-                        <div class="col-7"><input type="text" name="weighed_by" id="id_weighed_by" class="form-control form-control-sm uniform-input"></div>
+                        <div class="col-7">
+                            <input type="text" name="weighed_by" id="id_weighed_by" 
+                                   value="{{ form_data.weighed_by|default:'' }}" 
+                                   class="form-control form-control-sm uniform-input">
+                        </div>
                     </div>
                     <div class="row g-2 align-items-center">
                         <div class="col-5"><label class="extra-small fw-bold">Encoded by:</label></div>
-                        <div class="col-7"><input type="text" name="encoded_by" id="id_encoded_by" class="form-control form-control-sm uniform-input"></div>
+                        <div class="col-7">
+                            <input type="text" name="encoded_by" id="id_encoded_by" 
+                                   value="{{ form_data.encoded_by|default:'' }}" 
+                                   class="form-control form-control-sm uniform-input">
+                        </div>
                     </div>
                 </div>
             </div>
@@ -113,9 +170,15 @@
                         <tbody>
                             {% for i in "1234567890" %}
                             <tr>
-                                <td class="ps-4 py-1"><input type="text" name="material_{{forloop.counter}}" class="table-input" placeholder="Enter material..."></td>
-                                <td class="py-1"><input type="number" step="0.01" name="percentage_{{forloop.counter}}" class="table-input text-center" placeholder="0.0000"></td>
-                                <td class="pe-4 py-1"><input type="number" step="1" name="weight_{{forloop.counter}}" class="table-input text-end" placeholder="0.0000"></td>
+                                <td class="ps-4 py-1">
+                                    <input type="text" name="material_{{forloop.counter}}" class="table-input" placeholder="Enter material...">
+                                </td>
+                                <td class="py-1">
+                                    <input type="number" step="0.01" name="percentage_{{forloop.counter}}" class="table-input text-center" placeholder="0.0000">
+                                </td>
+                                <td class="pe-4 py-1">
+                                    <input type="number" step="0.01" name="weight_{{forloop.counter}}" class="table-input text-end weight-input" placeholder="0.0000">
+                                </td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -125,7 +188,7 @@
                 <!-- Footer Total Area with Spectro Readings -->
                 <div class="px-3 pt-2 pb-2 d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-total-footer gap-3">
 
-                    <!-- Spectro Readings: order-2 on mobile (bottom), order-md-1 on desktop (left side) -->
+                    <!-- Spectro Readings -->
                     <div class="d-flex flex-wrap align-items-center gap-2 order-2 order-md-1">
                         <span class="extra-small fw-bold text-uppercase me-1">Spectro:</span>
                         <div class="d-flex flex-wrap gap-2">
@@ -152,10 +215,10 @@
                         </div>
                     </div>
 
-                    <!-- Total Weight: order-1 on mobile (top), order-md-2 on desktop (right side) -->
+                    <!-- Total Weight -->
                     <div class="d-flex align-items-center gap-3 order-1 order-md-2 ms-auto ms-md-0">
                         <span class="fw-bold small text-uppercase">Total Weight:</span>
-                        <input type="text" id="total_weight" class="form-control total-weight-input" value="0.00" readonly>
+                        <input type="text" name="total_weight" id="total_weight" class="form-control total-weight-input" value="0.00" readonly>
                     </div>
                 </div>
 
@@ -208,7 +271,8 @@
 </form>
 
 <script>
-    (function () {
+    document.addEventListener('DOMContentLoaded', function () {
+        // --- 1. HEX Color Preview Logic ---
         var hexInput = document.getElementById('id_srgb_hex');
         var swatch = document.getElementById('id_color_swatch');
 
@@ -222,7 +286,29 @@
                 swatch.style.backgroundColor = value.startsWith('#') ? value : '#' + value;
             }
         });
-    })();
+
+        // --- 2. Auto-Calculate Total Weight ---
+        // Listens to all inputs with the class 'weight-input' inside the table
+        const formulaForm = document.getElementById('formulaForm');
+        const totalWeightInput = document.getElementById('total_weight');
+
+        formulaForm.addEventListener('input', function(e) {
+            if (e.target.classList.contains('weight-input')) {
+                let total = 0;
+                const weightInputs = document.querySelectorAll('.weight-input');
+                
+                weightInputs.forEach(input => {
+                    const val = parseFloat(input.value);
+                    if (!isNaN(val)) {
+                        total += val;
+                    }
+                });
+
+                // Update total weight field formatted to 4 decimal places
+                totalWeightInput.value = total.toFixed(4);
+            }
+        });
+    });
 </script>
 
 {% endblock content %}
