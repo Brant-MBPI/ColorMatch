@@ -34,8 +34,96 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     function addCmfRowToModal(cmf) {
+        let mbTableHtml = '';
+        let dcTableHtml = '';
+
+        // Check MB Formulas
+        if (cmf.mb_formulas && cmf.mb_formulas.length > 0) {
+            mbTableHtml = `
+                <div class="mb-4">
+                    <div class="p-2 mb-2 border-bottom border-teal d-flex align-items-center">
+                        <i class="bi bi-gear-fill text-teal me-2"></i>
+                        <h6 class="extra-small fw-bold mb-0 text-teal uppercase">MB Extruder Formulas</h6>
+                    </div>
+                    <table class="table table-sm border small mb-0">
+                        <thead class="bg-light extra-small">
+                            <tr>
+                                <th>Date</th><th>Product Code</th><th>Lot Number</th><th>Color</th><th>Mixing Time</th><th>Matched By</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${cmf.mb_formulas.map(f => `
+                                <tr class="fw-bold bg-light-subtle">
+                                    <td>${f.date}</td><td>${f.prod_code}</td><td>${f.lot_no}</td><td>${f.color}</td><td>${f.mixing_time}</td><td>${f.matched_by}</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="6" class="p-0 border-0">
+                                        <table class="table table-sm mb-0 table-borderless">
+                                            <tbody class="text-muted small">
+                                                ${f.ingredients.map(ing => `
+                                                    <tr>
+                                                        <td style="width: 40%;" class="ps-5">${ing.material}</td>
+                                                        <td style="width: 30%;" class="text-end">${ing.value.toFixed(4)}%</td>
+                                                        <td style="width: 30%;" class="text-end pe-5">${ing.weight.toFixed(2)}g</td>
+                                                    </tr>
+                                                `).join('')}
+                                            </tbody>
+                                        </table>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>`;
+        }
+
+        // Check DC Formulas
+        if (cmf.dc_formulas && cmf.dc_formulas.length > 0) {
+            dcTableHtml = `
+                <div class="mb-4">
+                    <div class="p-2 mb-2 border-bottom border-teal d-flex align-items-center">
+                        <i class="bi bi-box-seam-fill text-teal me-2"></i>
+                        <h6 class="extra-small fw-bold mb-0 text-teal uppercase">DC Extruder Formulas</h6>
+                    </div>
+                    <table class="table table-sm border small mb-0">
+                        <thead class="bg-light extra-small">
+                            <tr>
+                                <th>Date</th><th>Product Code</th><th>Color</th><th>Sample Size</th><th>Mixing Time</th><th>Matched By</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${cmf.dc_formulas.map(f => `
+                                <tr class="fw-bold bg-light-subtle">
+                                    <td>${f.date}</td><td>${f.prod_code}</td><td>${f.color}</td><td>${f.sample_size}</td><td>${f.mixing_time}</td><td>${f.matched_by}</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="6" class="p-0 border-0">
+                                        <table class="table table-sm mb-0 table-borderless">
+                                            <tbody class="text-muted small">
+                                                ${f.ingredients.map(ing => `
+                                                    <tr>
+                                                        <td style="width: 40%;" class="ps-5">${ing.material}</td>
+                                                        <td style="width: 30%;" class="text-end">${ing.value.toFixed(4)}%</td>
+                                                        <td style="width: 30%;" class="text-end pe-5">${ing.weight.toFixed(2)}g</td>
+                                                    </tr>
+                                                `).join('')}
+                                            </tbody>
+                                        </table>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>`;
+        }
+
+        // Check if both are empty
+        let contentHtml = mbTableHtml + dcTableHtml;
+        if (!contentHtml) {
+            contentHtml = '<div class="text-center py-5 text-muted fw-bold">No Formula Records Found</div>';
+        }
+
         const html = `
-            <!-- CMF PARENT ROW -->
             <tr class="main-detail-row" style="cursor:pointer;">
                 <td class="text-center">
                     <i class="bi bi-plus-circle-fill toggle-icon" style="color: var(--sidebar-header-bg);"></i>
@@ -47,41 +135,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 <td><code>${cmf.code}</code></td>
                 <td><span class="badge bg-success-subtle text-success border border-success">${cmf.status}</span></td>
             </tr>
-            
-            <!-- SUB-ROW CONTAINING ALL FORMULAS -->
             <tr class="formula-row d-none">
-                <td colspan="7" class="p-3 border-0">
+                <td colspan="7" class="p-4 border-0">
                     <div class="formula-container shadow-sm border rounded p-3">
-                        <h6 class="extra-small fw-bold text-teal mb-3">
-                            <i class="bi bi-layers-fill me-1"></i> ASSOCIATED FORMULAS FOR ${cmf.cm_no}
-                        </h6>
-                        
-                        ${cmf.formulas.length > 0 ? cmf.formulas.map(form => `
-                            <div class="mb-4 border rounded overflow-hidden">
-                                <div class="formula-card-header d-flex justify-content-between align-items-center">
-                                    <span class="small fw-bold text-uppercase">${form.id} (${form.type})</span>
-                                    <span class="extra-small text-muted">Matched by: ${form.matched_by} | ${form.date}</span>
-                                </div>
-                                <table class="table table-sm mb-0">
-                                    <thead class="bg-light extra-small">
-                                        <tr>
-                                            <th class="ps-3">Material</th>
-                                            <th class="text-end">Value (%)</th>
-                                            <th class="text-end pe-3">Weight (g)</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="extra-small">
-                                        ${form.ingredients.map(ing => `
-                                            <tr>
-                                                <td class="ps-3">${ing.material}</td>
-                                                <td class="text-end fw-bold text-teal">${parseFloat(ing.value).toFixed(4)}%</td>
-                                                <td class="text-end pe-3">${parseFloat(ing.weight).toFixed(2)}g</td>
-                                            </tr>
-                                        `).join('')}
-                                    </tbody>
-                                </table>
-                            </div>
-                        `).join('') : '<p class="text-muted small text-center my-3">No formulas found for this CMF.</p>'}
+                        ${contentHtml}
                     </div>
                 </td>
             </tr>

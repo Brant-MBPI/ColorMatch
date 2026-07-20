@@ -83,52 +83,73 @@ def get_all_records_combined():
 
 
 def get_cmf_formulas(request, cm_no):
-    # 1. Get the Parent CMF Details first
+    # 1. Get Parent CMF Info
     cmf = tbl_cmf.objects.filter(cm_no=cm_no).first()
-    
     if not cmf:
         return JsonResponse([], safe=False)
 
-    # 2. This is your EXACT logic for collecting formulas
-    all_related_formulas = []
+    # Fetch extra details from related tables
+    formula_info = tbl_cmf_formula.objects.filter(cm_no=cm_no).first()
+    pending_info = tbl_cmf_pending_completed.objects.filter(cm_no=cm_no).first()
 
-    # MB Formulas Logic (Your Code)
-    mb_headers = tbl_mb_extruder_formula.objects.filter(cm_no=cm_no).select_related('code')
-    for header in mb_headers:
-        ingredients = tbl_mb_extruder_formula02.objects.filter(mb=header).values('material', 'value', 'weight')
-        all_related_formulas.append({
-            'type': 'MB Extruder',
-            'formula_no': f"MB-{header.mb_no}",
-            'lot_no': header.lot_no or '---',
-            'matched_by': header.matched_by or '---',
-            'date': header.date.strftime('%Y-%m-%d') if header.date else '---',
-            'status': 'Completed',
-            'ingredients': list(ingredients) # Your working conversion
+    # 2. Process MB Formulas
+    mb_list = []
+    # select_related('code') joins the tbl_generated_prod_code table
+    mb_qs = tbl_mb_extruder_formula.objects.filter(cm_no=cm_no).select_related('code', 'cm_no__in_code_no')
+    
+    for h in mb_qs:
+        # Fetch ingredients and convert Decimals to floats manually
+        ingredients = []
+        for ing in tbl_mb_extruder_formula02.objects.filter(mb=h):
+            ingredients.append({
+                'material': ing.material or '---',
+                'value': float(ing.value) if ing.value is not None else 0,
+                'weight': float(ing.weight) if ing.weight is not None else 0
+            })
+        
+        mb_list.append({
+            'date': h.date.strftime('%m/%d/%y') if h.date else '---',
+            'prod_code': h.code.prod_code if h.code else '---',
+            'lot_no': h.lot_no or '---',
+            'color': h.cm_no.in_code_no.color if (h.cm_no and h.cm_no.in_code_no) else '---',
+            'mixing_time': h.mixing_time or '---',
+            'matched_by': h.matched_by or '---',
+            'ingredients': ingredients
         })
 
-    # DC Formulas Logic (Your Code)
-    dc_headers = tbl_dc_extruder_formula.objects.filter(cm_no=cm_no).select_related('code')
-    for header in dc_headers:
-        ingredients = tbl_dc_extruder_formula02.objects.filter(dc=header).values('material', 'value', 'weight')
-        all_related_formulas.append({
-            'type': 'DC Extruder',
-            'formula_no': f"DC-{header.dc_no}",
-            'lot_no': '---',
-            'matched_by': header.matched_by or '---',
-            'date': header.date.strftime('%Y-%m-%d') if header.date else '---',
-            'status': 'Completed',
-            'ingredients': list(ingredients) # Your working conversion
+    # 3. Process DC Formulas
+    dc_list = []
+    dc_qs = tbl_dc_extruder_formula.objects.filter(cm_no=cm_no).select_related('code', 'cm_no__in_code_no')
+    
+    for h in dc_qs:
+        ingredients = []
+        for ing in tbl_dc_extruder_formula02.objects.filter(dc=h):
+            ingredients.append({
+                'material': ing.material or '---',
+                'value': float(ing.value) if ing.value is not None else 0,
+                'weight': float(ing.weight) if ing.weight is not None else 0
+            })
+            
+        dc_list.append({
+            'date': h.date.strftime('%m/%d/%y') if h.date else '---',
+            'prod_code': h.code.prod_code if h.code else '---',
+            'color': h.cm_no.in_code_no.color if (h.cm_no and h.cm_no.in_code_no) else '---',
+            'sample_size': h.sample_size or '---',
+            'mixing_time': h.mixing_time or '---',
+            'matched_by': h.matched_by or '---',
+            'ingredients': ingredients
         })
 
-    # 3. Structure the final response to have the CMF as the parent
+    # 4. Final Data Structure
     results = [{
         'cm_no': cmf.cm_no,
-        'customer': cmf.customer or '---',
-        'color': cmf.primary_color or '---',
+        'customer': formula_info.customer if formula_info else '---',
+        'color': cmf.in_code_no.color if cmf.in_code_no else '---',
         'type': cmf.matching_type or '---',
-        'code': cmf.product_code or '---',
-        'status': cmf.status or 'Pending',
-        'formulas': all_related_formulas # Nesting your working formula list here
+        'code': pending_info.prod_code if pending_info else '---',
+        'status': ("Completed" if pending_info.is_completed else "Pending") if pending_info else "Pending",
+        'mb_formulas': mb_list,
+        'dc_formulas': dc_list
     }]
 
     return JsonResponse(results, safe=False)
