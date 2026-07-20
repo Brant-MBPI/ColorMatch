@@ -54,3 +54,36 @@
 body.dark-mode .teal-toggle-slider {
     background-color: #475569;
 }
+
+.cmf-records-custom-menu{
+    display:none; 
+    position:fixed; 
+    z-index: 10000;
+}
+
+.custom-context-menu {
+    min-width: 200px;
+    border-radius: 8px;
+    background-color: var(--card-bg);
+    border: 1px solid var(--sidebar-border) !important;
+}
+
+.custom-context-menu .dropdown-item {
+    color: var(--text-main);
+    font-weight: 500;
+    transition: background 0.2s;
+}
+
+.custom-context-menu .dropdown-item:hover {
+    background-color: var(--sidebar-active-bg);
+    color: var(--sidebar-active-text);
+}
+
+.custom-context-menu .dropdown-item i {
+    font-size: 1rem;
+}
+
+body.dark-mode .custom-context-menu .bg-light {
+    background-color: var(--sidebar-hover-bg) !important;
+    color: var(--text-muted) !important;
+}

@@ -145,6 +145,21 @@ Color Matching Records
     </div>
 </div>
 
+<!-- Custom Context Menu -->
+<div id="customContextMenu" class="dropdown-menu shadow-sm border-0 custom-context-menu cmf-records-custom-menu">
+    <div class="px-3 py-2 extra-small fw-bold text-muted border-bottom mb-1 bg-light">
+        OPTIONS: <span id="contextMenuTitle" class="text-teal"></span>
+    </div>
+    <a class="dropdown-item extra-small py-2" href="#" id="linkCmfEntry">
+        <i class="bi bi-pencil-square me-2 text-teal"></i> Go to CMF Entry
+    </a>
+    <a class="dropdown-item extra-small py-2" href="#" id="linkMbFormula">
+        <i class="bi bi-gear-wide-connected me-2 text-teal"></i> Go to MB Formula
+    </a>
+    <a class="dropdown-item extra-small py-2" href="#" id="linkDcFormula">
+        <i class="bi bi-box-seam me-2 text-teal"></i> Go to DC Formula
+    </a>
+</div>
 {% include "modal/cmf-record/cmf_record_detail.html" %}
 {% endblock %}
 

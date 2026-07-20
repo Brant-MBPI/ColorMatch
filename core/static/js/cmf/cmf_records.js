@@ -29,6 +29,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const optNoLabel = document.getElementById('optNoLabel');
     const recordCounter = document.getElementById('recordCounter');
 
+    // Context Menu Elements
+    const contextMenu = document.getElementById('customContextMenu');
+    const menuTitle = document.getElementById('contextMenuTitle');
+    const linkCmfEntry = document.getElementById('linkCmfEntry');
+    const linkMbFormula = document.getElementById('linkMbFormula');
+    const linkDcFormula = document.getElementById('linkDcFormula');
+    const recordsTbody = document.getElementById('recordsTbody');
+
     // Column Indexes matching services.py
     const COLS_BOTH = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
     const COLS_COMPLETED = [0, 1, 2, 3, 4, 7, 8, 10, 11];
@@ -114,6 +122,58 @@ document.addEventListener('DOMContentLoaded', function() {
         if (recordCounter) {
             recordCounter.textContent = `Showing ${visibleCount} records`;
         }
+    }
+
+    // --- RIGHT CLICK (CONTEXT MENU) LOGIC ---
+    if (recordsTbody && contextMenu) {
+        recordsTbody.addEventListener('contextmenu', function (e) {
+            const tr = e.target.closest('.record-row');
+            if (!tr) return;
+
+            // Stop native browser menu
+            e.preventDefault();
+
+            const cmfNo = tr.cells[0].innerText.trim();
+            const rowMode = tr.dataset.mode; // 'cmf' or 'rs'
+
+            // Update UI
+            menuTitle.innerText = cmfNo;
+
+            // Update Links based on CMF Number
+            // Ensure these match your Django URLs
+            linkCmfEntry.href = `/cmf/entry/?no=${encodeURIComponent(cmfNo)}`;
+            linkMbFormula.href = `/formula/mb/?no=${encodeURIComponent(cmfNo)}`;
+            linkDcFormula.href = `/formula/dc/?no=${encodeURIComponent(cmfNo)}`;
+
+            // Positioning
+            const x = e.clientX;
+            const y = e.clientY;
+
+            // Adjust position if menu goes off screen
+            const menuWidth = 200; 
+            const menuHeight = 150;
+            const windowWidth = window.innerWidth;
+            const windowHeight = window.innerHeight;
+
+            const posX = (x + menuWidth > windowWidth) ? x - menuWidth : x;
+            const posY = (y + menuHeight > windowHeight) ? y - menuHeight : y;
+
+            contextMenu.style.top = `${posY}px`;
+            contextMenu.style.left = `${posX}px`;
+            contextMenu.style.display = 'block';
+        });
+
+        // Hide menu on any left click outside
+        document.addEventListener('click', function (e) {
+            if (!contextMenu.contains(e.target)) {
+                contextMenu.style.display = 'none';
+            }
+        });
+
+        // Hide menu on scroll
+        window.addEventListener('scroll', function () {
+            contextMenu.style.display = 'none';
+        }, true);
     }
 
     // --- EVENT LISTENERS ---
