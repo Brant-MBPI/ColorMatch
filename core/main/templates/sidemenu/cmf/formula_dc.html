@@ -35,7 +35,7 @@ Formula DC
                             <div class="col-7">
                                 <input type="text" name="cmf_number" id="id_dc_cmf_number" 
                                        value="{{ form_data.cm_form_no|default:'' }}" 
-                                       class="form-control form-control-sm uniform-input" readonly>
+                                       class="form-control form-control-sm uniform-input readonly-gray" readonly>
                             </div>
                         </div>
                         <div class="row g-2 align-items-center mb-2">
@@ -43,7 +43,7 @@ Formula DC
                             <div class="col-7">
                                 <input type="text" name="customer" id="id_dc_customer" 
                                        value="{{ form_data.customer|default:'' }}" 
-                                       class="form-control form-control-sm uniform-input">
+                                       class="form-control form-control-sm uniform-input readonly-gray">
                             </div>
                         </div>
                         <div class="row g-2 align-items-center mb-2">
@@ -51,7 +51,7 @@ Formula DC
                             <div class="col-7">
                                 <input type="text" name="resin" id="id_dc_resin" 
                                        value="{{ form_data.resin|default:'' }}" 
-                                       class="form-control form-control-sm uniform-input">
+                                       class="form-control form-control-sm uniform-input readonly-gray" >
                             </div>
                         </div>
                         <div class="row g-2 align-items-center mb-2">
@@ -59,7 +59,7 @@ Formula DC
                             <div class="col-7">
                                 <input type="text" name="color" id="id_dc_color" 
                                        value="{{ form_data.color|default:'' }}" 
-                                       class="form-control form-control-sm uniform-input">
+                                       class="form-control form-control-sm uniform-input readonly-gray">
                             </div>
                         </div>
                         <div class="row g-2 align-items-center mb-2">
@@ -79,7 +79,7 @@ Formula DC
                             <div class="col-7">
                                 <input type="text" name="dosage" id="id_dc_dosage" 
                                        value="{{ form_data.dosage|default:'' }}" 
-                                       class="form-control form-control-sm uniform-input">
+                                       class="form-control form-control-sm uniform-input readonly-gray">
                             </div>
                         </div>
                         <div class="row g-2 align-items-center mb-2">
@@ -111,7 +111,7 @@ Formula DC
                             <div class="col-7">
                                 <input type="text" name="application" id="id_dc_application" 
                                        value="{{ form_data.application|default:'' }}" 
-                                       class="form-control form-control-sm uniform-input">
+                                       class="form-control form-control-sm uniform-input readonly-gray">
                             </div>
                         </div>
                         <div class="row g-2 align-items-center">
@@ -119,7 +119,7 @@ Formula DC
                             <div class="col-7">
                                 <input type="text" name="finished_product" id="id_dc_finished_product" 
                                        value="{{ form_data.finished_product|default:'' }}" 
-                                       class="form-control form-control-sm uniform-input">
+                                       class="form-control form-control-sm uniform-input readonly-gray">
                             </div>
                         </div>
                     </div>
@@ -227,7 +227,7 @@ Formula DC
                     <div class="px-3 pb-3 d-flex align-items-center justify-content-between mb-total-footer gap-3">
 
                         <div class="d-flex flex-wrap align-items-center gap-2">
-                            <span class="extra-small fw-bold text-uppercase me-1">sRGB:</span>
+                            <span class="extra-small fw-bold me-1">sRGB:</span>
                             <div class="d-flex align-items-center gap-1">
                                 <label class="extra-small fw-bold mb-0">Hex</label>
                                 <input type="text" name="srgb_hex" id="id_dc_srgb_hex" class="form-control form-control-sm uniform-input text-center" style="width: 90px;" placeholder="#FFFFFF" maxlength="7">

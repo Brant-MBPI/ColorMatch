@@ -32,7 +32,7 @@
                         <div class="col-7">
                             <input type="text" name="cm_form_no" id="id_cm_form_no" 
                                    value="{{ form_data.cm_form_no|default:'' }}" 
-                                   class="form-control form-control-sm uniform-input" readonly>
+                                   class="form-control form-control-sm uniform-input readonly-gray" readonly>
                         </div>
                     </div>
                 </div>
@@ -55,7 +55,7 @@
                         <div class="col-7">
                             <input type="text" name="resin_used" id="id_resin_used" 
                                    value="{{ form_data.resin_used|default:'' }}" 
-                                   class="form-control form-control-sm uniform-input">
+                                   class="form-control form-control-sm uniform-input readonly-gray">
                         </div>
                     </div>
                     <div class="row g-2 align-items-center mb-2">
@@ -63,7 +63,7 @@
                         <div class="col-7">
                             <input type="text" name="customer" id="id_customer" 
                                    value="{{ form_data.customer|default:'' }}" 
-                                   class="form-control form-control-sm uniform-input">
+                                   class="form-control form-control-sm uniform-input readonly-gray">
                         </div>
                     </div>
                     <div class="row g-2 align-items-center mb-2">
@@ -71,7 +71,7 @@
                         <div class="col-7">
                             <input type="text" name="dosage" id="id_dosage" 
                                    value="{{ form_data.dosage|default:'' }}" 
-                                   class="form-control form-control-sm uniform-input">
+                                   class="form-control form-control-sm uniform-input readonly-gray">
                         </div>
                     </div>
                     <div class="row g-2 align-items-center mb-2">
@@ -95,7 +95,7 @@
                         <div class="col-7">
                             <input type="text" name="color" id="id_color" 
                                    value="{{ form_data.color|default:'' }}" 
-                                   class="form-control form-control-sm uniform-input">
+                                   class="form-control form-control-sm uniform-input readonly-gray">
                         </div>
                     </div>
                     <div class="row g-2 align-items-center mb-2">
@@ -103,7 +103,7 @@
                         <div class="col-7">
                             <input type="text" name="application" id="id_application" 
                                    value="{{ form_data.application|default:'' }}" 
-                                   class="form-control form-control-sm uniform-input">
+                                   class="form-control form-control-sm uniform-input readonly-gray">
                         </div>
                     </div>
                     <div class="row g-2 align-items-center">
@@ -111,7 +111,7 @@
                         <div class="col-7">
                             <input type="text" name="finished_product" id="id_finished_product" 
                                    value="{{ form_data.finished_product|default:'' }}" 
-                                   class="form-control form-control-sm uniform-input">
+                                   class="form-control form-control-sm uniform-input readonly-gray">
                         </div>
                     </div>
                 </div>
@@ -226,7 +226,7 @@
                 <div class="px-3 pb-3 d-flex align-items-center justify-content-between mb-total-footer gap-3">
 
                     <div class="d-flex flex-wrap align-items-center gap-2">
-                        <span class="extra-small fw-bold text-uppercase me-1">sRGB:</span>
+                        <span class="extra-small fw-bold me-1">sRGB:</span>
                         <div class="d-flex align-items-center gap-1">
                             <label class="extra-small fw-bold mb-0">Hex</label>
                             <input type="text" name="srgb_hex" id="id_srgb_hex" class="form-control form-control-sm uniform-input text-center" style="width: 90px;" placeholder="#FFFFFF" maxlength="7">
