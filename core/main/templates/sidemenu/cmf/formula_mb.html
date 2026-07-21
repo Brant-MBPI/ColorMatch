@@ -22,7 +22,7 @@
                                 <input type="text" name="date" id="id_date" 
                                        class="form-control uniform-input date-picker-single" 
                                        placeholder="MM/DD/YYYY" data-input 
-                                       value="{% now 'm/d/Y' %}">
+                                       value="{% now 'm/d/Y' %}" required>
                                 <span class="input-group-text uniform-input border-start-0" data-toggle><i class="bi bi-calendar3"></i></span>
                             </div>
                         </div>
@@ -32,7 +32,7 @@
                         <div class="col-7">
                             <input type="text" name="cm_form_no" id="id_cm_form_no" 
                                    value="{{ form_data.cm_form_no|default:'' }}" 
-                                   class="form-control form-control-sm uniform-input readonly-gray" readonly>
+                                   class="form-control form-control-sm uniform-input readonly-gray" required readonly>
                         </div>
                     </div>
                 </div>
@@ -47,7 +47,7 @@
                         <div class="col-7">
                             <input type="text" name="product" id="id_product" 
                                    value="{{ form_data.product|default:'' }}" 
-                                   class="form-control form-control-sm uniform-input">
+                                   class="form-control form-control-sm uniform-input" required>
                         </div>
                     </div>
                     <div class="row g-2 align-items-center mb-2">
@@ -55,7 +55,7 @@
                         <div class="col-7">
                             <input type="text" name="resin_used" id="id_resin_used" 
                                    value="{{ form_data.resin_used|default:'' }}" 
-                                   class="form-control form-control-sm uniform-input readonly-gray">
+                                   class="form-control form-control-sm uniform-input readonly-gray" required>
                         </div>
                     </div>
                     <div class="row g-2 align-items-center mb-2">
@@ -63,7 +63,7 @@
                         <div class="col-7">
                             <input type="text" name="customer" id="id_customer" 
                                    value="{{ form_data.customer|default:'' }}" 
-                                   class="form-control form-control-sm uniform-input readonly-gray">
+                                   class="form-control form-control-sm uniform-input readonly-gray" required>
                         </div>
                     </div>
                     <div class="row g-2 align-items-center mb-2">
@@ -71,7 +71,7 @@
                         <div class="col-7">
                             <input type="text" name="dosage" id="id_dosage" 
                                    value="{{ form_data.dosage|default:'' }}" 
-                                   class="form-control form-control-sm uniform-input readonly-gray">
+                                   class="form-control form-control-sm uniform-input readonly-gray" required>
                         </div>
                     </div>
                     <div class="row g-2 align-items-center mb-2">
@@ -79,7 +79,7 @@
                         <div class="col-7">
                             <input type="text" name="lot_number" id="id_lot_number" 
                                    value="{{ form_data.lot_number|default:'' }}" 
-                                   class="form-control form-control-sm uniform-input">
+                                   class="form-control form-control-sm uniform-input" required>
                         </div>
                     </div>
                     <div class="row g-2 align-items-center mb-2">
@@ -87,7 +87,7 @@
                         <div class="col-7">
                             <input type="text" name="mixing_time" id="id_mixing_time" 
                                    value="{{ form_data.mixing_time|default:'' }}" 
-                                   class="form-control form-control-sm uniform-input">
+                                   class="form-control form-control-sm uniform-input" required>
                         </div>
                     </div>
                     <div class="row g-2 align-items-center mb-2">
@@ -95,7 +95,7 @@
                         <div class="col-7">
                             <input type="text" name="color" id="id_color" 
                                    value="{{ form_data.color|default:'' }}" 
-                                   class="form-control form-control-sm uniform-input readonly-gray">
+                                   class="form-control form-control-sm uniform-input readonly-gray" required>
                         </div>
                     </div>
                     <div class="row g-2 align-items-center mb-2">
@@ -103,7 +103,7 @@
                         <div class="col-7">
                             <input type="text" name="application" id="id_application" 
                                    value="{{ form_data.application|default:'' }}" 
-                                   class="form-control form-control-sm uniform-input readonly-gray">
+                                   class="form-control form-control-sm uniform-input readonly-gray" required>
                         </div>
                     </div>
                     <div class="row g-2 align-items-center">
@@ -111,7 +111,7 @@
                         <div class="col-7">
                             <input type="text" name="finished_product" id="id_finished_product" 
                                    value="{{ form_data.finished_product|default:'' }}" 
-                                   class="form-control form-control-sm uniform-input readonly-gray">
+                                   class="form-control form-control-sm uniform-input readonly-gray" required>
                         </div>
                     </div>
                 </div>
@@ -121,28 +121,37 @@
             <div class="card mb-card shadow-sm">
                 <div class="card-body p-3">
                     <h6 class="mb-section-title mb-3">Personnel</h6>
-                    <div class="row g-2 align-items-center mb-2">
-                        <div class="col-5"><label class="extra-small fw-bold">Matched by:</label></div>
-                        <div class="col-7">
-                            <input type="text" name="matched_by" id="id_matched_by" 
-                                   value="{{ form_data.matched_by|default:'' }}" 
-                                   class="form-control form-control-sm uniform-input">
+                    <!-- Matched By -->
+                        <div class="row g-2 align-items-center mb-2">
+                            <div class="col-5"><label class="extra-small fw-bold">Matched by:</label></div>
+                            <div class="col-7">
+                                <select name="matched_by" id="id_dc_matched_by" class="form-select form-select-sm ts-select" placeholder="Select personnel..." required>
+                                    <option value=""></option>
+                                    {% for u_name in users %}
+                                        <option value="{{ u_name }}" {% if form_data.matched_by == u_name %}selected{% endif %}>{{ u_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
                         </div>
-                    </div>
-                    <div class="row g-2 align-items-center mb-2">
-                        <div class="col-5"><label class="extra-small fw-bold">Weighed by:</label></div>
-                        <div class="col-7">
-                            <input type="text" name="weighed_by" id="id_weighed_by" 
-                                   value="{{ form_data.weighed_by|default:'' }}" 
-                                   class="form-control form-control-sm uniform-input">
+
+                        <!-- Weighed By -->
+                        <div class="row g-2 align-items-center mb-2">
+                            <div class="col-5"><label class="extra-small fw-bold">Weighed by:</label></div>
+                            <div class="col-7">
+                                <select name="weighed_by" id="id_dc_weighed_by" class="form-select form-select-sm ts-select" placeholder="Select personnel..." required>
+                                    <option value=""></option>
+                                    {% for u_name in users %}
+                                        <option value="{{ u_name }}" {% if form_data.weighed_by == u_name %}selected{% endif %}>{{ u_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
                         </div>
-                    </div>
                     <div class="row g-2 align-items-center">
                         <div class="col-5"><label class="extra-small fw-bold">Encoded by:</label></div>
                         <div class="col-7">
                             <input type="text" name="encoded_by" id="id_encoded_by" 
                                    value="{{ user.first_name|default:'' }}" 
-                                   class="form-control form-control-sm uniform-input readonly-gray">
+                                   class="form-control form-control-sm uniform-input readonly-gray" required>
                         </div>
                     </div>
                 </div>

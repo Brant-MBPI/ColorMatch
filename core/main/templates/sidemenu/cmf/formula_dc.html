@@ -27,7 +27,8 @@ Formula DC
                             <div class="col-7">
                                 <input type="text" name="product_code" id="id_dc_product_code" 
                                        value="{{ form_data.product_code|default:'' }}" 
-                                       class="form-control form-control-sm uniform-input">
+                                       class="form-control form-control-sm uniform-input"
+                                       required>
                             </div>
                         </div>
                         <div class="row g-2 align-items-center mb-2">
@@ -35,7 +36,7 @@ Formula DC
                             <div class="col-7">
                                 <input type="text" name="cmf_number" id="id_dc_cmf_number" 
                                        value="{{ form_data.cm_form_no|default:'' }}" 
-                                       class="form-control form-control-sm uniform-input readonly-gray" readonly>
+                                       class="form-control form-control-sm uniform-input readonly-gray" required readonly>
                             </div>
                         </div>
                         <div class="row g-2 align-items-center mb-2">
@@ -43,7 +44,8 @@ Formula DC
                             <div class="col-7">
                                 <input type="text" name="customer" id="id_dc_customer" 
                                        value="{{ form_data.customer|default:'' }}" 
-                                       class="form-control form-control-sm uniform-input readonly-gray">
+                                       class="form-control form-control-sm uniform-input readonly-gray"
+                                       required>
                             </div>
                         </div>
                         <div class="row g-2 align-items-center mb-2">
@@ -51,7 +53,8 @@ Formula DC
                             <div class="col-7">
                                 <input type="text" name="resin" id="id_dc_resin" 
                                        value="{{ form_data.resin|default:'' }}" 
-                                       class="form-control form-control-sm uniform-input readonly-gray" >
+                                       class="form-control form-control-sm uniform-input readonly-gray" 
+                                       required>
                             </div>
                         </div>
                         <div class="row g-2 align-items-center mb-2">
@@ -59,7 +62,8 @@ Formula DC
                             <div class="col-7">
                                 <input type="text" name="color" id="id_dc_color" 
                                        value="{{ form_data.color|default:'' }}" 
-                                       class="form-control form-control-sm uniform-input readonly-gray">
+                                       class="form-control form-control-sm uniform-input readonly-gray"
+                                       required>
                             </div>
                         </div>
                         <div class="row g-2 align-items-center mb-2">
@@ -69,7 +73,8 @@ Formula DC
                                     <input type="text" name="date_matched" id="id_dc_date_matched" 
                                            class="form-control uniform-input date-picker-single" 
                                            placeholder="MM/DD/YYYY" data-input
-                                           value="{% if form_data.date_matched %}{{ form_data.date_matched }}{% else %}{% now 'm/d/Y' %}{% endif %}">
+                                           value="{% if form_data.date_matched %}{{ form_data.date_matched }}{% else %}{% now 'm/d/Y' %}{% endif %}"
+                                           required>
                                     <span class="input-group-text uniform-input border-start-0" data-toggle><i class="bi bi-calendar3"></i></span>
                                 </div>
                             </div>
@@ -79,7 +84,8 @@ Formula DC
                             <div class="col-7">
                                 <input type="text" name="dosage" id="id_dc_dosage" 
                                        value="{{ form_data.dosage|default:'' }}" 
-                                       class="form-control form-control-sm uniform-input readonly-gray">
+                                       class="form-control form-control-sm uniform-input readonly-gray"
+                                       required>
                             </div>
                         </div>
                         <div class="row g-2 align-items-center mb-2">
@@ -87,7 +93,8 @@ Formula DC
                             <div class="col-7">
                                 <input type="text" name="sample_size" id="id_dc_sample_size" 
                                        value="{{ form_data.sample_size|default:'' }}" 
-                                       class="form-control form-control-sm uniform-input">
+                                       class="form-control form-control-sm uniform-input"
+                                       required>
                             </div>
                         </div>
                         <div class="row g-2 align-items-center mb-2">
@@ -95,7 +102,8 @@ Formula DC
                             <div class="col-7">
                                 <input type="text" name="product_used" id="id_dc_product_used" 
                                        value="{{ form_data.product_used|default:'' }}" 
-                                       class="form-control form-control-sm uniform-input">
+                                       class="form-control form-control-sm uniform-input"
+                                       required>
                             </div>
                         </div>
                         <div class="row g-2 align-items-center mb-2">
@@ -103,7 +111,8 @@ Formula DC
                             <div class="col-7">
                                 <input type="text" name="mixing_time" id="id_dc_mixing_time" 
                                        value="{{ form_data.mixing_time|default:'' }}" 
-                                       class="form-control form-control-sm uniform-input">
+                                       class="form-control form-control-sm uniform-input"
+                                       required>
                             </div>
                         </div>
                         <div class="row g-2 align-items-center mb-2">
@@ -111,7 +120,8 @@ Formula DC
                             <div class="col-7">
                                 <input type="text" name="application" id="id_dc_application" 
                                        value="{{ form_data.application|default:'' }}" 
-                                       class="form-control form-control-sm uniform-input readonly-gray">
+                                       class="form-control form-control-sm uniform-input readonly-gray"
+                                       required>
                             </div>
                         </div>
                         <div class="row g-2 align-items-center">
@@ -119,7 +129,8 @@ Formula DC
                             <div class="col-7">
                                 <input type="text" name="finished_product" id="id_dc_finished_product" 
                                        value="{{ form_data.finished_product|default:'' }}" 
-                                       class="form-control form-control-sm uniform-input readonly-gray">
+                                       class="form-control form-control-sm uniform-input readonly-gray"
+                                       required>
                             </div>
                         </div>
                     </div>
@@ -133,7 +144,7 @@ Formula DC
                         <div class="row g-2 align-items-center mb-2">
                             <div class="col-5"><label class="extra-small fw-bold">Matched by:</label></div>
                             <div class="col-7">
-                                <select name="matched_by" id="id_dc_matched_by" class="form-select form-select-sm ts-select" placeholder="Select personnel...">
+                                <select name="matched_by" id="id_dc_matched_by" class="form-select form-select-sm ts-select" placeholder="Select personnel..." required>
                                     <option value=""></option>
                                     {% for u_name in users %}
                                         <option value="{{ u_name }}" {% if form_data.matched_by == u_name %}selected{% endif %}>{{ u_name }}</option>
@@ -146,7 +157,7 @@ Formula DC
                         <div class="row g-2 align-items-center mb-2">
                             <div class="col-5"><label class="extra-small fw-bold">Weighed by:</label></div>
                             <div class="col-7">
-                                <select name="weighed_by" id="id_dc_weighed_by" class="form-select form-select-sm ts-select" placeholder="Select personnel...">
+                                <select name="weighed_by" id="id_dc_weighed_by" class="form-select form-select-sm ts-select" placeholder="Select personnel..." required>
                                     <option value=""></option>
                                     {% for u_name in users %}
                                         <option value="{{ u_name }}" {% if form_data.weighed_by == u_name %}selected{% endif %}>{{ u_name }}</option>
@@ -159,7 +170,7 @@ Formula DC
                             <div class="col-7">
                                 <input type="text" name="encoded_by" id="id_dc_encoded_by" 
                                        value="{{ user.first_name|default:'' }}" 
-                                       class="form-control form-control-sm uniform-input readonly-gray">
+                                       class="form-control form-control-sm uniform-input readonly-gray" required>
                             </div>
                         </div>
                     </div>
