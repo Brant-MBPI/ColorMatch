@@ -175,10 +175,12 @@ def cmf_mb_formula(request):
                     'color': cmf.in_code_no.color if cmf.in_code_no else "",
                     'application': application_str, # Updated logic
                 }
+    user_names = User.objects.filter(is_active=True).exclude(first_name="").values_list('first_name', flat=True).distinct().order_by('first_name')
 
     context = {
         "form_data": form_data,
-        "materials": cmf_records_services.get_raw_material_codes() 
+        "materials": cmf_records_services.get_raw_material_codes(),
+        "users": list(user_names) 
     }
     return render(request, "sidemenu/cmf/formula_mb.html", context)
 
@@ -222,10 +224,12 @@ def cmf_dc_formula(request):
                     'color': cmf.in_code_no.color if cmf.in_code_no else "",
                     'application': app_str,
                 }
-
+    user_names = User.objects.filter(is_active=True).exclude(first_name="").values_list('first_name', flat=True).distinct().order_by('first_name')
+    
     context = {
         "form_data": form_data, 
-        "materials": cmf_records_services.get_raw_material_codes()
+        "materials": cmf_records_services.get_raw_material_codes(),
+        "users": list(user_names),
     }
     return render(request, "sidemenu/cmf/formula_dc.html", context)
 
