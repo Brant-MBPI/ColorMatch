@@ -223,7 +223,10 @@ def cmf_dc_formula(request):
                     'application': app_str,
                 }
 
-    context = {"form_data": form_data}
+    context = {
+        "form_data": form_data, 
+        "materials": cmf_records_services.get_raw_material_codes()
+    }
     return render(request, "sidemenu/cmf/formula_dc.html", context)
 
 
