@@ -1,35 +1,112 @@
-<div class="modal fade" id="cmfDetailModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-centered">
-        <div class="modal-content shadow-lg">
-            <div class="modal-header">
-                <h5 class="modal-title fs-6 fw-bold">
-                    <i class="bi bi-file-earmark-medical me-2"></i>Record Detailed Breakdown
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body p-0"> <!-- Removed padding for full-width table -->
-                <div class="table-responsive">
-                    <table id="modalDataTable" class="table table-hover align-middle mb-0">
-                        <thead>
-                            <tr>
-                                <th style="width: 50px;"></th> 
-                                <th>CMF No.</th>
-                                <th>Customer</th>
-                                <th>Primary Color</th>
-                                <th>Matching Type</th>
-                                <th>Product Code</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody class="small" id="modalTableBody">
-                            <!-- Injected by JavaScript -->
-                        </tbody>
-                    </table>
+<!-- PARENT CMF ROW -->
+<tr class="main-modal-parent-row" style="cursor:pointer; background-color: var(--sidebar-active-bg);">
+    <td class="text-center">
+        <i class="bi bi-plus-circle-fill toggle-main-icon" style="color: var(--sidebar-header-bg);"></i>
+    </td>
+    <td class="fw-bold text-teal">{{ cmf.cm_no }}</td>
+    <td>{{ formula_info.customer|default:"---" }}</td>
+    <td>{{ cmf.in_code_no.color|default:"---" }}</td>
+    <td>{{ cmf.matching_type|default:"---" }}</td>
+    <td><code>{{ pending_info.prod_code|default:"---" }}</code></td>
+    <td>
+        <span class="badge {% if pending_info.is_completed %}bg-success-subtle text-success border border-success{% else %}bg-warning-subtle text-warning border border-warning{% endif %}">
+            {% if pending_info.is_completed %}Completed{% else %}Pending{% endif %}
+        </span>
+    </td>
+</tr>
+
+<!-- SUB-ROW CONTAINING FORMULA TABLES -->
+<tr class="formula-revisions-row d-none">
+    <td colspan="7" class="p-3 border-0">
+        <div class="formula-container shadow-sm border rounded p-4 bg-white">
+            
+            {% if not mb_formulas and not dc_formulas %}
+                <div class="text-center py-4 text-muted small fw-bold">No Formula Records Found</div>
+            {% endif %}
+
+            <!-- MB TABLES -->
+            {% if mb_formulas %}
+            <div class="mb-4">
+                <div class="p-2 mb-2 border-bottom d-flex align-items-center">
+                    <i class="bi bi-gear-fill text-teal me-2"></i>
+                    <h6 class="extra-small fw-bold mb-0 text-teal text-uppercase">MB Extruder Formulas</h6>
                 </div>
+                <table class="table table-sm border small mb-0">
+                    <thead class="bg-light extra-small">
+                        <tr><th>Date</th><th>Product Code</th><th>Lot Number</th><th>Color</th><th>Mixing Time</th><th>Matched By</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for item in mb_formulas %}
+                        <tr class="fw-bold bg-light-subtle formula-header-clickable" style="cursor:pointer;">
+                            <td>{{ item.header.date|date:"m/d/Y" }}</td>
+                            <td>{{ item.header.code.product_code|default:"---" }}</td>
+                            <td>{{ item.header.lot_no|default:"---" }}</td>
+                            <td>{{ cmf.in_code_no.color }}</td>
+                            <td>{{ item.header.mixing_time|default:"---" }}</td>
+                            <td>{{ item.header.matched_by|default:"---" }}</td>
+                        </tr>
+                        <tr class="ingredient-sub-row d-none">
+                            <td colspan="6" class="p-0 border-0">
+                                <table class="table table-sm mb-0 table-borderless">
+                                    <tbody class="text-muted small">
+                                        {% for ing in item.ingredients %}
+                                        <tr>
+                                            <td style="width: 40%;" class="ps-5">{{ ing.material }}</td>
+                                            <td style="width: 30%;" class="text-end">{{ ing.value|floatformat:4 }}%</td>
+                                            <td style="width: 30%;" class="text-end pe-5">{{ ing.weight|floatformat:2 }}g</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
-            <div class="modal-footer py-2">
-                <button type="button" class="btn btn-secondary btn-sm px-3" data-bs-dismiss="modal">Close</button>
+            {% endif %}
+
+            <!-- DC TABLES -->
+            {% if dc_formulas %}
+            <div class="mb-2">
+                <div class="p-2 mb-2 border-bottom d-flex align-items-center">
+                    <i class="bi bi-box-seam-fill text-teal me-2"></i>
+                    <h6 class="extra-small fw-bold mb-0 text-teal text-uppercase">DC Extruder Formulas</h6>
+                </div>
+                <table class="table table-sm border small mb-0">
+                    <thead class="bg-light extra-small">
+                        <tr><th>Date</th><th>Product Code</th><th>Color</th><th>Sample Size</th><th>Mixing Time</th><th>Matched By</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for item in dc_formulas %}
+                        <tr class="fw-bold bg-light-subtle formula-header-clickable" style="cursor:pointer;">
+                            <td>{{ item.header.date|date:"m/d/Y" }}</td>
+                            <td>{{ item.header.code.product_code|default:"---" }}</td>
+                            <td>{{ cmf.in_code_no.color }}</td>
+                            <td>{{ item.header.sample_size|default:"---" }}</td>
+                            <td>{{ item.header.mixing_time|default:"---" }}</td>
+                            <td>{{ item.header.matched_by|default:"---" }}</td>
+                        </tr>
+                        <tr class="ingredient-sub-row d-none">
+                            <td colspan="6" class="p-0 border-0">
+                                <table class="table table-sm mb-0 table-borderless">
+                                    <tbody class="text-muted small">
+                                        {% for ing in item.ingredients %}
+                                        <tr>
+                                            <td style="width: 40%;" class="ps-5">{{ ing.material }}</td>
+                                            <td style="width: 30%;" class="text-end">{{ ing.value|floatformat:4 }}%</td>
+                                            <td style="width: 30%;" class="text-end pe-5">{{ ing.weight|floatformat:2 }}g</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
+            {% endif %}
         </div>
-    </div>
-</div>
+    </td>
+</tr>

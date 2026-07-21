@@ -145,6 +145,40 @@ Color Matching Records
     </div>
 </div>
 
+<div class="modal fade" id="cmfDetailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content shadow-lg border-0">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title fs-6 fw-bold"><i class="bi bi-file-earmark-medical me-2"></i>Record Detailed Breakdown</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="table-responsive">
+                    <table id="modalDataTable" class="table table-hover align-middle mb-0">
+                        <thead>
+                            <tr class="extra-small text-uppercase bg-light border-bottom">
+                                <th style="width: 50px;"></th> 
+                                <th>CMF No.</th>
+                                <th>Customer</th>
+                                <th>Primary Color</th>
+                                <th>Matching Type</th>
+                                <th>Product Code</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="small" id="modalTableBody">
+                            <!-- PYTHON INJECTS HTML HERE -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer py-2">
+                <button type="button" class="btn btn-secondary btn-sm px-3" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Custom Context Menu -->
 <div id="customContextMenu" class="dropdown-menu shadow-sm border-0 custom-context-menu cmf-records-custom-menu">
     <div class="px-3 py-2 extra-small fw-bold text-muted border-bottom mb-1 bg-light">
@@ -160,7 +194,6 @@ Color Matching Records
         <i class="bi bi-box-seam me-2 text-teal"></i> Go to DC Formula
     </a>
 </div>
-{% include "modal/cmf-record/cmf_record_detail.html" %}
 {% endblock %}
 
 {% block scripts %}

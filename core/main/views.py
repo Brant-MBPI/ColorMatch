@@ -3,13 +3,13 @@ from urllib import request
 from django.core.cache import cache
 from django.contrib.auth import authenticate, login, logout, get_user_model 
 from django.contrib.auth.models import User
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib import messages
 from datetime import datetime
 
 from main.services.save import mb_formula_save, dc_formula_save
 from main.decorators import role_required
-from main.models import tbl_cmf, tbl_cmf_formula, tbl_cmf_process02, tbl_cmf_process02, tbl_internal_color_code, tbl_resin, tbl_cmf_salesman, tbl_resins_selected
+from main.models import tbl_cmf, tbl_cmf_formula, tbl_cmf_pending_completed, tbl_cmf_process02, tbl_cmf_process02, tbl_dc_extruder_formula, tbl_dc_extruder_formula02, tbl_internal_color_code, tbl_mb_extruder_formula, tbl_mb_extruder_formula02, tbl_resin, tbl_cmf_salesman, tbl_resins_selected
 
 from .services.cmf_records import cmf_records_services
 from .services.save import cmf_entry_save
@@ -128,6 +128,36 @@ def cmf_entry(request):
 def cmf_rs_entry(request):
     return render(request, "sidemenu/cmf/rs_entry.html")
 
+
+def cmf_record_detail(request, cm_no):
+    # 1. Fetch Header Data
+    cmf = get_object_or_404(tbl_cmf, cm_no=cm_no)
+    formula_info = tbl_cmf_formula.objects.filter(cm_no=cm_no).first()
+    pending_info = tbl_cmf_pending_completed.objects.filter(cm_no=cm_no).first()
+
+    # 2. Fetch MB Formulas + Ingredients
+    mb_list = []
+    mb_qs = tbl_mb_extruder_formula.objects.filter(cm_no=cm_no).select_related('code')
+    for f in mb_qs:
+        ingredients = tbl_mb_extruder_formula02.objects.filter(mb=f)
+        mb_list.append({'header': f, 'ingredients': ingredients})
+
+    # 3. Fetch DC Formulas + Ingredients
+    dc_list = []
+    dc_qs = tbl_dc_extruder_formula.objects.filter(cm_no=cm_no).select_related('code')
+    for f in dc_qs:
+        ingredients = tbl_dc_extruder_formula02.objects.filter(dc=f)
+        dc_list.append({'header': f, 'ingredients': ingredients})
+
+    context = {
+        'cmf': cmf,
+        'formula_info': formula_info,
+        'pending_info': pending_info,
+        'mb_formulas': mb_list,
+        'dc_formulas': dc_list,
+    }
+    # IMPORTANT: Use a partial template file
+    return render(request, "modal/cmf-record/cmf_record_detail.html", context)
 
 def cmf_mb_formula(request):
     form_data = {}
