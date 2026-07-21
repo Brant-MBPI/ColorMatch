@@ -141,8 +141,8 @@
                         <div class="col-5"><label class="extra-small fw-bold">Encoded by:</label></div>
                         <div class="col-7">
                             <input type="text" name="encoded_by" id="id_encoded_by" 
-                                   value="{{ form_data.encoded_by|default:'' }}" 
-                                   class="form-control form-control-sm uniform-input">
+                                   value="{{ user.first_name|default:'' }}" 
+                                   class="form-control form-control-sm uniform-input readonly-gray">
                         </div>
                     </div>
                 </div>
