@@ -1,4 +1,5 @@
 from django.db import transaction
+from main.utils.log_audit_trail import log_audit
 from ...models import (
     tbl_cmf, tbl_generated_prod_code,
     tbl_dc_extruder_formula, tbl_dc_extruder_formula02
@@ -8,22 +9,30 @@ def save_dc_complete_formula(request):
     post_data = request.POST
     
     with transaction.atomic():
-        # 1. Resolve Foreign Keys
+        # 1. Handle Product Code: Save to tbl_generated_prod_code first
         prod_code_str = post_data.get('product_code')
-        prod_code_obj = tbl_generated_prod_code.objects.filter(prod_code=prod_code_str).first()
+        prod_code_obj = None
         
+        if prod_code_str and prod_code_str.strip():
+            # get_or_create checks if it exists; if not, it creates it.
+            # We only care about the object, so we ignore the 'created' boolean with _
+            prod_code_obj, _ = tbl_generated_prod_code.objects.get_or_create(
+                product_code=prod_code_str.strip()
+            )
+        
+        # 2. Resolve CMF Foreign Key
         cm_no_val = post_data.get('cmf_number')
         cmf_obj = tbl_cmf.objects.get(cm_no=cm_no_val)
 
-        # 2. Create the Header (tbl_dc_extruder_formula)
+        # 3. Create the Header
         header = tbl_dc_extruder_formula.objects.create(
             date=post_data.get('date_matched') or None,
             cm_no=cmf_obj,
-            code=prod_code_obj,
+            code=prod_code_obj, # This now links to the ID of the record above
             sample_size=post_data.get('sample_size'),
             mixing_time=post_data.get('mixing_time'),
             matched_by=post_data.get('matched_by'),
-            weighted_by=post_data.get('weighed_by'),
+            weighed_by=post_data.get('weighed_by'),
             encoded_by=post_data.get('encoded_by'),
             total_weight=post_data.get('total_weight') or 0,
             L=post_data.get('spectro_l') or 0,
@@ -38,7 +47,7 @@ def save_dc_complete_formula(request):
             k=post_data.get('cmyk_k') or 0,
         )
 
-        # 3. Create the Ingredients (tbl_dc_extruder_formula02)
+        # 4. Create the Ingredients
         for i in range(1, 11):
             mat_name = post_data.get(f'material_{i}')
             if mat_name and mat_name.strip():
@@ -49,4 +58,5 @@ def save_dc_complete_formula(request):
                     weight=post_data.get(f'weight_{i}') or 0
                 )
         
+        log_audit(request, "Saved", f"Created new DC Formula with Product Code: {prod_code_obj.product_code}")
         return header

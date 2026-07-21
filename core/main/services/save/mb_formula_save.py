@@ -1,4 +1,6 @@
 from django.db import transaction
+
+from main.utils.log_audit_trail import log_audit
 from ...models import (
     tbl_cmf, tbl_generated_prod_code,
     tbl_mb_extruder_formula, tbl_mb_extruder_formula02
@@ -10,7 +12,11 @@ def save_mb_complete_formula(request):
     with transaction.atomic():
         # 1. Resolve Foreign Keys
         prod_code_str = post_data.get('product')
-        prod_code_obj = tbl_generated_prod_code.objects.filter(prod_code=prod_code_str).first()
+        prod_code_obj = None
+        if prod_code_str:
+            prod_code_obj, _ = tbl_generated_prod_code.objects.get_or_create(
+                product_code=prod_code_str.strip()
+            )
         
         cm_no_val = post_data.get('cm_form_no')
         cmf_obj = tbl_cmf.objects.get(cm_no=cm_no_val)
@@ -48,5 +54,6 @@ def save_mb_complete_formula(request):
                     value=post_data.get(f'percentage_{i}') or 0,
                     weight=post_data.get(f'weight_{i}') or 0
                 )
-        
+                
+        log_audit(request, "Saved", f"Created new MB Formula with Product Code: {prod_code_obj.product_code}")
         return header # Return the object to the view for the success message
