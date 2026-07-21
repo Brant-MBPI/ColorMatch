@@ -1,5 +1,5 @@
+from datetime import datetime
 from django.db import transaction
-
 from main.utils.log_audit_trail import log_audit
 from ...models import (
     tbl_cmf, tbl_generated_prod_code,
@@ -21,27 +21,42 @@ def save_mb_complete_formula(request):
         cm_no_val = post_data.get('cm_form_no')
         cmf_obj = tbl_cmf.objects.get(cm_no=cm_no_val)
 
+        # --- DATE FORMATTING FIX ---
+        raw_date = post_data.get('date')
+        formatted_date = None
+        if raw_date:
+            try:
+                # Convert MM/DD/YYYY string to Python Date Object
+                formatted_date = datetime.strptime(raw_date, '%m/%d/%Y').date()
+            except ValueError:
+                # Fallback if date is already in YYYY-MM-DD or other format
+                formatted_date = raw_date
+
+        # Helper to handle empty numeric strings
+        def clean_num(val):
+            return val if (val and val.strip()) else None
+
         # 2. Create the Header
         header = tbl_mb_extruder_formula.objects.create(
-            date=post_data.get('date') or None,
+            date=formatted_date, # Use the formatted date here
             cm_no=cmf_obj,
             code=prod_code_obj,
             lot_no=post_data.get('lot_number'),
             mixing_time=post_data.get('mixing_time'),
             matched_by=post_data.get('matched_by'),
-            weighed_by=post_data.get('weighed_by'),
+            weighted_by=post_data.get('weighted_by'),
             encoded_by=post_data.get('encoded_by'),
-            total_weight=post_data.get('total_weight') or 0,
-            L=post_data.get('spectro_l') or 0,
-            A=post_data.get('spectro_a') or 0,
-            B=post_data.get('spectro_b') or 0,
-            C=post_data.get('spectro_c') or 0,
-            H=post_data.get('spectro_h') or 0,
+            total_weight=clean_num(post_data.get('total_weight')) or 0,
+            L=clean_num(post_data.get('spectro_l')),
+            A=clean_num(post_data.get('spectro_a')),
+            B=clean_num(post_data.get('spectro_b')),
+            C=clean_num(post_data.get('spectro_c')),
+            H=clean_num(post_data.get('spectro_h')),
             html=post_data.get('srgb_hex'),
-            c=post_data.get('cmyk_c') or 0,
-            m=post_data.get('cmyk_m') or 0,
-            y=post_data.get('cmyk_y') or 0,
-            k=post_data.get('cmyk_k') or 0,
+            c=clean_num(post_data.get('cmyk_c')),
+            m=clean_num(post_data.get('cmyk_m')),
+            y=clean_num(post_data.get('cmyk_y')),
+            k=clean_num(post_data.get('cmyk_k')),
         )
 
         # 3. Create the Ingredients
@@ -51,9 +66,12 @@ def save_mb_complete_formula(request):
                 tbl_mb_extruder_formula02.objects.create(
                     mb=header,
                     material=mat_name,
-                    value=post_data.get(f'percentage_{i}') or 0,
-                    weight=post_data.get(f'weight_{i}') or 0
+                    value=clean_num(post_data.get(f'percentage_{i}')) or 0,
+                    weight=clean_num(post_data.get(f'weight_{i}')) or 0
                 )
                 
-        log_audit(request, "Saved", f"Created new MB Formula with Product Code: {prod_code_obj.product_code}")
-        return header # Return the object to the view for the success message
+        # Safe logging even if prod_code_obj is None
+        p_code = prod_code_obj.product_code if prod_code_obj else "N/A"
+        log_audit(request, "Saved", f"Created new MB Formula with Product Code: {p_code}")
+        
+        return header

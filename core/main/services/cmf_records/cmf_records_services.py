@@ -131,7 +131,7 @@ def get_cmf_formulas(request, cm_no):
         
         mb_list.append({
             'date': h.date.strftime('%m/%d/%y') if h.date else '---',
-            'prod_code': h.code.prod_code if h.code else '---',
+            'prod_code': h.code.product_code if h.code else '---',
             'lot_no': h.lot_no or '---',
             'color': h.cm_no.in_code_no.color if (h.cm_no and h.cm_no.in_code_no) else '---',
             'mixing_time': h.mixing_time or '---',
@@ -154,7 +154,7 @@ def get_cmf_formulas(request, cm_no):
             
         dc_list.append({
             'date': h.date.strftime('%m/%d/%y') if h.date else '---',
-            'prod_code': h.code.prod_code if h.code else '---',
+            'prod_code': h.code.product_code if h.code else '---',
             'color': h.cm_no.in_code_no.color if (h.cm_no and h.cm_no.in_code_no) else '---',
             'sample_size': h.sample_size or '---',
             'mixing_time': h.mixing_time or '---',
