@@ -138,7 +138,7 @@ def cmf_mb_formula(request):
             saved_record = mb_formula_save.save_mb_complete_formula(request)
             messages.success(request, f"Successfully saved MB Formula for CMF No. {saved_record.cm_no.cm_no}")
             cache.delete('cmf_records_list')
-            return redirect('cmf_mb_formula')
+            return redirect('mb_formula')
         except Exception as e:
             messages.error(request, f"Error saving formula: {str(e)}")
             form_data = request.POST 
@@ -194,7 +194,7 @@ def cmf_dc_formula(request):
             saved_record = dc_formula_save.save_dc_complete_formula(request)
             messages.success(request, f"Successfully saved DC Formula for CMF No. {saved_record.cm_no.cm_no}")
             cache.delete('cmf_records_list')
-            return redirect('cmf_dc_formula')
+            return redirect('dc_formula')
         except Exception as e:
             messages.error(request, f"Error saving formula: {str(e)}")
             form_data = request.POST
