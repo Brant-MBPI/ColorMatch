@@ -30,4 +30,30 @@
     font-weight: 700; text-align: right; border: none; border-radius: 0.4rem; padding: 0.5rem 1rem;
 }
 
+/* Style TomSelect specifically for table usage */
+.ts-wrapper.ts-select-table .ts-control {
+    border: none !important;
+    background-color: transparent !important;
+    padding: 4px 8px !important;
+    font-size: 0.875rem;
+    box-shadow: none !important;
+    min-height: 32px !important;
+}
+
+.ts-wrapper.ts-select-table .ts-control input {
+    color: var(--text-main) !important;
+}
+
+/* Ensure the dropdown matches the theme */
+.ts-dropdown.ts-select-table {
+    border: 1px solid var(--sidebar-border) !important;
+    background-color: var(--card-bg) !important;
+    z-index: 1050; /* Ensure it floats above the table */
+}
+
+/* Hover effect to mimic other inputs */
+.ts-wrapper.ts-select-table:hover .ts-control {
+    background-color: rgba(0, 128, 128, 0.05) !important;
+}
+
 body.dark-mode .total-weight-input { background-color: #020617 !important; }

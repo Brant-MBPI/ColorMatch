@@ -155,11 +155,10 @@
                 <div class="p-3 d-flex align-items-center dark-card-header">
                     <h6 class="fw-bold text-uppercase extra-small m-0">Formula Composition</h6>
                 </div>
-
-                <!-- Table wrapper grows to fill available card height, rows kept compact -->
+                <!-- Table wrapper -->
                 <div class="mb-scroll-body flex-grow-1" style="overflow-y: auto;">
                     <table class="table table-sm align-middle mb-0 mb-records-table">
-                        <thead class="bg-light">
+                        <thead class="bg-light sticky-top">
                             <tr class="small text-uppercase">
                                 <th class="ps-4 py-2" width="50%" style="border-top-left-radius: 6px;">Material</th>
                                 <th class="text-center py-2" width="25%">Final %</th>
@@ -170,8 +169,13 @@
                         <tbody>
                             {% for i in "1234567890" %}
                             <tr>
-                                <td class="ps-4 py-1">
-                                    <input type="text" name="material_{{forloop.counter}}" class="table-input" placeholder="Enter material...">
+                                <td class="ps-4 py-0"> <!-- Reduced padding for TomSelect -->
+                                    <select name="material_{{forloop.counter}}" class="ts-select-table" placeholder="Search material...">
+                                        <option value=""></option>
+                                        {% for material in materials %}
+                                            <option value="{{ material }}">{{ material }}</option>
+                                        {% endfor %}
+                                    </select>
                                 </td>
                                 <td class="py-1">
                                     <input type="number" step="0.01" name="percentage_{{forloop.counter}}" class="table-input text-center" placeholder="0.0000">
