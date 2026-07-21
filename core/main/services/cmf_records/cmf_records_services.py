@@ -3,7 +3,7 @@ from django.core.cache import cache
 from django.http import JsonResponse
 from ...models import (
     tbl_cmf, tbl_cmf_formula, tbl_cmf_dates, 
-    tbl_cmf_pending_completed, tbl_dc_extruder_formula, tbl_dc_extruder_formula02, tbl_mb_extruder_formula, tbl_mb_extruder_formula02, tbl_rs
+    tbl_cmf_pending_completed, tbl_dc_extruder_formula, tbl_dc_extruder_formula02, tbl_mb_extruder_formula, tbl_mb_extruder_formula02, tbl_rm_incoming, tbl_rs
 )
 
 ALL_HEADERS = [
@@ -74,6 +74,28 @@ def get_rs_records():
     
     cache.set('rs_records_list', results, 3600)
     return results
+
+def get_raw_material_codes():
+    """
+    Fetches all unique material codes from tbl_rm_incoming.
+    Uses caching to avoid heavy database hits.
+    """
+    cache_key = 'raw_material_codes'
+    materials = cache.get(cache_key)
+
+    if materials is None:
+        # We use values_list with flat=True to get a simple list of strings
+        # We use distinct() to avoid duplicates and order_by for easier searching in UI
+        materials = list(
+            tbl_rm_incoming.objects.values_list('material_code', flat=True)
+            .distinct()
+            .order_by('material_code')
+        )
+        
+        # Cache the result for 1 hour (3600 seconds)
+        cache.set(cache_key, materials, 3600)
+
+    return materials
 
 def get_all_records_combined():
     """

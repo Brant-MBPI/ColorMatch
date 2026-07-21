@@ -177,7 +177,8 @@ def cmf_mb_formula(request):
                 }
 
     context = {
-        "form_data": form_data 
+        "form_data": form_data,
+        "materials": cmf_records_services.get_raw_material_codes() 
     }
     return render(request, "sidemenu/cmf/formula_mb.html", context)
 
