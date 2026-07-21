@@ -251,7 +251,7 @@ Formula DC
                         <!-- Total Weight -->
                         <div class="d-flex align-items-center gap-3 order-1 order-md-2 ms-auto ms-md-0">
                             <span class="fw-bold small text-uppercase">Total Weight:</span>
-                            <input type="text" id="total_weight" name="total_weight" class="form-control total-weight-input" value="0.00" readonly>
+                            <input type="text" name="total_weight" class="form-control total-weight-input total-weight-display" value="0.00">
                         </div>
                     </div>
 
@@ -262,7 +262,8 @@ Formula DC
                             <span class="extra-small fw-bold me-1">sRGB:</span>
                             <div class="d-flex align-items-center gap-1">
                                 <label class="extra-small fw-bold mb-0">Hex</label>
-                                <input type="text" name="srgb_hex" id="id_dc_srgb_hex" class="form-control form-control-sm uniform-input text-center" style="width: 90px;" placeholder="#FFFFFF" maxlength="7">
+                                <input type="text" name="srgb_hex" class="form-control 
+                                form-control-sm uniform-input text-center hex-input" style="width: 90px;" placeholder="#FFFFFF" maxlength="7">
                             </div>
                             <div class="d-flex align-items-center gap-1">
                                 <label class="extra-small fw-bold mb-0">C</label>
@@ -283,7 +284,7 @@ Formula DC
                         </div>
 
                         <!-- Color Swatch Preview -->
-                        <div id="id_dc_color_swatch" class="rounded shadow-sm flex-shrink-0" style="width: clamp(130px, 18vw, 220px); height: clamp(60px, 10vw, 110px); background-color: #FFFFFF; border: 1px solid rgba(0,0,0,0.15);"></div>
+                        <div class="rounded shadow-sm flex-shrink-0 color-swatch" style="width: clamp(130px, 18vw, 220px); height: clamp(60px, 10vw, 110px); background-color: #FFFFFF; border: 1px solid rgba(0,0,0,0.15);"></div>
                     </div>
                 </div>
             </div>
@@ -305,40 +306,5 @@ Formula DC
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        // --- 1. HEX Color Preview Logic ---
-        var hexInput = document.getElementById('id_dc_srgb_hex');
-        var swatch = document.getElementById('id_dc_color_swatch');
-
-        function isValidHex(value) {
-            return /^#?[0-9A-Fa-f]{6}$/.test(value);
-        }
-
-        hexInput.addEventListener('input', function () {
-            var value = hexInput.value.trim();
-            if (isValidHex(value)) {
-                swatch.style.backgroundColor = value.startsWith('#') ? value : '#' + value;
-            }
-        });
-
-        // --- 2. Auto-Calculate Total Weight ---
-        const formulaForm = document.getElementById('formulaDcForm');
-        const totalWeightInput = document.getElementById('total_weight');
-
-        formulaForm.addEventListener('input', function(e) {
-            if (e.target.classList.contains('weight-input')) {
-                let total = 0;
-                const weightInputs = document.querySelectorAll('.weight-input');
-                
-                weightInputs.forEach(input => {
-                    const val = parseFloat(input.value);
-                    if (!isNaN(val)) {
-                        total += val;
-                    }
-                });
-                totalWeightInput.value = total.toFixed(4);
-            }
-        });
-    });
 </script>
 {% endblock %}
