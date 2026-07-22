@@ -91,6 +91,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('linkCmfEntry').href = `/cmf/entry/?no=${encodeURIComponent(cmfNo)}`;
             document.getElementById('linkMbFormula').href = `/cmf/mb-formula/?no=${encodeURIComponent(cmfNo)}`;
             document.getElementById('linkDcFormula').href = `/cmf/dc-formula/?no=${encodeURIComponent(cmfNo)}`;
+            document.getElementById('linkPendingCompleted').href = `/cmf/pending-completed/?no=${encodeURIComponent(cmfNo)}`;
 
             contextMenu.style.top = `${e.clientY}px`;
             contextMenu.style.left = `${e.clientX}px`;
