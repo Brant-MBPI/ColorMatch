@@ -18,12 +18,12 @@ Pending/Completed Forms
                     <div class="col-lg-6">
                         <div class="mb-3">
                             <label class="fw-bold extra-small">Matching No:</label>
-                            <input type="text" name="cmf_no" value="{{ form_data.cmf_no|default:'' }}" class="form-control form-control-sm uniform-input readonly-input" readonly>
+                            <input type="text" name="cmf_no" value="{{ form_data.cmf_no|default:'' }}" class="form-control form-control-sm uniform-input readonly-gray" readonly>
                         </div>
 
                         <div class="mb-3">
                             <label class="fw-bold extra-small">Customer:</label>
-                            <input type="text" name="customer" value="{{ form_data.customer|default:'' }}" class="form-control form-control-sm uniform-input readonly-input" readonly>
+                            <input type="text" name="customer" value="{{ form_data.customer|default:'' }}" class="form-control form-control-sm uniform-input readonly-gray" readonly>
                         </div>
 
                         <!-- Date Created & Required -->
@@ -31,14 +31,14 @@ Pending/Completed Forms
                             <div class="col-6">
                                 <label class="fw-bold extra-small">Date Created:</label>
                                 <div class="input-group input-group-sm flatpickr-container" data-wrap="true">
-                                    <input type="text" name="date_created" value="{{ form_data.date_created|default:'' }}" class="form-control uniform-input date-picker-single" placeholder="MM/DD/YYYY" data-input>
+                                    <input type="text" name="date_created" value="{{ form_data.date_created|default:'' }}" class="form-control uniform-input date-picker-single readonly-gray" placeholder="MM/DD/YYYY" data-input readonly>
                                     <span class="input-group-text uniform-input border-start-0" data-toggle><i class="bi bi-calendar3"></i></span>
                                 </div>
                             </div>
                             <div class="col-6">
                                 <label class="fw-bold extra-small">Required:</label>
                                 <div class="input-group input-group-sm flatpickr-container" data-wrap="true">
-                                    <input type="text" name="required_date" value="{{ form_data.required_date|default:'' }}" class="form-control uniform-input date-picker-single" placeholder="MM/DD/YYYY or ASAP" data-input>
+                                    <input type="text" name="required_date" value="{{ form_data.required_date|default:'' }}" class="form-control uniform-input date-picker-single readonly-gray" placeholder="MM/DD/YYYY or ASAP" data-input readonly>
                                     <span class="input-group-text uniform-input border-start-0" data-toggle><i class="bi bi-calendar3"></i></span>
                                 </div>
                             </div>
@@ -49,14 +49,14 @@ Pending/Completed Forms
                             <div class="col-6">
                                 <label class="fw-bold extra-small">Date Received:</label>
                                 <div class="input-group input-group-sm flatpickr-container" data-wrap="true">
-                                    <input type="text" name="date_received" value="{{ form_data.date_received|default:'' }}" class="form-control uniform-input date-picker-multiple" placeholder="MM/DD/YYYY, MM/DD/YYYY" data-input>
+                                    <input type="text" name="date_received" value="{{ form_data.date_received|default:'' }}" class="form-control uniform-input date-picker-multiple readonly-gray" placeholder="MM/DD/YYYY, MM/DD/YYYY" data-input readonly>
                                     <span class="input-group-text uniform-input border-start-0" data-toggle><i class="bi bi-calendar3"></i></span>
                                 </div>
                             </div>
                             <div class="col-6">
                                 <label class="fw-bold extra-small">Due Date:</label>
                                 <div class="input-group input-group-sm flatpickr-container" data-wrap="true">
-                                    <input type="text" name="due_date" value="{{ form_data.due_date|default:'' }}" class="form-control uniform-input date-picker-single" placeholder="MM/DD/YYYY" data-input>
+                                    <input type="text" name="due_date" value="{{ form_data.due_date|default:'' }}" class="form-control uniform-input date-picker-single readonly-gray" placeholder="MM/DD/YYYY" data-input readonly>
                                     <span class="input-group-text uniform-input border-start-0" data-toggle><i class="bi bi-calendar3"></i></span>
                                 </div>
                             </div>
@@ -64,22 +64,22 @@ Pending/Completed Forms
 
                         <div class="mb-3">
                             <label class="fw-bold extra-small">Finished Product:</label>
-                            <input type="text" name="finished_product" value="{{ form_data.finished_product|default:'' }}" class="form-control form-control-sm uniform-input">
+                            <input type="text" name="finished_product" value="{{ form_data.finished_product|default:'' }}" class="form-control form-control-sm uniform-input readonly-gray" readonly>
                         </div>
 
                         <div class="mb-3">
                             <label class="fw-bold extra-small">Color Description:</label>
-                            <input type="text" name="color_description" value="{{ form_data.color_description|default:'' }}" class="form-control form-control-sm uniform-input">
+                            <input type="text" name="color_description" value="{{ form_data.color_description|default:'' }}" class="form-control form-control-sm uniform-input readonly-gray" readonly>
                         </div>
 
                         <div class="mb-3">
                             <label class="fw-bold extra-small">Matching Type:</label>
-                            <input type="text" name="matchType" value="{{ form_data.matchType|default:'' }}" class="form-control form-control-sm uniform-input">
+                            <input type="text" name="matchType" value="{{ form_data.matchType|default:'' }}" class="form-control form-control-sm uniform-input readonly-gray" readonly>
                         </div>
 
                         <div class="mb-0">
                             <label class="fw-bold extra-small">Sales Person:</label>
-                            <input type="text" name="salesman" value="{{ form_data.salesman|default:'' }}" class="form-control form-control-sm uniform-input">
+                            <input type="text" name="salesman" value="{{ form_data.salesman|default:'' }}" class="form-control form-control-sm uniform-input readonly-gray" readonly>
                         </div>
                     </div>
 

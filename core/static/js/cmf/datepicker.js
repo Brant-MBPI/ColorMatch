@@ -5,6 +5,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.querySelectorAll('.flatpickr-container').forEach(container => {
         const input = container.querySelector('input');
+        const toggleBtn = container.querySelector('[data-toggle]');
+
+        // Skip Flatpickr entirely for readonly fields — no popup, no click-to-change
+        if (input.hasAttribute('readonly')) {
+            if (toggleBtn) {
+                toggleBtn.style.pointerEvents = 'none';
+                toggleBtn.style.opacity = '0.5';
+            }
+            return;
+        }
 
         let options = {
             wrap: true,
