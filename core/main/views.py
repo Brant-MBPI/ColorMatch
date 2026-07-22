@@ -244,7 +244,7 @@ def cmf_mb_formula(request):
             cmf = tbl_cmf.objects.filter(cm_no=cm_no).first()
             if cmf:
                 # --- CHECK COLORANT TYPE ---
-                colorant_mismatch = cmf.colorant_type != "DC"
+                colorant_mismatch = cmf.colorant_type != "MB"
 
                 # 1. Fetch the CMF Formula Entry
                 formula_info = tbl_cmf_formula.objects.filter(cm_no=cm_no).first()
