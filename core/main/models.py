@@ -281,7 +281,7 @@ class tbl_cmf_process02(models.Model):
 class tbl_cmf_specification02(models.Model):
     chosen_spec_no = models.AutoField(primary_key=True)
     cm_no = models.ForeignKey(tbl_cmf, to_field="cm_no", on_delete=models.CASCADE, db_column="cm_no")
-    spec = models.ForeignKey(tbl_cmf_specification, on_delete=models.SET_NULL, null=True, blank=True, db_column="spec_no")
+    spec_no = models.ForeignKey(tbl_cmf_specification, on_delete=models.SET_NULL, null=True, blank=True, db_column="spec_no")
 
     class Meta:
         db_table = "tbl_cmf_specification02"

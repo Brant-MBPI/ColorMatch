@@ -149,7 +149,7 @@ CMF Entry
                             <select class="form-select form-select-sm ts-select" name="resin" placeholder="Select resin" multiple required>
                                 <option value=""></option>
                                 {% for r in resin %}
-                                    <option value="{{ r.resin_no }}" {% if r.resin_no|stringformat:"s" in form_data.getlist.resin %}selected{% endif %}>{{ r.abbreviation }}</option>
+                                    <option value="{{ r.resin_no }}" {% if r.resin_no|stringformat:"s" in form_data.resin %}selected{% endif %}>{{ r.abbreviation }}</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -158,23 +158,23 @@ CMF Entry
                             <label class="fw-bold extra-small d-block mb-1 required-label">Process:</label>
                             <div class="d-flex flex-wrap gap-2">
                                 <div class="form-check d-flex align-items-center mb-0">
-                                    <input class="form-check-input visible-check" name="process" value="injection" type="checkbox" id="p1" {% if 'injection' in form_data.getlist.process %}checked{% endif %}>
+                                    <input class="form-check-input visible-check" name="process" value="injection" type="checkbox" id="p1" {% if 'injection' in form_data.process %}checked{% endif %}>
                                     <label class="form-check-label extra-small ms-2" for="p1">Injection</label>
                                 </div>
                                 <div class="form-check d-flex align-items-center mb-0">
-                                    <input class="form-check-input visible-check" name="process" value="blow-molding" type="checkbox" id="p2" {% if 'blow-molding' in form_data.getlist.process %}checked{% endif %}>
+                                    <input class="form-check-input visible-check" name="process" value="blow-molding" type="checkbox" id="p2" {% if 'blow-molding' in form_data.process %}checked{% endif %}>
                                     <label class="form-check-label extra-small ms-2" for="p2">Blow-Molding</label>
                                 </div>
                                 <div class="form-check d-flex align-items-center mb-0">
-                                    <input class="form-check-input visible-check" name="process" value="film" type="checkbox" id="p3" {% if 'film' in form_data.getlist.process %}checked{% endif %}>
+                                    <input class="form-check-input visible-check" name="process" value="film" type="checkbox" id="p3" {% if 'film' in form_data.process %}checked{% endif %}>
                                     <label class="form-check-label extra-small ms-2" for="p3">Film</label>
                                 </div>
                                 <div class="form-check d-flex align-items-center mb-0">
-                                    <input class="form-check-input visible-check" name="process" value="pipe-extrusion" type="checkbox" id="p4" {% if 'pipe-extrusion' in form_data.getlist.process %}checked{% endif %}>
+                                    <input class="form-check-input visible-check" name="process" value="pipe-extrusion" type="checkbox" id="p4" {% if 'pipe-extrusion' in form_data.process %}checked{% endif %}>
                                     <label class="form-check-label extra-small ms-2" for="p4">Pipe Extrusion</label>
                                 </div>
                                 <div class="form-check d-flex align-items-center mb-0 js-other-container">
-                                    <input class="form-check-input visible-check js-other-trigger" name="process" value="others" type="checkbox" id="p5" {% if 'others' in form_data.getlist.process %}checked{% endif %}>
+                                    <input class="form-check-input visible-check js-other-trigger" name="process" value="others" type="checkbox" id="p5" {% if 'others' in form_data.process %}checked{% endif %}>
                                     <label class="form-check-label extra-small ms-2 me-1" for="p5">Others:</label>
                                     <input type="text" class="form-control form-control-sm uniform-input ms-1 js-other-input" name="otherProcess" id="otherProcessInput" value="{{ form_data.otherProcess|default:'' }}" style="width: 120px; height: 26px;">
                                 </div>
@@ -232,16 +232,16 @@ CMF Entry
                             <label class="fw-bold extra-small d-block mb-1 required-label">Other Specification:</label>
                             <div class="d-flex flex-wrap align-items-center gap-3 row-gap-2">
                                 <div class="form-check mb-0">
-                                    <input class="form-check-input visible-check" type="checkbox" name="specification" value="Food Contact" id="spec_food_contact" {% if 'Food Contact' in form_data.getlist.specification %}checked{% endif %}>
+                                    <input class="form-check-input visible-check" type="checkbox" name="specification" value="Food Contact" id="spec_food_contact" {% if 'Food Contact' in form_data.specification %}checked{% endif %}>
                                     <label class="form-check-label extra-small" for="spec_food_contact">Food Contact</label>
                                 </div>
                                 <div class="form-check mb-0">
-                                    <input class="form-check-input visible-check" type="checkbox" name="specification" value="Sunlight Exposure" id="spec_sunlight_exposure" {% if 'Sunlight Exposure' in form_data.getlist.specification %}checked{% endif %}>
+                                    <input class="form-check-input visible-check" type="checkbox" name="specification" value="Sunlight Exposure" id="spec_sunlight_exposure" {% if 'Sunlight Exposure' in form_data.specification %}checked{% endif %}>
                                     <label class="form-check-label extra-small" for="spec_sunlight_exposure">Sunlight Exposure</label>
                                 </div>
                                 <div class="d-flex align-items-center gap-1 js-other-container">
                                     <div class="form-check mb-0">
-                                        <input class="form-check-input visible-check js-other-trigger" type="checkbox" name="specification" value="Others" id="spec_others" {% if 'Others' in form_data.getlist.specification %}checked{% endif %}>
+                                        <input class="form-check-input visible-check js-other-trigger" type="checkbox" name="specification" value="Others" id="spec_others" {% if 'Others' in form_data.specification %}checked{% endif %}>
                                         <label class="form-check-label extra-small" for="spec_others">Others</label>
                                     </div>
                                     <input type="text" class="form-control form-control-sm uniform-input js-other-input" name="specificationOther" value="{{ form_data.specificationOther|default:'' }}" id="specificationOtherInput" style="width: 110px; height: 26px;" placeholder="Specify">

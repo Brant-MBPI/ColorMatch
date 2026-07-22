@@ -9,7 +9,13 @@ from datetime import datetime
 
 from main.services.save import mb_formula_save, dc_formula_save
 from main.decorators import role_required
-from main.models import tbl_cmf, tbl_cmf_formula, tbl_cmf_pending_completed, tbl_cmf_process02, tbl_cmf_process02, tbl_dc_extruder_formula, tbl_dc_extruder_formula02, tbl_internal_color_code, tbl_mb_extruder_formula, tbl_mb_extruder_formula02, tbl_resin, tbl_cmf_salesman, tbl_resins_selected
+from main.models import (
+    tbl_cmf, tbl_cmf_dates, tbl_cmf_formula, tbl_cmf_pending_completed, 
+    tbl_cmf_process02, tbl_cmf_process02, tbl_cmf_specification02, tbl_dc_extruder_formula, 
+    tbl_dc_extruder_formula02, tbl_internal_color_code, tbl_mb_extruder_formula, 
+    tbl_mb_extruder_formula02, tbl_resin, tbl_cmf_salesman, tbl_resins_selected, 
+    tbl_cmf_color_req, tbl_cmf_specification, tbl_cmf_process
+)
 
 from .services.cmf_records import cmf_records_services
 from .services.save import cmf_entry_save
@@ -110,18 +116,76 @@ def cmf_entry(request):
         try:
             saved_record = cmf_entry_save.save_cmf_complete_entry(request)
             messages.success(request, f"Successfully saved CMF No. {saved_record.cm_no}")
-            cache.delete('cmf_records_list') 
+            cache.delete('cmf_records_list')
             return redirect('cmf_entry')
         except Exception as e:
             messages.error(request, str(e))
-            form_data = request.POST # Keep data to send back to template
+            form_data = request.POST  # QueryDict — getlist.xxx works here
+
+    else:
+        cm_no = request.GET.get('no')
+        if cm_no:
+            cmf = tbl_cmf.objects.filter(cm_no=cm_no).first()
+            if cmf:
+                dates = tbl_cmf_dates.objects.filter(cm_no=cmf).first()
+                formula_info = tbl_cmf_formula.objects.filter(cm_no=cmf).first()
+                color_req = tbl_cmf_color_req.objects.filter(cm_no=cmf).first()
+        
+                resin_ids = list(
+                    tbl_resins_selected.objects.filter(cm_no=cmf).values_list('resin_no_id', flat=True)
+                )
+                process_names = list(
+                    tbl_cmf_process02.objects.filter(cmf_formula_no=formula_info)
+                    .values_list('process_no__name', flat=True)
+                ) if formula_info else []
+                spec_names = list(
+                    tbl_cmf_specification02.objects.filter(cm_no=cmf)
+                    .values_list('spec_no__name', flat=True)
+                )
+
+                form_data = {
+                    'cmf_no': cmf.cm_no,
+                    'customer': formula_info.customer if formula_info else "",
+
+                    # DateField — needs strftime
+                    'date_created': dates.form_made.strftime('%m/%d/%Y') if dates and dates.form_made else "",
+                    'due_date': dates.due_date_lab.strftime('%m/%d/%Y') if dates and dates.due_date_lab else "",
+
+                    # CharField — stored exactly as Flatpickr formatted it, pass through as-is
+                    # (could be "ASAP" for required_date, or "MM/DD/YYYY, MM/DD/YYYY" for date_received)
+                    'required_date': dates.date_required if dates else "",
+                    'date_received': dates.date_received_lab if dates else "",
+
+                    'matchType': cmf.matching_type,
+                    'salesman': cmf.sm.name if cmf.sm else "",
+                    'finished_product': formula_info.finished_product if formula_info else "",
+                    'primary_color': str(cmf.in_code_no_id) if cmf.in_code_no_id else "",
+                    'color_description': cmf.color_desc,
+                    'colorReq': color_req.name if color_req else "",
+                    'qty_resin_test': cmf.qty_resin_testing,
+                    'customerResin': 'Y' if cmf.is_resin_provided else ('N' if cmf.is_resin_provided is False else ''),
+                    'mi_customer_resin': cmf.mi_c_resin,
+                    'sampleColorant': 'Y' if cmf.is_sample_available else ('N' if cmf.is_sample_available is False else ''),
+                    'colorantType': cmf.colorant_type if cmf.colorant_type in ('MB', 'DC') else 'Other',
+                    'colorantTypeOther': cmf.colorant_type if cmf.colorant_type not in ('MB', 'DC') else '',
+                    'dosage': formula_info.dosage if formula_info else "",
+                    'processing_temp': cmf.temperature,
+                    'color_guide_return': 'Y' if cmf.is_guide_to_return else ('N' if cmf.is_guide_to_return is False else ''),
+                    'is_low_cost': 'Y' if cmf.is_low_cost else ('N' if cmf.is_low_cost is False else ''),
+                    'remarks': cmf.remarks,
+
+                    # plain lists — NOT a QueryDict, template must use "in form_data.resin" (not .getlist.resin)
+                    'resin': [str(rid) for rid in resin_ids],
+                    'process': process_names,
+                    'specification': spec_names,
+                }
 
     context = {
         "customers": ["Masterbatch PH", "Generic Co."],
         "salesman": tbl_cmf_salesman.objects.all().order_by('name'),
         "primary_color": tbl_internal_color_code.objects.all().order_by('color'),
         "resin": tbl_resin.objects.filter(is_deleted=False).order_by('abbreviation'),
-        "form_data": form_data # This allows the HTML to keep user input
+        "form_data": form_data
     }
     return render(request, "sidemenu/cmf/cmf_entry.html", context)
 
