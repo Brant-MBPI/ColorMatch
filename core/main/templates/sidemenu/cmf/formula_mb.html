@@ -282,8 +282,9 @@
         </button>
     </div>
 </form>
-
-<script>
-</script>
+<div id="formula-metadata" 
+     data-is-wrong="{{ is_wrong_type|yesno:'true,false' }}" 
+     data-actual-type="{{ actual_type }}">
+</div>
 
 {% endblock content %}

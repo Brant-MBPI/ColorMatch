@@ -6,12 +6,6 @@ from ...models import (
     tbl_cmf_pending_completed, tbl_dc_extruder_formula, tbl_dc_extruder_formula02, tbl_mb_extruder_formula, tbl_mb_extruder_formula02, tbl_rm_incoming, tbl_rs
 )
 
-ALL_HEADERS = [
-    "No.", "Customer", "Primary Color", "Color Description",
-    "Finished Product", "Required Date", "Target Date", "Matching Type",
-    "Product Code", "Status", "Submitted Date", "AR No.", "Reason"
-]
-
 
 def get_cmf_records():
     cached_data = cache.get('cmf_records_list')
@@ -34,6 +28,7 @@ def get_cmf_records():
             "required_date": dates.date_required if dates else "---",
             "target_date": dates.due_date_lab.strftime('%m/%d/%y') if (dates and dates.due_date_lab) else "---",
             "type": cmf.matching_type or "---",
+            "colorant_type": cmf.colorant_type or "---",
             "code": entry.prod_code or "---",
             "status": "Completed" if entry.is_completed else "Pending",
             "submitted_date": entry.date_submitted.strftime('%m/%d/%y') if entry.date_submitted else "",
@@ -64,6 +59,7 @@ def get_rs_records():
             "required_date": rs.date_required or "---",
             "target_date": rs.due_date.strftime('%m/%d/%y') if rs.due_date else "---",
             "type": rs.matching_type or "---",
+            "colorant_type": rs.colorant_type or "---",
             "code": entry.prod_code or "---",
             "status": "Completed" if entry.is_completed else "Pending",
             "submitted_date": entry.date_submitted.strftime('%m/%d/%y') if entry.date_submitted else "",

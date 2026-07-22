@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const menuTitle = document.getElementById('contextMenuTitle');
     const recordsTbody = document.getElementById('recordsTbody');
 
-    const COLS_BOTH = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+    const COLS_BOTH = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 13];
     const COLS_COMPLETED = [0, 1, 2, 3, 4, 7, 8, 10, 11];
     const COLS_PENDING = [0, 1, 2, 3, 4, 5, 6, 7, 12];
 
