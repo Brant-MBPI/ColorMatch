@@ -161,8 +161,7 @@ def cmf_record_detail(request, cm_no):
 
 def cmf_mb_formula(request):
     form_data = {}
-    is_wrong_type = False
-    actual_type = ""
+    colorant_mismatch = False
 
     if request.method == "POST":
         # ... (keep your existing POST saving logic) ...
@@ -181,9 +180,7 @@ def cmf_mb_formula(request):
             cmf = tbl_cmf.objects.filter(cm_no=cm_no).first()
             if cmf:
                 # --- CHECK COLORANT TYPE ---
-                if cmf.colorant_type != 'MB':
-                    is_wrong_type = True
-                    actual_type = cmf.colorant_type
+                colorant_mismatch = cmf.colorant_type != "DC"
 
                 # 1. Fetch the CMF Formula Entry
                 formula_info = tbl_cmf_formula.objects.filter(cm_no=cm_no).first()
@@ -218,8 +215,7 @@ def cmf_mb_formula(request):
         "form_data": form_data,
         "materials": cmf_records_services.get_raw_material_codes(),
         "users": list(user_names),
-        "is_wrong_type": is_wrong_type,
-        "actual_type": actual_type 
+        "colorant_mismatch": colorant_mismatch,
     }
     return render(request, "sidemenu/cmf/formula_mb.html", context)
 
