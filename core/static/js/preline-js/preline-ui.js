@@ -35,7 +35,7 @@ const Preline = {
     },
 
     // 2. CONFIRMATION MODAL
-    confirm: function(title, message, type, onConfirm) {
+    confirm: function(title, message, type, onConfirm, onCancel) {
         const modalEl = document.getElementById('dynamicModal');
         const modal = new bootstrap.Modal(modalEl);
         
@@ -54,10 +54,21 @@ const Preline = {
         const newConfirmBtn = confirmBtn.cloneNode(true);
         confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
 
+        let confirmed = false;
+
         newConfirmBtn.onclick = () => {
+            confirmed = true;
             onConfirm();
             modal.hide();
         };
+
+        // Fires no matter how the modal closes: confirm, X button, backdrop click, Escape
+        modalEl.addEventListener('hidden.bs.modal', function handler() {
+            if (!confirmed && typeof onCancel === 'function') {
+                onCancel();
+            }
+            modalEl.removeEventListener('hidden.bs.modal', handler);
+        });
 
         modal.show();
     }
