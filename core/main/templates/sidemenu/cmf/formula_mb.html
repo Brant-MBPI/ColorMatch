@@ -4,7 +4,10 @@
 {% block navigation %} Formula MB {% endblock navigation %}
 
 {% block content %}
-
+<div class="formula-metadata" 
+     data-is-wrong="{{ is_wrong_type|yesno:'true,false' }}"
+     data-actual-type="{{ actual_type }}">
+</div>
 <form id="formulaForm" method="POST">
     {% csrf_token %}
     <div class="row g-4">
@@ -282,9 +285,31 @@
         </button>
     </div>
 </form>
-<div id="formula-metadata" 
-     data-is-wrong="{{ is_wrong_type|yesno:'true,false' }}" 
-     data-actual-type="{{ actual_type }}">
-</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+    // 1. Read data from the hidden HTML element
+    const metadata = document.querySelectorAll('formula-metadata');
+    if (metadata) {
+        const isWrongType = metadata.dataset.isWrong === 'true';
+        const actualType = metadata.dataset.actualType;
+
+        if (isWrongType) {
+            Preline.confirm(
+                'Incorrect Colorant Type', 
+                `This CMF is categorized as '${actualType}', but you are accessing the MASTERBATCH matching form. Do you want to proceed anyway?`, 
+                'warning', 
+                () => {
+                    console.log("User proceeded.");
+                },
+                () => {
+                    // Redirect back to records
+                    window.location.href = "/cmf/records/"; 
+                }
+            );
+        }
+    }
+});
+</script>
 
 {% endblock content %}

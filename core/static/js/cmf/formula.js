@@ -72,25 +72,3 @@ document.addEventListener('input', function(e) {
     }
 });
 
-document.addEventListener('DOMContentLoaded', function () {
-    // 1. Read data from the hidden HTML element
-    const metadata = document.getElementById('formula-metadata');
-    const isWrongType = metadata.dataset.isWrong === 'true';
-    const actualType = metadata.dataset.actualType;
-
-    // 2. Trigger Preline logic
-    if (isWrongType) {
-        Preline.confirm(
-            'Incorrect Colorant Type', 
-            `This CMF is categorized as '${actualType}', but you are accessing the MASTERBATCH matching form. Do you want to proceed anyway?`, 
-            'warning', 
-            () => {
-                console.log("User proceeded.");
-            },
-            () => {
-                // Use a regular string here or hardcode the back URL
-                window.location.href = "/cmf/records/"; 
-            }
-        );
-    }
-});

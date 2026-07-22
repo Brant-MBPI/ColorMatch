@@ -226,7 +226,8 @@ def cmf_mb_formula(request):
 
 def cmf_dc_formula(request):
     form_data = {}
-    
+    colorant_mismatch = False
+
     # --- 1. HANDLING POST (SAVING) ---
     if request.method == "POST":
         try:
@@ -244,6 +245,9 @@ def cmf_dc_formula(request):
         if cm_no:
             cmf = tbl_cmf.objects.filter(cm_no=cm_no).first()
             if cmf:
+                # --- CHECK COLORANT TYPE ---
+                colorant_mismatch = cmf.colorant_type != "DC"
+
                 formula_info = tbl_cmf_formula.objects.filter(cm_no=cm_no).first()
 
                 # Get Comma Separated Resins
@@ -269,6 +273,7 @@ def cmf_dc_formula(request):
         "form_data": form_data, 
         "materials": cmf_records_services.get_raw_material_codes(),
         "users": list(user_names),
+        "colorant_mismatch": colorant_mismatch,
     }
     return render(request, "sidemenu/cmf/formula_dc.html", context)
 

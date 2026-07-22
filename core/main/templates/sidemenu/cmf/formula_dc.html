@@ -304,7 +304,27 @@ Formula DC
         </div>
     </form>
 </div>
-
+<div class="formula-metadata" 
+     data-is-wrong="{{ is_wrong_type|yesno:'true,false' }}" 
+     data-actual-type="{{ actual_type }}">
+</div>
+{% if colorant_mismatch %}
 <script>
+    document.addEventListener('DOMContentLoaded', function () {
+    
+        Preline.confirm(
+            'Incorrect Colorant Type', 
+            `This CMF is not registered as DC colorant type. but you are accessing the Dry Color matching form. Do you want to proceed anyway?`, 
+            'warning', 
+            () => {
+                console.log("User proceeded.");
+            },
+            () => {
+                // Redirect back to records
+                window.location.href = "/cmf/records/"; 
+            }
+        );
+    });
 </script>
+{% endif %}
 {% endblock %}
