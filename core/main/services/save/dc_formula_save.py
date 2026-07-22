@@ -57,6 +57,7 @@ def save_dc_complete_formula(request):
                     value=post_data.get(f'percentage_{i}') or 0,
                     weight=post_data.get(f'weight_{i}') or 0
                 )
-        
-        log_audit(request, "Saved", f"Created new DC Formula with Product Code: {prod_code_obj.product_code}")
+        p_code = prod_code_obj.product_code if prod_code_obj else "N/A"
+        lot_no = header.lot_no if header.lot_no else "N/A"
+        log_audit(request, "Saved", f"Created new DC Formula with Lot Number: {lot_no} and Product Code: {p_code}")
         return header
