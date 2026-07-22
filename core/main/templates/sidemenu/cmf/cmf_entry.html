@@ -87,9 +87,10 @@ CMF Entry
                                 <label class="fw-bold extra-small required-label">Sales Person:</label>
                                 <select class="form-select form-select-sm ts-select" name="salesman" placeholder="Select sales person..." required>
                                     <option value=""></option>
-                                    {% for salesman in salesman %}
-                                        <option value="{{ salesman }}" {% if form_data.salesman == salesman %}selected{% endif %}>{{ salesman }}</option>
+                                    {% for s in salesman %}
+                                        <option value="{{ s.name }}" {% if form_data.salesman == s.name %}selected{% endif %}>{{ s.name }}</option>
                                     {% endfor %}
+                                    
                                 </select>
                             </div>
                             <div class="col-md-12">
