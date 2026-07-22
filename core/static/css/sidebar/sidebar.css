@@ -113,6 +113,7 @@ select.uniform-input {
 .btn-teal:hover { background-color: var(--btn-teal-hover); }
 
 .btn-dark-teal { background-color: var(--btn-dark-teal); color: white !important; border: none; border-radius: 0.4rem; }
+.btn-dark-teal:hover { background-color: #0e3b38;}
 
 .btn-primary { background-color: var(--btn-primary); border: none; border-radius: 0.4rem; }
 .btn-success { background-color: var(--btn-success); border: none; border-radius: 0.4rem; }

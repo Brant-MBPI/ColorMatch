@@ -9,6 +9,7 @@ CMF Entry
 <div class="container-fluid p-0">
     <form class="cmf-entry-form" method="POST" action="{% url 'cmf_entry' %}">
     {% csrf_token %}
+        <input type="hidden" name="original_cmf_no" value="{{ form_data.cmf_no|default:'' }}">
         <div class="row g-2">
             
             <!-- LEFT COLUMN -->
@@ -316,8 +317,12 @@ CMF Entry
                     <i class="bi bi-plus-lg"></i> New
                 </button>
                 <button type="button" class="btn btn-sm btn-success px-3 shadow-sm btn-save">
+                {% if form_data.cmf_no %}
+                    <i class="bi bi-save"></i> Update
+                {% else %}
                     <i class="bi bi-save"></i> Save
-                </button>
+                {% endif %}
+            </button>
             </div>
         </div>
     </form>
