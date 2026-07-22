@@ -339,8 +339,37 @@ def cmf_dc_formula(request):
 
 
 def cmf_pending_completed(request):
-    return render(request, "sidemenu/cmf/pending_completed.html")
+    form_data = {}
+    cm_no = request.GET.get('no')
 
+    if cm_no:
+        cmf = tbl_cmf.objects.filter(cm_no=cm_no).first()
+        if cmf:
+            dates = tbl_cmf_dates.objects.filter(cm_no=cmf).first()
+            formula_info = tbl_cmf_formula.objects.filter(cm_no=cmf).first()
+
+            form_data = {
+                'cmf_no': cmf.cm_no,
+                'customer': formula_info.customer if formula_info else "",
+
+                # DateField — needs strftime
+                'date_created': dates.form_made.strftime('%m/%d/%Y') if dates and dates.form_made else "",
+                'due_date': dates.due_date_lab.strftime('%m/%d/%Y') if dates and dates.due_date_lab else "",
+
+                # CharField — stored exactly as Flatpickr formatted it, pass through as-is
+                'required_date': dates.date_required if dates else "",
+                'date_received': dates.date_received_lab if dates else "",
+
+                'finished_product': formula_info.finished_product if formula_info else "",
+                'color_description': cmf.color_desc,
+                'matchType': cmf.matching_type.upper() if cmf.matching_type else "",
+                'salesman': cmf.sm.name if cmf.sm else "",
+            }
+
+    context = {
+        "form_data": form_data,
+    }
+    return render(request, "sidemenu/cmf/pending_completed.html", context)
 
 def feedback(request):
     return render(request, "sidemenu/feedback/feedback.html")
