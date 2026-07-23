@@ -10,7 +10,7 @@ from datetime import datetime
 from main.services.save import mb_formula_save, dc_formula_save
 from main.decorators import role_required
 from main.models import (
-    tbl_cmf, tbl_cmf_dates, tbl_cmf_formula, tbl_cmf_pending_completed, 
+    tbl_audit_trail, tbl_cmf, tbl_cmf_dates, tbl_cmf_formula, tbl_cmf_pending_completed, 
     tbl_cmf_process02, tbl_cmf_process02, tbl_cmf_specification02, tbl_dc_extruder_formula, 
     tbl_dc_extruder_formula02, tbl_internal_color_code, tbl_mb_extruder_formula, 
     tbl_mb_extruder_formula02, tbl_resin, tbl_cmf_salesman, tbl_resins_selected, 
@@ -185,7 +185,7 @@ def cmf_entry(request):
                     'process': process_names,
                     'specification': spec_names,
                 }
-                
+
     context = {
         "customers": ["Masterbatch PH", "Generic Co."],
         "salesman": tbl_cmf_salesman.objects.all().order_by('name'),
@@ -381,5 +381,14 @@ def feedback(request):
     return render(request, "sidemenu/feedback/feedback.html")
 
 
+@role_required
 def audit_trail(request):
-    return render(request, "sidemenu/audit_trail.html")
+    # Fetch all records, newest first
+    # select_related('user') fetches the username, email, first/last name in one query
+    audit_records = tbl_audit_trail.objects.all().select_related('user__role').order_by('-timestamp')
+    
+    context = {
+        "records": audit_records,
+        "record_count": audit_records.count(),
+    }
+    return render(request, "sidemenu/audit_trail.html", context)

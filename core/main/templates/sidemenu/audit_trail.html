@@ -16,23 +16,26 @@ Audit Trail
                     <span class="fw-bold extra-small text-uppercase">Search Record:</span>
                 </div>
                 <div class="col-md-2">
-                    <select class="form-select form-select-sm uniform-input">
-                        <option>All Department</option>
+                    <select class="form-select form-select-sm uniform-input" id="filterDept">
+                        <option value="all">All Department</option>
                         <option>Information Technology</option>
                         <option>Sales</option>
+                        <option>Laboratory</option>
                     </select>
                 </div>
                 <div class="col-md-2">
-                    <select class="form-select form-select-sm uniform-input">
-                        <option>All Columns</option>
-                        <option>Hostname</option>
+                    <select class="form-select form-select-sm uniform-input" id="filterCol">
+                        <option value="all">All Columns</option>
+                        <option>Username</option>
+                        <option>Full Name</option>
                         <option>Action</option>
+                        <option>Email</option>
                     </select>
                 </div>
                 
                 <div class="col">
                     <div class="input-group input-group-sm">
-                        <input type="text" class="form-control form-control-sm uniform-input ps-2 border-end-0" placeholder="Search records...">
+                        <input type="text" id="auditSearch" class="form-control form-control-sm uniform-input ps-2 border-end-0" placeholder="Search records...">
                         <span class="input-group-text uniform-input border-start-0">
                             <i class="bi bi-search text-muted"></i>
                         </span>
@@ -40,7 +43,7 @@ Audit Trail
                 </div>
 
                 <div class="col-auto">
-                    <button class="btn btn-sm btn-primary shadow-sm px-3">
+                    <button class="btn btn-sm btn-primary shadow-sm px-3" onclick="window.location.reload();">
                         <i class="bi bi-arrow-clockwise"></i>
                         <span class="d-none d-sm-inline">Refresh</span>
                     </button>
@@ -52,7 +55,9 @@ Audit Trail
     <!-- Main Table Card -->
     <div class="card border-0 shadow-sm rounded-3 audit-table-card flex-grow-1">
         <div class="p-3 bg-white d-flex align-items-center border-bottom dark-card-header">
-            <h6 class="fw-bold extra-small m-0 text-uppercase">Audit Records <span class="text-muted fw-normal ms-2">1 records found</span></h6>
+            <h6 class="fw-bold extra-small m-0 text-uppercase">
+                Audit Records <span class="text-muted fw-normal ms-2">{{ record_count }} records found</span>
+            </h6>
         </div>
         
         <div class="audit-scroll-body">
@@ -60,24 +65,44 @@ Audit Trail
                 <thead>
                     <tr class="text-uppercase">
                         <th class="ps-3" style="border-top-left-radius: 6px;">Timestamp</th>
-                        <th>Hostname</th>
+                        <th>Username</th>
+                        <th>Full Name</th> <!-- Added Column -->
                         <th>Action</th>
                         <th>Details</th>
-                        <th>IP Address</th>
-                        <th>Mac Address</th>
+                        <th>Email</th> <!-- Changed from IP Address -->
                         <th class="pe-3" style="border-top-right-radius: 6px;">Department</th>
                     </tr>
                 </thead>
                 <tbody class="extra-small">
+                    {% for record in records %}
                     <tr>
-                        <td class="ps-3 text-nowrap">2026-06-17 01:21 PM</td>
-                        <td class="text-nowrap">MBPI-AMIEL\Brant</td>
-                        <td><span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2">MODIFY</span></td>
-                        <td class="text-wrap" style="min-width: 400px;">Hostname: MBPI-AMIEL\Brant details has been successfully updated</td>
-                        <td>192.168.1.184</td>
-                        <td class="text-nowrap">E8:9C:25:E0:CC:BD</td>
-                        <td class="pe-3 text-nowrap">Information Technology</td>
+                        <td class="ps-3 text-nowrap">{{ record.timestamp|date:"Y-m-d h:i A" }}</td>
+                        <td class="text-nowrap fw-bold text-teal">{{ record.user.username|default:"System" }}</td>
+                        <td class="text-nowrap">
+                            {% if record.user.last_name %}
+                                {{ record.user.last_name }}, {{ record.user.first_name }}
+                            {% else %}
+                                ---
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge 
+                                {% if record.action_type == 'Saved' or record.action_type == 'Created' %}bg-success-subtle text-success border border-success-subtle
+                                {% elif record.action_type == 'Updated' or record.action_type == 'MODIFY' %}bg-primary-subtle text-primary border border-primary-subtle
+                                {% elif record.action_type == 'Deleted' %}bg-danger-subtle text-danger border border-danger-subtle
+                                {% else %}bg-secondary-subtle text-secondary border border-secondary-subtle{% endif %} px-2">
+                                {{ record.action_type }}
+                            </span>
+                        </td>
+                        <td class="text-wrap" style="min-width: 350px;">{{ record.details }}</td>
+                        <td>{{ record.user.email|default:"---" }}</td>
+                        <td class="pe-3 text-nowrap">{{ record.user.role.department|default:"---" }}</td>
                     </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5 text-muted">No audit records found.</td>
+                    </tr>
+                    {% endfor %}
                 </tbody>
             </table>
         </div>
