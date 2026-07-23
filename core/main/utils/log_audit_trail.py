@@ -1,4 +1,5 @@
 from ..models import tbl_audit_trail
+from django.core.cache import cache
 
 def log_audit(request, action, details):
     """
@@ -11,6 +12,7 @@ def log_audit(request, action, details):
             action_type=action,
             details=details
         )
+        cache.delete('audit_trail_records_list')
     except Exception as e:
         # We print the error so it doesn't crash the main app if logging fails
         print(f"Audit Log Error: {e}")
