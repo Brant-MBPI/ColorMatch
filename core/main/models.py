@@ -389,7 +389,7 @@ class tbl_mb_extruder_formula(models.Model):
     mb_no = models.AutoField(primary_key=True)
     date = models.DateField(blank=True, null=True)
     code = models.ForeignKey(tbl_generated_prod_code, on_delete=models.SET_NULL, null=True, blank=True, db_column="code_no")
-    lot_no = models.CharField(max_length=100, blank=True, null=True)
+    lot_no = models.CharField(max_length=100, unique=True, blank=True, null=True)
     mixing_time = models.CharField(max_length=50, blank=True, null=True)
     matched_by = models.CharField(max_length=100, blank=True, null=True)
     weighted_by = models.CharField(max_length=100, blank=True, null=True)
