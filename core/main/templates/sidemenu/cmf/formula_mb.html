@@ -272,14 +272,18 @@
 
     <!-- ACTION BUTTONS -->
     <div class="d-flex justify-content-end gap-2 mt-4 mb-5">
-        <button type="button" class="btn btn-sm btn-dark-teal px-4 text-white shadow-sm">
+        <button type="button" class="btn btn-sm btn-dark-teal px-4 text-white shadow-sm btn-print">
             <i class="bi bi-printer me-1"></i> Print
         </button>
-        <button type="reset" class="btn btn-sm btn-primary px-4 shadow-sm">
+        <button type="button" class="btn btn-sm btn-primary px-4 shadow-sm btn-new">
             <i class="bi bi-file-earmark-plus me-1"></i> New
-        </button>
-        <button type="submit" class="btn btn-sm btn-success px-4 shadow-sm">
-            <i class="bi bi-save me-1"></i> Save
+        </a>
+        <button type="button" class="btn btn-sm btn-success px-4 shadow-sm btn-save">
+            {% if form_data.formula_id %}
+                <i class="bi bi-pencil-square me-1"></i> Update
+            {% else %}
+                <i class="bi bi-save me-1"></i> Save
+            {% endif %}
         </button>
     </div>
 </form>
