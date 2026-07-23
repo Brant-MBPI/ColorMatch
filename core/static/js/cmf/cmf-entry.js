@@ -126,13 +126,18 @@ if (saveBtn && cmfForm) {
     saveBtn.addEventListener('click', function() {
         // 1. Check if the form is valid according to 'required' attributes
         if (cmfForm.reportValidity()) {
+            const originalCmfNo = cmfForm.querySelector('[name="original_cmf_no"]').value.trim();
+            const isUpdate = originalCmfNo !== '';
+
             // 2. Only show the modal if the form passes validation
             Preline.confirm(
-                'Save Entry?', 
-                'Are you sure you want to save this color matching entry? Please verify all technical specs before confirming.', 
-                'success', 
+                isUpdate ? 'Update Entry?' : 'Save Entry?',
+                isUpdate
+                    ? 'Are you sure you want to update this color matching entry? Please verify all technical specs before confirming.'
+                    : 'Are you sure you want to save this color matching entry? Please verify all technical specs before confirming.',
+                'success',
                 () => {
-                    cmfForm.submit(); 
+                    cmfForm.submit();
                 }
             );
         }
