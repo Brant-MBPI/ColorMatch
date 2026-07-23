@@ -185,7 +185,7 @@ def cmf_entry(request):
                     'process': process_names,
                     'specification': spec_names,
                 }
-    print("Salesman Name:", form_data.get('salesman'))  # Debugging line
+                
     context = {
         "customers": ["Masterbatch PH", "Generic Co."],
         "salesman": tbl_cmf_salesman.objects.all().order_by('name'),
