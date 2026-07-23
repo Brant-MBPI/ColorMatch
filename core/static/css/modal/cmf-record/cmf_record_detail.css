@@ -21,3 +21,26 @@
 body.dark-mode .formula-container table {
     background-color: var(--card-bg) !important;
 }
+
+/* Hover effect on formula header rows */
+.formula-row-hover {
+    cursor: pointer;
+    transition: background-color 0.15s ease-in-out;
+}
+
+.formula-row-hover:hover {
+    background-color: var(--sidebar-hover-bg) !important;
+}
+
+/* Pen icon */
+.formula-edit-icon {
+    color: var(--sidebar-header-bg);
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: transform 0.15s ease-in-out, color 0.15s ease-in-out;
+}
+
+.formula-edit-icon:hover {
+    color: var(--sidebar-active-bg);
+    transform: scale(1.2);
+}

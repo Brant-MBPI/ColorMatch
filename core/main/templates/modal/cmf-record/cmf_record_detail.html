@@ -40,20 +40,28 @@
                             <th>Color</th>
                             <th>Mixing Time</th>
                             <th>Matched By</th>
+                            <th class="text-end pe-3">Edit</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for item in mb_formulas %}
-                        <tr class="fw-bold bg-light-subtle formula-header-clickable" style="cursor:pointer;">
+                        <tr class="fw-bold bg-light-subtle formula-header-clickable formula-row-hover">
                             <td>{{ item.header.date|date:"m/d/Y" }}</td>
                             <td>{{ item.header.code.product_code|default:"---" }}</td>
                             <td>{{ item.header.lot_no|default:"---" }}</td>
                             <td>{{ cmf.in_code_no.color }}</td>
                             <td>{{ item.header.mixing_time|default:"---" }}</td>
                             <td>{{ item.header.matched_by|default:"---" }}</td>
+                            <td class="text-end pe-3">
+                                <i class="bi bi-pencil-square formula-edit-icon"
+                                data-cm-no="{{ cmf.cm_no }}"
+                                data-formula-id="{{ item.header.pk }}"
+                                data-formula-type="mb"
+                                title="Edit this MB formula"></i>
+                            </td>
                         </tr>
                         <tr class="ingredient-sub-row d-none">
-                            <td colspan="6" class="p-0 border-0">
+                            <td colspan="7" class="p-0 border-0">
                                 <table class="table table-sm mb-0 table-borderless">
                                     <tbody class="text-muted small">
                                         {% for ing in item.ingredients %}
@@ -89,20 +97,28 @@
                             <th>Sample Size</th>
                             <th>Mixing Time</th>
                             <th>Matched By</th>
+                            <th class="text-end pe-3">Edit</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for item in dc_formulas %}
-                        <tr class="fw-bold bg-light-subtle formula-header-clickable" style="cursor:pointer;">
+                        <tr class="fw-bold bg-light-subtle formula-header-clickable formula-row-hover">
                             <td>{{ item.header.date|date:"m/d/Y" }}</td>
                             <td>{{ item.header.code.product_code|default:"---" }}</td>
                             <td>{{ cmf.in_code_no.color }}</td>
                             <td>{{ item.header.sample_size|default:"---" }}</td>
                             <td>{{ item.header.mixing_time|default:"---" }}</td>
                             <td>{{ item.header.matched_by|default:"---" }}</td>
+                            <td class="text-end pe-3">
+                                <i class="bi bi-pencil-square formula-edit-icon"
+                                data-cm-no="{{ cmf.cm_no }}"
+                                data-formula-id="{{ item.header.pk }}"
+                                data-formula-type="dc"
+                                title="Edit this DC formula"></i>
+                            </td>
                         </tr>
                         <tr class="ingredient-sub-row d-none">
-                            <td colspan="6" class="p-0 border-0">
+                            <td colspan="7" class="p-0 border-0">
                                 <table class="table table-sm mb-0 table-borderless">
                                     <tbody class="text-muted small">
                                         {% for ing in item.ingredients %}

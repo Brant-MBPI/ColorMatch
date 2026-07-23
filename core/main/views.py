@@ -231,10 +231,10 @@ def cmf_record_detail(request, cm_no):
 
 def cmf_mb_formula(request):
     form_data = {}
+    ingredients = []
     colorant_mismatch = False
 
     if request.method == "POST":
-        # ... (keep your existing POST saving logic) ...
         try:
             saved_record = mb_formula_save.save_mb_complete_formula(request)
             messages.success(request, f"Successfully saved MB Formula for CMF No. {saved_record.cm_no.cm_no}")
@@ -242,34 +242,30 @@ def cmf_mb_formula(request):
             return redirect('mb_formula')
         except Exception as e:
             messages.error(request, f"Error saving formula: {str(e)}")
-            form_data = request.POST 
+            form_data = request.POST
 
     else:
         cm_no = request.GET.get('no')
+        formula_id = request.GET.get('formula_id')
+
         if cm_no:
             cmf = tbl_cmf.objects.filter(cm_no=cm_no).first()
             if cmf:
-                # --- CHECK COLORANT TYPE ---
                 colorant_mismatch = cmf.colorant_type != "MB"
 
-                # 1. Fetch the CMF Formula Entry
                 formula_info = tbl_cmf_formula.objects.filter(cm_no=cm_no).first()
 
-                # 2. GET MULTIPLE RESINS (Joined by Comma)
                 resins_list = tbl_resins_selected.objects.filter(
                     cm_no=cm_no
                 ).values_list('resin_no__abbreviation', flat=True)
                 resin_used_str = ", ".join(resins_list)
 
-                # 3. GET PROCESS/APPLICATION (Based on your new ERD)
-                # We filter tbl_cmf_process02 by the cm_no (via the formula FK) 
-                # and grab the 'name' from the related tbl_cmf_process table
                 processes = tbl_cmf_process02.objects.filter(
                     cmf_formula_no__cm_no=cm_no
                 ).values_list('process_no__name', flat=True)
-                
                 application_str = ", ".join(processes)
 
+                # CMF-level defaults — always populated regardless of formula_id
                 form_data = {
                     'cm_form_no': cm_no,
                     'customer': formula_info.customer if formula_info else "",
@@ -277,8 +273,45 @@ def cmf_mb_formula(request):
                     'dosage': formula_info.dosage if formula_info else "",
                     'finished_product': formula_info.finished_product if formula_info else "",
                     'color': cmf.in_code_no.color if cmf.in_code_no else "",
-                    'application': application_str, # Updated logic
+                    'application': application_str,
                 }
+
+                # --- Load a SPECIFIC historical formula, if one was clicked ---
+                if formula_id:
+                    header = tbl_mb_extruder_formula.objects.filter(pk=formula_id, cm_no=cmf).first()
+                    if header:
+                        form_data.update({
+                            'formula_id': header.pk,
+                            'date': header.date.strftime('%m/%d/%Y') if header.date else "",
+                            'product': header.code.product_code if header.code else "",
+                            'lot_number': header.lot_no or "",
+                            'mixing_time': header.mixing_time or "",
+                            'matched_by': header.matched_by or "",
+                            'weighed_by': header.weighted_by or "",
+                            'encoded_by': header.encoded_by or "",
+                            'total_weight': header.total_weight,
+                            'spectro_l': header.L,
+                            'spectro_a': header.A,
+                            'spectro_b': header.B,
+                            'spectro_c': header.C,
+                            'spectro_h': header.H,
+                            'srgb_hex': header.html or "",
+                            'cmyk_c': header.c,
+                            'cmyk_m': header.m,
+                            'cmyk_y': header.y,
+                            'cmyk_k': header.k,
+                        })
+
+                        ingredients = list(
+                            tbl_mb_extruder_formula02.objects.filter(mb=header)
+                            .values('material', 'value', 'weight')
+                        )
+                        ingredients = ingredients + [{'material': '', 'value': '', 'weight': ''}] * (10 - len(ingredients))
+                        ingredients = ingredients[:10]
+                    else:
+                        messages.error(request, f"Formula record not found for ID {formula_id}.")
+                if not ingredients:
+                    ingredients = [{'material': '', 'value': '', 'weight': ''}] * 10
     user_names = User.objects.filter(is_active=True).exclude(first_name="").values_list('first_name', flat=True).distinct().order_by('first_name')
 
     context = {
@@ -286,15 +319,16 @@ def cmf_mb_formula(request):
         "materials": cmf_records_services.get_raw_material_codes(),
         "users": list(user_names),
         "colorant_mismatch": colorant_mismatch,
+        "ingredients": ingredients,
     }
     return render(request, "sidemenu/cmf/formula_mb.html", context)
 
 
 def cmf_dc_formula(request):
     form_data = {}
+    ingredients = []
     colorant_mismatch = False
 
-    # --- 1. HANDLING POST (SAVING) ---
     if request.method == "POST":
         try:
             saved_record = dc_formula_save.save_dc_complete_formula(request)
@@ -305,22 +339,20 @@ def cmf_dc_formula(request):
             messages.error(request, f"Error saving formula: {str(e)}")
             form_data = request.POST
 
-    # --- 2. HANDLING GET (PRE-FILL) ---
     else:
         cm_no = request.GET.get('no')
+        formula_id = request.GET.get('formula_id')
+
         if cm_no:
             cmf = tbl_cmf.objects.filter(cm_no=cm_no).first()
             if cmf:
-                # --- CHECK COLORANT TYPE ---
                 colorant_mismatch = cmf.colorant_type != "DC"
 
                 formula_info = tbl_cmf_formula.objects.filter(cm_no=cm_no).first()
 
-                # Get Comma Separated Resins
                 resins_list = tbl_resins_selected.objects.filter(cm_no=cm_no).values_list('resin_no__abbreviation', flat=True)
                 resin_str = ", ".join(resins_list)
 
-                # Get Comma Separated Processes
                 processes = tbl_cmf_process02.objects.filter(cmf_formula_no__cm_no=cm_no).values_list('process_no__name', flat=True)
                 app_str = ", ".join(processes)
 
@@ -333,13 +365,52 @@ def cmf_dc_formula(request):
                     'color': cmf.in_code_no.color if cmf.in_code_no else "",
                     'application': app_str,
                 }
+
+                if formula_id:
+                    header = tbl_dc_extruder_formula.objects.filter(pk=formula_id, cm_no=cmf).first()
+                    if header:
+                        form_data.update({
+                            'formula_id': header.pk,
+                            'date_matched': header.date.strftime('%m/%d/%Y') if header.date else "",
+                            'product_code': header.code.product_code if header.code else "",
+                            'sample_size': header.sample_size or "",
+                            'mixing_time': header.mixing_time or "",
+                            'matched_by': header.matched_by or "",
+                            'weighed_by': header.weighed_by or "",
+                            'encoded_by': header.encoded_by or "",
+                            'total_weight': header.total_weight,
+                            'spectro_l': header.L,
+                            'spectro_a': header.A,
+                            'spectro_b': header.B,
+                            'spectro_c': header.C,
+                            'spectro_h': header.H,
+                            'srgb_hex': header.html or "",
+                            'cmyk_c': header.c,
+                            'cmyk_m': header.m,
+                            'cmyk_y': header.y,
+                            'cmyk_k': header.k,
+                        })
+
+                        ingredients = list(
+                            tbl_dc_extruder_formula02.objects.filter(dc=header)
+                            .values('material', 'value', 'weight')
+                        )
+                        # Pad/truncate to exactly 10 rows so the template can loop plainly
+                        ingredients = ingredients + [{'material': '', 'value': '', 'weight': ''}] * (10 - len(ingredients))
+                        ingredients = ingredients[:10]
+                    else:
+                        messages.error(request, f"Formula record not found for ID {formula_id}.")
+                if not ingredients:
+                    ingredients = [{'material': '', 'value': '', 'weight': ''}] * 10
+
     user_names = User.objects.filter(is_active=True).exclude(first_name="").values_list('first_name', flat=True).distinct().order_by('first_name')
-    
+
     context = {
-        "form_data": form_data, 
+        "form_data": form_data,
         "materials": cmf_records_services.get_raw_material_codes(),
         "users": list(user_names),
         "colorant_mismatch": colorant_mismatch,
+        "ingredients": ingredients,
     }
     return render(request, "sidemenu/cmf/formula_dc.html", context)
 
