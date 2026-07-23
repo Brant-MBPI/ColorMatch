@@ -1,4 +1,5 @@
 from datetime import datetime
+from decimal import Decimal
 from django.db import IntegrityError, transaction
 from main.utils.log_audit_trail import log_audit
 from ...models import (
@@ -8,15 +9,13 @@ from ...models import (
 
 def save_mb_complete_formula(request):
     post_data = request.POST
-    formula_id = post_data.get('formula_id') # Hidden field from template
+    formula_id = post_data.get('formula_id')
     
-    # Helper to handle empty numeric strings or spaces
     def clean_num(val):
         if val is None: return None
         v = str(val).strip()
         return v if v else None
 
-    # Helper to format field names for the Audit Trail
     def get_pretty_name(field):
         mapping = {
             'lot_no': 'Lot Number', 'mixing_time': 'Mixing Time',
@@ -29,29 +28,19 @@ def save_mb_complete_formula(request):
 
     try:
         with transaction.atomic():
-            # 1. Resolve Product Code (Get or Create)
+            # 1. Resolve Product Code
             prod_code_str = post_data.get('product', '').strip()
-            prod_code_obj = None
-            if prod_code_str:
-                prod_code_obj, _ = tbl_generated_prod_code.objects.get_or_create(
-                    product_code=prod_code_str
-                )
+            prod_code_obj, _ = tbl_generated_prod_code.objects.get_or_create(product_code=prod_code_str) if prod_code_str else (None, False)
             
-            # 2. Resolve CMF Foreign Key
-            cm_no_val = post_data.get('cm_form_no')
-            cmf_obj = tbl_cmf.objects.get(cm_no=cm_no_val)
+            # 2. Resolve CMF
+            cmf_obj = tbl_cmf.objects.get(cm_no=post_data.get('cm_form_no'))
 
             # 3. Standardize Date
             raw_date = post_data.get('date')
-            formatted_date = None
-            if raw_date:
-                try:
-                    formatted_date = datetime.strptime(raw_date, '%m/%d/%Y').date()
-                except ValueError:
-                    formatted_date = raw_date
+            formatted_date = datetime.strptime(raw_date, '%m/%d/%Y').date() if raw_date else None
 
-            # 4. Prepare Header Data Dictionary
-            header_data = {
+            # 4. Prepare Header Data
+            header_params = {
                 'date': formatted_date,
                 'cm_no': cmf_obj,
                 'code': prod_code_obj,
@@ -74,59 +63,73 @@ def save_mb_complete_formula(request):
             }
 
             changed_fields = []
+            ingredients_changed = False
 
             if formula_id:
-                # --- UPDATE LOGIC ---
                 header = tbl_mb_extruder_formula.objects.get(pk=formula_id)
                 
-                # Check for changes in header
-                for field, new_value in header_data.items():
+                # --- TRACK HEADER CHANGES ---
+                for field, new_value in header_params.items():
                     current_value = getattr(header, field)
-                    # Convert both to string to avoid Decimal/Float/None comparison issues
                     if str(current_value) != str(new_value):
                         setattr(header, field, new_value)
                         changed_fields.append(get_pretty_name(field))
-                
                 header.save()
+
+                # --- TRACK INGREDIENT CHANGES ---
+                # 1. Get existing ingredients from DB
+                old_ings = list(tbl_mb_extruder_formula02.objects.filter(mb=header).values('material', 'value', 'weight'))
                 
-                # Update Ingredients (Clear and Re-save)
-                tbl_mb_extruder_formula02.objects.filter(mb=header).delete()
+                # 2. Construct the new list from POST data
+                new_ings = []
+                for i in range(1, 11):
+                    mat = post_data.get(f'material_{i}', '').strip()
+                    if mat:
+                        new_ings.append({
+                            'material': mat,
+                            'value': Decimal(clean_num(post_data.get(f'percentage_{i}')) or 0),
+                            'weight': Decimal(clean_num(post_data.get(f'weight_{i}')) or 0)
+                        })
+
+                # 3. Compare lists
+                if str(old_ings) != str(new_ings):
+                    ingredients_changed = True
+                    # If changed, delete and recreate
+                    tbl_mb_extruder_formula02.objects.filter(mb=header).delete()
+                    for ing in new_ings:
+                        tbl_mb_extruder_formula02.objects.create(mb=header, **ing)
+                
                 action_type = "Updated"
             else:
                 # --- CREATE LOGIC ---
-                header = tbl_mb_extruder_formula.objects.create(**header_data)
+                header = tbl_mb_extruder_formula.objects.create(**header_params)
+                for i in range(1, 11):
+                    mat = post_data.get(f'material_{i}', '').strip()
+                    if mat:
+                        tbl_mb_extruder_formula02.objects.create(
+                            mb=header,
+                            material=mat,
+                            value=clean_num(post_data.get(f'percentage_{i}')) or 0,
+                            weight=clean_num(post_data.get(f'weight_{i}')) or 0
+                        )
                 action_type = "Saved"
 
-            # 5. Save/Re-save Ingredients (1-10 rows)
-            ingredients_added = False
-            for i in range(1, 11):
-                mat_name = post_data.get(f'material_{i}')
-                if mat_name and mat_name.strip():
-                    tbl_mb_extruder_formula02.objects.create(
-                        mb=header,
-                        material=mat_name,
-                        value=clean_num(post_data.get(f'percentage_{i}')) or 0,
-                        weight=clean_num(post_data.get(f'weight_{i}')) or 0
-                    )
-                    ingredients_added = True
-
-            # 6. Construct Detailed Audit Trail Message
+            # 5. Build Audit Message
             lot_display = header.lot_no if header.lot_no else "N/A"
-            
             if action_type == "Updated":
-                msg = f"Updated MB Formula (Lot: {lot_display}). "
-                if changed_fields:
-                    msg += f"Modified fields: {', '.join(changed_fields)}. "
-                if ingredients_added:
-                    msg += "Material composition updated."
+                if not changed_fields and not ingredients_changed:
+                    msg = f"Viewed/Saved MB Formula (Lot: {lot_display}) without changes."
+                else:
+                    msg = f"Updated MB Formula (Lot: {lot_display}). "
+                    if changed_fields: msg += f"Modified: {', '.join(changed_fields)}. "
+                    if ingredients_changed: msg += "Material composition updated."
             else:
                 msg = f"Saved new MB Formula (Lot: {lot_display}) for CMF: {cmf_obj.cm_no}."
 
             log_audit(request, action_type, msg)
-            
             return header
 
     except IntegrityError:
-        raise Exception("The Lot Number provided already exists in the system. Please use a unique Lot Number.")
+        raise Exception("The Lot Number provided already exists.")
     except Exception as e:
         raise Exception(f"Database Error: {str(e)}")

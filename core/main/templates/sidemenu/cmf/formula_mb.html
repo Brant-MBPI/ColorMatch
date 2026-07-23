@@ -56,7 +56,7 @@
                         <div class="col-7">
                             <input type="text" name="resin_used" id="id_resin_used" 
                                    value="{{ form_data.resin_used|default:'' }}" 
-                                   class="form-control form-control-sm uniform-input readonly-gray" required>
+                                   class="form-control form-control-sm uniform-input readonly-gray" readonly required>
                         </div>
                     </div>
                     <div class="row g-2 align-items-center mb-2">
@@ -64,7 +64,7 @@
                         <div class="col-7">
                             <input type="text" name="customer" id="id_customer" 
                                    value="{{ form_data.customer|default:'' }}" 
-                                   class="form-control form-control-sm uniform-input readonly-gray" required>
+                                   class="form-control form-control-sm uniform-input readonly-gray" readonly required>
                         </div>
                     </div>
                     <div class="row g-2 align-items-center mb-2">
@@ -72,7 +72,7 @@
                         <div class="col-7">
                             <input type="text" name="dosage" id="id_dosage" 
                                    value="{{ form_data.dosage|default:'' }}" 
-                                   class="form-control form-control-sm uniform-input readonly-gray" required>
+                                   class="form-control form-control-sm uniform-input readonly-gray" readonly required>
                         </div>
                     </div>
                     <div class="row g-2 align-items-center mb-2">
@@ -96,7 +96,7 @@
                         <div class="col-7">
                             <input type="text" name="color" id="id_color" 
                                    value="{{ form_data.color|default:'' }}" 
-                                   class="form-control form-control-sm uniform-input readonly-gray" required>
+                                   class="form-control form-control-sm uniform-input readonly-gray" readonly required>
                         </div>
                     </div>
                     <div class="row g-2 align-items-center mb-2">
@@ -104,7 +104,7 @@
                         <div class="col-7">
                             <input type="text" name="application" id="id_application" 
                                    value="{{ form_data.application|default:'' }}" 
-                                   class="form-control form-control-sm uniform-input readonly-gray" required>
+                                   class="form-control form-control-sm uniform-input readonly-gray" readonly required>
                         </div>
                     </div>
                     <div class="row g-2 align-items-center">
@@ -112,7 +112,7 @@
                         <div class="col-7">
                             <input type="text" name="finished_product" id="id_finished_product" 
                                    value="{{ form_data.finished_product|default:'' }}" 
-                                   class="form-control form-control-sm uniform-input readonly-gray" required>
+                                   class="form-control form-control-sm uniform-input readonly-gray" readonly required>
                         </div>
                     </div>
                 </div>
@@ -152,7 +152,7 @@
                         <div class="col-7">
                             <input type="text" name="encoded_by" id="id_encoded_by" 
                                    value="{% if form_data.encoded_by %}{{ form_data.encoded_by }}{% else %}{{ user.first_name|default:'' }}{% endif %}" 
-                                   class="form-control form-control-sm uniform-input readonly-gray" required>
+                                   class="form-control form-control-sm uniform-input readonly-gray" readonly required>
                         </div>
                     </div>
                 </div>
