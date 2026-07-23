@@ -137,11 +137,11 @@ def save_dc_complete_formula(request):
                 if not changed_fields and not ingredients_changed:
                     msg = f"Viewed/Saved DC Formula (Lot: {lot_display}) without changes."
                 else:
-                    msg = f"Updated DC Formula (Lot: {lot_display}). "
+                    msg = f"DC Formula (Lot: {lot_display}). "
                     if changed_fields: msg += f"Modified: {', '.join(changed_fields)}. "
                     if ingredients_changed: msg += "Material composition updated."
             else:
-                msg = f"Saved new DC Formula (Lot: {lot_display}) with Product Code: {p_code} for CMF: {cmf_obj.cm_no}."
+                msg = f"New DC Formula (Lot: {lot_display}) with Product Code: {p_code} for CMF: {cmf_obj.cm_no}."
 
             log_audit(request, action_type, msg)
             

@@ -120,11 +120,11 @@ def save_mb_complete_formula(request):
                 if not changed_fields and not ingredients_changed:
                     msg = f"Viewed/Saved MB Formula (Lot: {lot_display}) without changes."
                 else:
-                    msg = f"Updated MB Formula (Lot: {lot_display}). "
+                    msg = f"MB Formula (Lot: {lot_display}). "
                     if changed_fields: msg += f"Modified: {', '.join(changed_fields)}. "
                     if ingredients_changed: msg += "Material composition updated."
             else:
-                msg = f"Saved new MB Formula (Lot: {lot_display}) for CMF: {cmf_obj.cm_no}."
+                msg = f"New MB Formula (Lot: {lot_display}) for CMF: {cmf_obj.cm_no}."
 
             log_audit(request, action_type, msg)
             return header
