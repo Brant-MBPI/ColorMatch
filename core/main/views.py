@@ -310,8 +310,8 @@ def cmf_mb_formula(request):
                         ingredients = ingredients[:10]
                     else:
                         messages.error(request, f"Formula record not found for ID {formula_id}.")
-                if not ingredients:
-                    ingredients = [{'material': '', 'value': '', 'weight': ''}] * 10
+    if not ingredients:
+        ingredients = [{'material': '', 'value': '', 'weight': ''}] * 10
     user_names = User.objects.filter(is_active=True).exclude(first_name="").values_list('first_name', flat=True).distinct().order_by('first_name')
 
     context = {
@@ -400,8 +400,8 @@ def cmf_dc_formula(request):
                         ingredients = ingredients[:10]
                     else:
                         messages.error(request, f"Formula record not found for ID {formula_id}.")
-                if not ingredients:
-                    ingredients = [{'material': '', 'value': '', 'weight': ''}] * 10
+    if not ingredients:
+            ingredients = [{'material': '', 'value': '', 'weight': ''}] * 10
 
     user_names = User.objects.filter(is_active=True).exclude(first_name="").values_list('first_name', flat=True).distinct().order_by('first_name')
 
