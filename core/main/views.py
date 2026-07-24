@@ -378,7 +378,7 @@ def cmf_dc_formula(request):
                             'sample_size': header.sample_size or "",
                             'mixing_time': header.mixing_time or "",
                             'matched_by': header.matched_by or "",
-                            'weighed_by': header.weighed_by or "",
+                            'weighed_by': header.weighted_by or "",
                             'encoded_by': header.encoded_by or "",
                             'total_weight': header.total_weight,
                             'spectro_l': header.L,

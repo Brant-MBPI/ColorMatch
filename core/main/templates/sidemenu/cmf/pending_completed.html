@@ -86,63 +86,72 @@ Pending/Completed Forms
                     <!-- RIGHT COLUMN -->
                     <div class="col-lg-6">
                         <div class="mb-3">
-                            <label class="fw-bold extra-small">Current Status:</label>
-                            <select class="form-select form-select-sm uniform-input">
-                                <option value="Pending">Pending</option>
-                                <option value="Completed">Completed</option>
-                                <option value="In Progress">In Progress</option>
-                            </select>
+                            <label class="fw-bold extra-small d-block mb-1 required-label">Current Status:</label>
+                            <div class="d-flex align-items-center flex-wrap gap-3">
+                                <div class="form-check">
+                                    <input class="form-check-input visible-check" type="radio" name="status" value="Pending" id="status_pending" {% if form_data.status == 'Pending' or not form_data.status %}checked{% endif %} required>
+                                    <label class="form-check-label extra-small" for="status_pending">Pending</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input visible-check" type="radio" name="status" value="In Progress" id="status_in_progress" {% if form_data.status == 'In Progress' %}checked{% endif %} required>
+                                    <label class="form-check-label extra-small" for="status_in_progress">In Progress</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input visible-check" type="radio" name="status" value="Completed" id="status_completed" {% if form_data.status == 'Completed' %}checked{% endif %} required>
+                                    <label class="form-check-label extra-small" for="status_completed">Completed</label>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="mb-3">
                             <label class="fw-bold extra-small">Pending Reason:</label>
-                            <input type="text" class="form-control form-control-sm uniform-input">
+                            <input type="text" name="pending_reason" value="{{ form_data.pending_reason|default:'' }}" class="form-control form-control-sm uniform-input">
                         </div>
 
                         <div class="mb-3">
                             <label class="fw-bold extra-small">Product Code:</label>
-                            <input type="text" class="form-control form-control-sm uniform-input">
+                            <input type="text" name="product_code" value="{{ form_data.product_code|default:'' }}" class="form-control form-control-sm uniform-input">
                         </div>
 
                         <div class="mb-3">
                             <label class="fw-bold extra-small">Code Description:</label>
-                            <input type="text" class="form-control form-control-sm uniform-input">
+                            <input type="text" name="code_description" value="{{ form_data.code_description|default:'' }}" class="form-control form-control-sm uniform-input">
                         </div>
 
                         <!-- Set-Pc & Qty Given -->
                         <div class="row g-2 mb-3">
                             <div class="col-6">
                                 <label class="fw-bold extra-small">Set (Pc/Pcs):</label>
-                                <input type="text" class="form-control form-control-sm uniform-input" placeholder="Qty">
+                                <input type="number" name="set_pc" value="{{ form_data.set_pc|default:'' }}" class="form-control form-control-sm uniform-input" placeholder="Qty" step="1" min="0" inputmode="numeric" onkeydown="if(['.', ',', 'e', 'E', '+', '-'].includes(event.key)) event.preventDefault();">
                             </div>
                             <div class="col-6">
                                 <label class="fw-bold extra-small">Qty Given:</label>
-                                <input type="text" class="form-control form-control-sm uniform-input" placeholder="KG">
+                                <input type="number" name="qty_given" value="{{ form_data.qty_given|default:'' }}" class="form-control form-control-sm uniform-input" placeholder="KG" step="0.01" min="0" inputmode="decimal">
                             </div>
                         </div>
 
                         <div class="mb-3">
                             <label class="fw-bold extra-small">Date Submitted:</label>
                             <div class="input-group input-group-sm flatpickr-container" data-wrap="true">
-                                <input type="text" name="date_submitted" class="form-control uniform-input date-picker-single" placeholder="MM/DD/YYYY" data-input>
+                                <input type="text" name="date_submitted" value="{{ form_data.date_submitted|default:'' }}" class="form-control uniform-input date-picker-single" placeholder="MM/DD/YYYY" data-input>
                                 <span class="input-group-text uniform-input border-start-0" data-toggle><i class="bi bi-calendar3"></i></span>
                             </div>
                         </div>
 
                         <div class="mb-3">
                             <label class="fw-bold extra-small">Lot No.:</label>
-                            <input type="text" class="form-control form-control-sm uniform-input">
+                            <input type="text" name="lot_no" value="{{ form_data.lot_no|default:'' }}" class="form-control form-control-sm uniform-input">
                         </div>
 
                         <div class="mb-3">
                             <label class="fw-bold extra-small">AR No.:</label>
-                            <input type="text" class="form-control form-control-sm uniform-input">
+                            <input type="text" name="ar_no" value="{{ form_data.ar_no|default:'' }}" class="form-control form-control-sm uniform-input">
                         </div>
 
                         <div class="mb-0">
                             <label class="fw-bold extra-small">AR Date:</label>
                             <div class="input-group input-group-sm flatpickr-container" data-wrap="true">
-                                <input type="text" name="ar_date" class="form-control uniform-input date-picker-single" placeholder="MM/DD/YYYY" data-input>
+                                <input type="text" name="ar_date" value="{{ form_data.ar_date|default:'' }}" class="form-control uniform-input date-picker-single" placeholder="MM/DD/YYYY" data-input>
                                 <span class="input-group-text uniform-input border-start-0" data-toggle><i class="bi bi-calendar3"></i></span>
                             </div>
                         </div>
