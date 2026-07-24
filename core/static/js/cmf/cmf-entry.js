@@ -1,22 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
 
-    // --- 1. TOM SELECT INITIALIZATION ---
-    document.querySelectorAll('.ts-select').forEach((el) => {
-        if (el.tomselect) {
-            return; 
-        }
-        new TomSelect(el, {
-            plugins: ['remove_button'],
-            create: false,
-            persist: false,
-            placeholder: el.getAttribute('placeholder') || "Select options...",
-            maxOptions: null,
-            onItemAdd: function() {
-                this.setTextboxValue('');
-                this.refreshOptions();
-            }
-        });
-    });
+    
 
     // --- 2. DOM ELEMENTS ---
     const cmfForm = document.querySelector('.cmf-entry-form');

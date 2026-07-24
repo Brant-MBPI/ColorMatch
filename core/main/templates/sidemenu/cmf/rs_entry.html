@@ -79,6 +79,10 @@ RS Entry
                                 <input class="form-check-input visible-check" type="radio" name="matchType" value="rematch" id="rs_re" {% if form_data.matchType == 'rematch' %}checked{% endif %} required>
                                 <label class="form-check-label extra-small" for="rs_re">Re-Match</label>
                             </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input visible-check" type="radio" name="matchType" value="request" id="rs_request" {% if form_data.matchType == 'request' %}checked{% endif %} required>
+                                <label class="form-check-label extra-small" for="rs_request">Request</label>
+                            </div>
                         </div>
 
                         <div class="row g-2 mb-2">

@@ -1,20 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
 
-    // --- TOM SELECT INITIALIZATION ---
-    document.querySelectorAll('.ts-select').forEach((el) => {
-        new TomSelect(el, {
-            plugins: ['remove_button'],
-            create: false,
-            persist: false,
-            placeholder: el.getAttribute('placeholder') || "Select options...",
-            maxOptions: null,
-            onItemAdd: function() {
-                this.setTextboxValue('');
-                this.refreshOptions();
-            }
-        });
-    });
-
     // --- DOM ELEMENTS ---
     const completedCheckbox = document.getElementById('completed');
     const pendingCheckbox = document.getElementById('pending');
