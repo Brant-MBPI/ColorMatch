@@ -273,6 +273,7 @@ def cmf_mb_formula(request):
                     'dosage': formula_info.dosage if formula_info else "",
                     'finished_product': formula_info.finished_product if formula_info else "",
                     'color': cmf.in_code_no.color if cmf.in_code_no else "",
+                    'product': cmf.in_code_no.code if cmf.in_code_no else "",
                     'application': application_str,
                 }
 
@@ -363,6 +364,7 @@ def cmf_dc_formula(request):
                     'dosage': formula_info.dosage if formula_info else "",
                     'finished_product': formula_info.finished_product if formula_info else "",
                     'color': cmf.in_code_no.color if cmf.in_code_no else "",
+                    'product': cmf.in_code_no.code if cmf.in_code_no else "",
                     'application': app_str,
                 }
 
