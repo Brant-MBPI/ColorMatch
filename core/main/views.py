@@ -200,33 +200,47 @@ def cmf_rs_entry(request):
 
 
 def cmf_record_detail(request, cm_no):
-    # 1. Fetch Header Data
-    cmf = get_object_or_404(tbl_cmf, cm_no=cm_no)
-    formula_info = tbl_cmf_formula.objects.filter(cm_no=cm_no).first()
-    pending_info = tbl_cmf_pending_completed.objects.filter(cm_no=cm_no).first()
+    # Get the base number by removing the last character (e.g., 'CM24-001A' -> 'CM24-001')
+    base_no = cm_no[:-1] 
+    
+    # Fetch all records that share this base prefix
+    cmf_revisions = tbl_cmf.objects.filter(cm_no__startswith=base_no).order_by('-cm_no')
 
-    # 2. Fetch MB Formulas + Ingredients
-    mb_list = []
-    mb_qs = tbl_mb_extruder_formula.objects.filter(cm_no=cm_no).select_related('code')
-    for f in mb_qs:
-        ingredients = tbl_mb_extruder_formula02.objects.filter(mb=f)
-        mb_list.append({'header': f, 'ingredients': ingredients})
+    # This will hold the complete data for every revision found
+    revisions_data = []
 
-    # 3. Fetch DC Formulas + Ingredients
-    dc_list = []
-    dc_qs = tbl_dc_extruder_formula.objects.filter(cm_no=cm_no).select_related('code')
-    for f in dc_qs:
-        ingredients = tbl_dc_extruder_formula02.objects.filter(dc=f)
-        dc_list.append({'header': f, 'ingredients': ingredients})
+    for cmf in cmf_revisions:
+        # Fetch data specific to this revision
+        formula_info = tbl_cmf_formula.objects.filter(cm_no=cmf.cm_no).first()
+        pending_info = tbl_cmf_pending_completed.objects.filter(cm_no=cmf.cm_no).first()
+
+        # MB Formulas for this revision
+        mb_list = []
+        mb_qs = tbl_mb_extruder_formula.objects.filter(cm_no=cmf.cm_no).select_related('code')
+        for f in mb_qs:
+            ingredients = tbl_mb_extruder_formula02.objects.filter(mb=f)
+            mb_list.append({'header': f, 'ingredients': ingredients})
+
+        # DC Formulas for this revision
+        dc_list = []
+        dc_qs = tbl_dc_extruder_formula.objects.filter(cm_no=cmf.cm_no).select_related('code')
+        for f in dc_qs:
+            ingredients = tbl_dc_extruder_formula02.objects.filter(dc=f)
+            dc_list.append({'header': f, 'ingredients': ingredients})
+
+        revisions_data.append({
+            'cmf': cmf,
+            'formula_info': formula_info,
+            'pending_info': pending_info,
+            'mb_formulas': mb_list,
+            'dc_formulas': dc_list,
+        })
 
     context = {
-        'cmf': cmf,
-        'formula_info': formula_info,
-        'pending_info': pending_info,
-        'mb_formulas': mb_list,
-        'dc_formulas': dc_list,
+        'revisions': revisions_data,
+        'base_no': base_no
     }
-    # IMPORTANT: Use a partial template file
+    
     return render(request, "modal/cmf-record/cmf_record_detail.html", context)
 
 def cmf_mb_formula(request):

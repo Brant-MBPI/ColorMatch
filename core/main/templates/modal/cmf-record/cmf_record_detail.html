@@ -1,16 +1,17 @@
+{% for rev in revisions %}
 <!-- PARENT CMF ROW -->
 <tr class="main-modal-parent-row" style="cursor:pointer; background-color: var(--sidebar-active-bg);">
     <td class="text-center">
         <i class="bi bi-plus-circle-fill toggle-main-icon" style="color: var(--sidebar-header-bg);"></i>
     </td>
-    <td class="fw-bold text-teal">{{ cmf.cm_no }}</td>
-    <td>{{ formula_info.customer|default:"---" }}</td>
-    <td>{{ cmf.in_code_no.color|default:"---" }}</td>
-    <td>{{ cmf.matching_type|default:"---" }}</td>
-    <td><code>{{ pending_info.prod_code|default:"---" }}</code></td>
+    <td class="fw-bold text-teal">{{ rev.cmf.cm_no }}</td>
+    <td>{{ rev.formula_info.customer|default:"---" }}</td>
+    <td>{{ rev.cmf.in_code_no.color|default:"---" }}</td>
+    <td>{{ rev.cmf.matching_type|default:"---" }}</td>
+    <td><code>{{ rev.pending_info.prod_code|default:"---" }}</code></td>
     <td>
-        <span class="badge {% if pending_info.is_completed %}bg-success-subtle text-success border border-success{% else %}bg-warning-subtle text-warning border border-warning{% endif %}">
-            {% if pending_info.is_completed %}Completed{% else %}Pending{% endif %}
+        <span class="badge {% if rev.pending_info.is_completed %}bg-success-subtle text-success border border-success{% else %}bg-warning-subtle text-warning border border-warning{% endif %}">
+            {% if rev.pending_info.is_completed %}Completed{% else %}Pending{% endif %}
         </span>
     </td>
 </tr>
@@ -20,12 +21,12 @@
     <td colspan="7" class="p-3 border-0">
         <div class="formula-container shadow-sm border rounded p-4 bg-white">
             
-            {% if not mb_formulas and not dc_formulas %}
+            {% if not rev.mb_formulas and not rev.dc_formulas %}
                 <div class="text-center py-4 text-muted small fw-bold">No Formula Records Found</div>
             {% endif %}
 
             <!-- MB TABLES -->
-            {% if mb_formulas %}
+            {% if rev.mb_formulas %}
             <div class="mb-4">
                 <div class="p-2 mb-2 border-bottom d-flex align-items-center">
                     <i class="bi bi-gear-fill text-teal me-2"></i>
@@ -44,17 +45,17 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for item in mb_formulas %}
+                        {% for item in rev.mb_formulas %}
                         <tr class="fw-bold bg-light-subtle formula-header-clickable formula-row-hover">
                             <td>{{ item.header.date|date:"m/d/Y" }}</td>
                             <td>{{ item.header.code.product_code|default:"---" }}</td>
                             <td>{{ item.header.lot_no|default:"---" }}</td>
-                            <td>{{ cmf.in_code_no.color }}</td>
+                            <td>{{ rev.cmf.in_code_no.color }}</td>
                             <td>{{ item.header.mixing_time|default:"---" }}</td>
                             <td>{{ item.header.matched_by|default:"---" }}</td>
                             <td class="text-end pe-3">
                                 <i class="bi bi-pencil-square formula-edit-icon"
-                                data-cm-no="{{ cmf.cm_no }}"
+                                data-cm-no="{{ rev.cmf.cm_no }}"
                                 data-formula-id="{{ item.header.pk }}"
                                 data-formula-type="mb"
                                 title="Edit this MB formula"></i>
@@ -82,7 +83,7 @@
             {% endif %}
 
             <!-- DC TABLES -->
-            {% if dc_formulas %}
+            {% if rev.dc_formulas %}
             <div class="mb-2">
                 <div class="p-2 mb-2 border-bottom d-flex align-items-center">
                     <i class="bi bi-box-seam-fill text-teal me-2"></i>
@@ -101,17 +102,17 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% for item in dc_formulas %}
+                        {% for item in rev.dc_formulas %}
                         <tr class="fw-bold bg-light-subtle formula-header-clickable formula-row-hover">
                             <td>{{ item.header.date|date:"m/d/Y" }}</td>
                             <td>{{ item.header.code.product_code|default:"---" }}</td>
-                            <td>{{ cmf.in_code_no.color }}</td>
+                            <td>{{ rev.cmf.in_code_no.color }}</td>
                             <td>{{ item.header.sample_size|default:"---" }}</td>
                             <td>{{ item.header.mixing_time|default:"---" }}</td>
                             <td>{{ item.header.matched_by|default:"---" }}</td>
                             <td class="text-end pe-3">
                                 <i class="bi bi-pencil-square formula-edit-icon"
-                                data-cm-no="{{ cmf.cm_no }}"
+                                data-cm-no="{{ rev.cmf.cm_no }}"
                                 data-formula-id="{{ item.header.pk }}"
                                 data-formula-type="dc"
                                 title="Edit this DC formula"></i>
@@ -140,3 +141,4 @@
         </div>
     </td>
 </tr>
+{% endfor %}

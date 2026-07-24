@@ -1,4 +1,5 @@
 import re
+from django.core.cache import cache
 from django.db import transaction
 from datetime import datetime
 from main.utils.log_audit_trail import log_audit
@@ -139,6 +140,7 @@ def save_cmf_complete_entry(request):
         tbl_cmf_pending_completed.objects.create(cm_no=cmf_main)
         tbl_feedback_details.objects.create(cm_no=cmf_main)
         
+        cache.delete('audit_trail_records_list')
         log_audit(request, "Saved", f"New CMF Entry: {cmf_main.cm_no}")
     return cmf_main
 
