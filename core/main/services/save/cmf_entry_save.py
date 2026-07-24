@@ -140,7 +140,7 @@ def save_cmf_complete_entry(request):
         tbl_cmf_pending_completed.objects.create(cm_no=cmf_main)
         tbl_feedback_details.objects.create(cm_no=cmf_main)
         
-        cache.delete('audit_trail_records_list')
+        cache.delete('cmf_records_list')
         log_audit(request, "Saved", f"New CMF Entry: {cmf_main.cm_no}")
     return cmf_main
 
@@ -332,7 +332,7 @@ def update_cmf_complete_entry(request, original_cmf_no):
                 log_msg += f". Modified: {', '.join(changed_fields)}"
             if selections_changed:
                 log_msg += ". Selection configurations (Resin/Process/Specification) were updated."
-
+        cache.delete('cmf_records_list')
         log_audit(request, "Updated", log_msg)
 
     return cmf_main

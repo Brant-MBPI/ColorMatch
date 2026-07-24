@@ -12,7 +12,7 @@ def get_cmf_records():
     if cached_data is not None:
         return cached_data
 
-    status_records = tbl_cmf_pending_completed.objects.filter(cm_no__isnull=False).select_related('cm_no')
+    status_records = tbl_cmf_pending_completed.objects.filter(cm_no__isnull=False).select_related('cm_no').order_by('-cm_no')
     results = []
     for entry in status_records:
         cmf = entry.cm_no
@@ -46,7 +46,7 @@ def get_rs_records():
     if cached_data is not None:
         return cached_data
 
-    status_records = tbl_cmf_pending_completed.objects.filter(rs_no__isnull=False).select_related('rs_no')
+    status_records = tbl_cmf_pending_completed.objects.filter(rs_no__isnull=False).select_related('rs_no').order_by('-rs_no')
     results = []
     for entry in status_records:
         rs = entry.rs_no
