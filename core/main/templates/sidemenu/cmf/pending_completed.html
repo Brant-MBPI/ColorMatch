@@ -15,11 +15,10 @@ Pending/Completed Forms
                 </h5>
                 
                 <div class="row g-4">
-                    <!-- LEFT COLUMN (Shared Meta Info) -->
+                    <!-- LEFT COLUMN (Shared Meta Info - Readonly) -->
                     <div class="col-lg-6">
                         <div class="mb-3">
                             <label class="fw-bold extra-small">{% if form_data.rs_no %}RS Number:{% else %}Matching No:{% endif %}</label>
-                            <!-- Readonly if RS Number is passed -->
                             <input type="text" name="matching_no" value="{% if form_data.rs_no %}{{ form_data.rs_no }}{% elif form_data.cmf_no %}{{ form_data.cmf_no }}{% else %}{% endif %}" class="form-control form-control-sm uniform-input readonly-gray" readonly>
                         </div>
 
@@ -31,31 +30,31 @@ Pending/Completed Forms
                         <div class="row g-2 mb-3">
                             <div class="col-6">
                                 <label class="fw-bold extra-small">Date Created:</label>
-                                <input type="text" name="date_created" value="{{ form_data.date_created|default:'' }}" class="form-control form-control-sm uniform-input readonly-gray" readonly>
+                                <input type="text" value="{{ form_data.date_created|default:'' }}" class="form-control form-control-sm uniform-input readonly-gray" readonly>
                             </div>
                             <div class="col-6">
-                                <label class="fw-bold extra-small">Required:</label>
-                                <input type="text" name="required_date" value="{{ form_data.required_date|default:'' }}" class="form-control form-control-sm uniform-input readonly-gray" readonly>
+                                <label class="fw-bold extra-small">Quantity Required (KG):</label>
+                                <input type="text" value="{{ form_data.quantity_kg|default:'0.00' }}" class="form-control form-control-sm uniform-input readonly-gray" readonly>
                             </div>
                         </div>
 
                         <div class="row g-2 mb-3">
                             <div class="col-6">
                                 <label class="fw-bold extra-small">Date Received:</label>
-                                <input type="text" name="date_received" value="{{ form_data.date_received|default:'' }}" class="form-control form-control-sm uniform-input readonly-gray" readonly>
+                                <input type="text" value="{{ form_data.date_received|default:'' }}" class="form-control form-control-sm uniform-input readonly-gray" readonly>
                             </div>
                             <div class="col-6">
                                 <label class="fw-bold extra-small">Due Date:</label>
-                                <input type="text" name="due_date" value="{{ form_data.due_date|default:'' }}" class="form-control form-control-sm uniform-input readonly-gray" readonly>
+                                <input type="text" value="{{ form_data.due_date|default:'' }}" class="form-control form-control-sm uniform-input readonly-gray" readonly>
                             </div>
                         </div>
 
                         <div class="mb-3">
                             <label class="fw-bold extra-small">Finished Product:</label>
-                            <input type="text" name="finished_product" value="{{ form_data.finished_product|default:'' }}" class="form-control form-control-sm uniform-input readonly-gray" readonly>
+                            <input type="text" value="{{ form_data.finished_product|default:'' }}" class="form-control form-control-sm uniform-input readonly-gray" readonly>
                         </div>
 
-                        <!-- CMF-ONLY FIELDS -->
+                        <!-- CMF-SPECIFIC READONLY FIELDS -->
                         {% if not form_data.rs_no %}
                         <div class="mb-3">
                             <label class="fw-bold extra-small">Color Description:</label>
@@ -67,8 +66,18 @@ Pending/Completed Forms
                         </div>
                         {% endif %}
 
-                        <!-- RS-ONLY FIELDS -->
+                        <!-- RS-SPECIFIC READONLY FIELDS -->
                         {% if form_data.rs_no %}
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="fw-bold extra-small">Color Required:</label>
+                                <input type="text" value="{{ form_data.colorReq|default:'' }}" class="form-control form-control-sm uniform-input readonly-gray" readonly>
+                            </div>
+                            <div class="col-6">
+                                <label class="fw-bold extra-small">Colorant Type:</label>
+                                <input type="text" value="{{ form_data.colorantType|default:'' }}" class="form-control form-control-sm uniform-input readonly-gray" readonly>
+                            </div>
+                        </div>
                         <div class="mb-3">
                             <label class="fw-bold extra-small">Resin:</label>
                             <input type="text" value="{{ form_data.resin_names|default:'' }}" class="form-control form-control-sm uniform-input readonly-gray" readonly>
@@ -106,10 +115,10 @@ Pending/Completed Forms
                             <input type="text" name="product_code" value="{{ form_data.product_code|default:'' }}" class="form-control form-control-sm uniform-input">
                         </div>
 
-                        <!-- Qty Given (KG) - Prominent for RS -->
+                        <!-- Qty Given (KG) - Defaults to Quantity Required if empty -->
                         <div class="mb-3">
-                            <label class="fw-bold extra-small">Qty Given (KG):</label>"{% if form_data.qty_given %}{{ form_data.qty_given }}{% elif form_data.quantity_kg %}{{ form_data.quantity_kg }}{% else %}{% endif %}"
-                            <input type="number" name="qty_given" value="{{ form_data.qty_given|default:form_data.quantity_kg }}" class="form-control form-control-sm uniform-input" placeholder="KG" step="0.01" min="0">
+                            <label class="fw-bold extra-small">Qty Given (KG):</label>
+                            <input type="number" name="qty_given" value="{% if form_data.qty_given %}{{ form_data.qty_given }}{% elif form_data.quantity_kg %}{{ form_data.quantity_kg }}{% else %}{% endif %}" class="form-control form-control-sm uniform-input" placeholder="KG" step="0.01" min="0">
                         </div>
 
                         {% if not form_data.rs_no %}
