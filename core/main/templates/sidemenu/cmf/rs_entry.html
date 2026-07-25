@@ -18,40 +18,16 @@ RS Entry
                         <h6 class="cmf-section-title mb-3">General Information</h6>
 
                         <div class="row g-2 mb-2">
-                            <div class="col-md-6">
+                            <div class="col-md-12">
                                 <label class="fw-bold extra-small required-label">RS Number:</label>
                                 <input type="text" name="rs_no" value="{{ form_data.rs_no|default:'' }}" class="form-control form-control-sm uniform-input" {% if is_edit %}readonly{% endif %} required>
                             </div>
-                            <div class="col-md-6">
-                                <label class="fw-bold extra-small required-label">Sales Person:</label>
-                                <select class="form-select form-select-sm ts-select" name="salesman" placeholder="Select salesman..." required>
-                                    <option value=""></option>
-                                    {% for s in salesman %}
-                                        <option value="{{ s.name }}" {% if form_data.salesman == s.name %}selected{% endif %}>{{ s.name }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="row g-2 mb-2">
                             <div class="col-md-12">
                                 <label class="fw-bold extra-small required-label">Customer:</label>
                                 <select class="form-select form-select-sm ts-select" name="customer" placeholder="Select customer..." required>
                                     <option value=""></option>
                                     {% for customer in customers %}
                                         <option value="{{ customer }}" {% if form_data.customer == customer %}selected{% endif %}>{{ customer }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="row g-2 mb-2">
-                            <div class="col-md-12">
-                                <label class="fw-bold extra-small required-label">Primary Color:</label>
-                                <select class="form-select form-select-sm ts-select" name="primary_color" placeholder="Select color" required>
-                                    <option value=""></option>
-                                    {% for c in primary_color %}
-                                        <option value="{{ c.color }}" {% if form_data.primary_color == c.color %}selected{% endif %}>{{ c.color }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
@@ -93,19 +69,40 @@ RS Entry
                         </div>
 
                         <div class="row g-2 mb-2">
-                            <div class="col-md-6">
-                                <label class="fw-bold extra-small required-label">Quantity Required (KG):</label>
-                                <input type="number" name="quantity_kg" step="0.01" value="{{ form_data.quantity_kg|default:'' }}" class="form-control form-control-sm uniform-input" placeholder="0.00" required>
+                            <div class="col-md-12">
+                                <label class="fw-bold extra-small required-label">Sales Person:</label>
+                                <select class="form-select form-select-sm ts-select" name="salesman" placeholder="Select salesman..." required>
+                                    <option value=""></option>
+                                    {% for s in salesman %}
+                                        <option value="{{ s.name }}" {% if form_data.salesman == s.name %}selected{% endif %}>{{ s.name }}</option>
+                                    {% endfor %}
+                                </select>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-12">
                                 <label class="fw-bold extra-small required-label">Finished Product:</label>
                                 <input type="text" name="finished_product" value="{{ form_data.finished_product|default:'' }}" class="form-control form-control-sm uniform-input" required>
                             </div>
                         </div>
 
-                        <div class="row g-2">
+                        <div class="row g-2 mb-2">
                             <div class="col-md-12">
-                                <label class="fw-bold extra-small">Color Description:</label>
+                                <label class="fw-bold extra-small required-label">Quantity Required (KG):</label>
+                                <input type="number" name="quantity_kg" step="0.01" value="{{ form_data.quantity_kg|default:'' }}" class="form-control form-control-sm uniform-input" placeholder="0.00" required>
+                            </div>
+                        </div>
+
+                        <div class="row g-2">
+                            <div class="col-4">
+                                <label class="fw-bold extra-small required-label">Primary Color:</label>
+                                <select class="form-select form-select-sm ts-select" name="primary_color" placeholder="Select color" required>
+                                    <option value=""></option>
+                                    {% for c in primary_color %}
+                                        <option value="{{ c.color }}" {% if form_data.primary_color == c.color %}selected{% endif %}>{{ c.color }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-8">
+                                <label class="fw-bold extra-small">Description:</label>
                                 <input type="text" name="color_description" value="{{ form_data.color_description|default:'' }}" class="form-control form-control-sm uniform-input" placeholder="Enter color description (optional)">
                             </div>
                         </div>

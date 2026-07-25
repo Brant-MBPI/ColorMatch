@@ -1,11 +1,8 @@
 from django.db import transaction
 from django.core.cache import cache
 from main.services.save.utils import to_bool, format_date, clean_numeric
-from main.models import tbl_cmf_color_req, tbl_cmf_pending_completed, tbl_cmf_process, tbl_cmf_process02, tbl_cmf_salesman, tbl_resin, tbl_resins_selected, tbl_rs
+from main.models import tbl_feedback_details, tbl_cmf_color_req, tbl_cmf_pending_completed, tbl_cmf_process, tbl_cmf_process02, tbl_cmf_salesman, tbl_resin, tbl_resins_selected, tbl_rs
 from main.utils.log_audit_trail import log_audit
-
-# from .models import tbl_rs, tbl_cmf_pending_completed
-# from .audit import log_audit
 
 def _extract_rs_data(request):
     """Pulls and normalizes RS form fields from the POST payload."""
@@ -14,7 +11,7 @@ def _extract_rs_data(request):
     colorant_type = data.get('colorantType')
     if colorant_type == "Other":
         colorant_type = data.get('colorantTypeOther')
-
+    print("Colorant Type:", colorant_type)  # Debugging line
     color_req = data.get('colorReq')
     if color_req == "other":
         color_req = data.get('colorReq_other')
@@ -26,7 +23,7 @@ def _extract_rs_data(request):
         "primary_color": data.get('primary_color'),
         "quantity_required": data.get('quantity_kg'),
         "finished_product": data.get('finished_product'),
-        "color_description": data.get('color_description'),
+        "color_desc": data.get('color_description'),
         "date_form_made": format_date(data.get('date_created')),
         "date_lab_received": data.get('date_received'),
         "date_required": data.get('required_date'),
@@ -88,10 +85,9 @@ def save_rs_complete_entry(request):
             date_required=data["date_required"],
             due_date=data["due_date"],
             finished_product=data["finished_product"],
-            color_description=data["color_description"],
+            color_desc=data["color_desc"],
             primary_color=data["primary_color"],
             colorant_type=data["colorant_type"],
-            status="Pending",
             user=request.user,
             sm_no=salesman_obj,
         )
@@ -103,6 +99,8 @@ def save_rs_complete_entry(request):
             prod_code=data["product_code"],
             is_completed=False
         )
+
+        tbl_feedback_details.objects.create(rs_no=rs_obj)
 
         log_audit(request, "Saved", f"New RS Entry: {rs_obj.rs_no}")
         cache.delete('rs_records_list')
@@ -140,7 +138,7 @@ def update_rs_complete_entry(request, original_rs_no):
         rs_instance.date_required = data["date_required"]
         rs_instance.due_date = data["due_date"]
         rs_instance.finished_product = data["finished_product"]
-        rs_instance.color_description = data["color_description"]
+        rs_instance.color_desc = data["color_desc"]
         rs_instance.primary_color = data["primary_color"]
         rs_instance.colorant_type = data["colorant_type"]
         rs_instance.sm_no = salesman_obj
@@ -186,7 +184,7 @@ def build_form_data(rs_instance):
         'primary_color': rs_instance.primary_color,
         'quantity_kg': rs_instance.quantity_required,
         'finished_product': rs_instance.finished_product,
-        'color_description': rs_instance.color_description,
+        'color_description': rs_instance.color_desc,
         'date_created': rs_instance.date_form_made,
         'required_date': rs_instance.date_required,
         'date_received': rs_instance.date_lab_received,
