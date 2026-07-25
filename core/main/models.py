@@ -339,6 +339,7 @@ class tbl_rs(models.Model):
     primary_color = models.CharField(max_length=100, blank=True, null=True)
     color_desc = models.TextField(blank=True, null=True)
     colorant_type = models.CharField(max_length=50, blank=True, null=True)
+    code_no = models.ForeignKey('tbl_generated_prod_code', on_delete=models.SET_NULL, null=True, blank=True, db_column="code_no")
     date_submitted = models.DateField(blank=True, null=True)
     status = models.CharField(max_length=50, blank=True, null=True)
     user = models.ForeignKey(tbl_user, on_delete=models.SET_NULL, null=True, blank=True, db_column="user_id")
