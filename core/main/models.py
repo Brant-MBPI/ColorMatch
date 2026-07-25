@@ -323,6 +323,7 @@ class tbl_rs(models.Model):
     id = models.AutoField(primary_key=True)
     rs_no = models.CharField(max_length=50, unique=True, blank=True, null=True)
     customer = models.CharField(max_length=150, blank=True, null=True)
+    quantity_required = models.DecimalField(max_digits=12, decimal_places=6, null=True, blank=True)
     pieces = models.IntegerField(blank=True, null=True)
     quantity_given = models.DecimalField(max_digits=12, decimal_places=6, null=True, blank=True)
     date_form_made = models.DateField(blank=True, null=True)

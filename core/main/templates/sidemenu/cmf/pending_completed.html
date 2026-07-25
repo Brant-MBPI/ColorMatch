@@ -8,17 +8,19 @@ Pending/Completed Forms
 {% block content %}
 <div class="container-fluid p-0">
     <form id="updateStatusForm">
-        <!-- Main Form Card -->
         <div class="card pc-card shadow-sm border-0 rounded-3">
             <div class="card-body p-4">
-                <h5 class="fw-bold mb-4 pc-title">Update CMF Status & Tracking</h5>
+                <h5 class="fw-bold mb-4 pc-title">
+                    {% if form_data.rs_no %}RS Status Update: {{ form_data.rs_no }}{% else %}Update CMF Status & Tracking{% endif %}
+                </h5>
                 
                 <div class="row g-4">
-                    <!-- LEFT COLUMN -->
+                    <!-- LEFT COLUMN (Shared Meta Info) -->
                     <div class="col-lg-6">
                         <div class="mb-3">
-                            <label class="fw-bold extra-small">Matching No:</label>
-                            <input type="text" name="cmf_no" value="{{ form_data.cmf_no|default:'' }}" class="form-control form-control-sm uniform-input readonly-gray" readonly>
+                            <label class="fw-bold extra-small">{% if form_data.rs_no %}RS Number:{% else %}Matching No:{% endif %}</label>
+                            <!-- Readonly if RS Number is passed -->
+                            <input type="text" name="matching_no" value="{% if form_data.rs_no %}{{ form_data.rs_no }}{% elif form_data.cmf_no %}{{ form_data.cmf_no }}{% else %}{% endif %}" class="form-control form-control-sm uniform-input readonly-gray" readonly>
                         </div>
 
                         <div class="mb-3">
@@ -26,39 +28,25 @@ Pending/Completed Forms
                             <input type="text" name="customer" value="{{ form_data.customer|default:'' }}" class="form-control form-control-sm uniform-input readonly-gray" readonly>
                         </div>
 
-                        <!-- Date Created & Required -->
                         <div class="row g-2 mb-3">
                             <div class="col-6">
                                 <label class="fw-bold extra-small">Date Created:</label>
-                                <div class="input-group input-group-sm flatpickr-container" data-wrap="true">
-                                    <input type="text" name="date_created" value="{{ form_data.date_created|default:'' }}" class="form-control uniform-input date-picker-single readonly-gray" placeholder="MM/DD/YYYY" data-input readonly>
-                                    <span class="input-group-text uniform-input border-start-0" data-toggle><i class="bi bi-calendar3"></i></span>
-                                </div>
+                                <input type="text" name="date_created" value="{{ form_data.date_created|default:'' }}" class="form-control form-control-sm uniform-input readonly-gray" readonly>
                             </div>
                             <div class="col-6">
                                 <label class="fw-bold extra-small">Required:</label>
-                                <div class="input-group input-group-sm flatpickr-container" data-wrap="true">
-                                    <input type="text" name="required_date" value="{{ form_data.required_date|default:'' }}" class="form-control uniform-input date-picker-single readonly-gray" placeholder="MM/DD/YYYY or ASAP" data-input readonly>
-                                    <span class="input-group-text uniform-input border-start-0" data-toggle><i class="bi bi-calendar3"></i></span>
-                                </div>
+                                <input type="text" name="required_date" value="{{ form_data.required_date|default:'' }}" class="form-control form-control-sm uniform-input readonly-gray" readonly>
                             </div>
                         </div>
 
-                        <!-- Date Received & Due Date -->
                         <div class="row g-2 mb-3">
                             <div class="col-6">
                                 <label class="fw-bold extra-small">Date Received:</label>
-                                <div class="input-group input-group-sm flatpickr-container" data-wrap="true">
-                                    <input type="text" name="date_received" value="{{ form_data.date_received|default:'' }}" class="form-control uniform-input date-picker-multiple readonly-gray" placeholder="MM/DD/YYYY, MM/DD/YYYY" data-input readonly>
-                                    <span class="input-group-text uniform-input border-start-0" data-toggle><i class="bi bi-calendar3"></i></span>
-                                </div>
+                                <input type="text" name="date_received" value="{{ form_data.date_received|default:'' }}" class="form-control form-control-sm uniform-input readonly-gray" readonly>
                             </div>
                             <div class="col-6">
                                 <label class="fw-bold extra-small">Due Date:</label>
-                                <div class="input-group input-group-sm flatpickr-container" data-wrap="true">
-                                    <input type="text" name="due_date" value="{{ form_data.due_date|default:'' }}" class="form-control uniform-input date-picker-single readonly-gray" placeholder="MM/DD/YYYY" data-input readonly>
-                                    <span class="input-group-text uniform-input border-start-0" data-toggle><i class="bi bi-calendar3"></i></span>
-                                </div>
+                                <input type="text" name="due_date" value="{{ form_data.due_date|default:'' }}" class="form-control form-control-sm uniform-input readonly-gray" readonly>
                             </div>
                         </div>
 
@@ -67,23 +55,32 @@ Pending/Completed Forms
                             <input type="text" name="finished_product" value="{{ form_data.finished_product|default:'' }}" class="form-control form-control-sm uniform-input readonly-gray" readonly>
                         </div>
 
+                        <!-- CMF-ONLY FIELDS -->
+                        {% if not form_data.rs_no %}
                         <div class="mb-3">
                             <label class="fw-bold extra-small">Color Description:</label>
-                            <input type="text" name="color_description" value="{{ form_data.color_description|default:'' }}" class="form-control form-control-sm uniform-input readonly-gray" readonly>
+                            <input type="text" value="{{ form_data.color_description|default:'' }}" class="form-control form-control-sm uniform-input readonly-gray" readonly>
                         </div>
-
                         <div class="mb-3">
                             <label class="fw-bold extra-small">Matching Type:</label>
-                            <input type="text" name="matchType" value="{{ form_data.matchType|default:'' }}" class="form-control form-control-sm uniform-input readonly-gray" readonly>
+                            <input type="text" value="{{ form_data.matchType|default:'' }}" class="form-control form-control-sm uniform-input readonly-gray" readonly>
                         </div>
+                        {% endif %}
 
-                        <div class="mb-0">
-                            <label class="fw-bold extra-small">Sales Person:</label>
-                            <input type="text" name="salesman" value="{{ form_data.salesman|default:'' }}" class="form-control form-control-sm uniform-input readonly-gray" readonly>
+                        <!-- RS-ONLY FIELDS -->
+                        {% if form_data.rs_no %}
+                        <div class="mb-3">
+                            <label class="fw-bold extra-small">Resin:</label>
+                            <input type="text" value="{{ form_data.resin_names|default:'' }}" class="form-control form-control-sm uniform-input readonly-gray" readonly>
                         </div>
+                        <div class="mb-3">
+                            <label class="fw-bold extra-small">Process:</label>
+                            <input type="text" value="{{ form_data.process|join:', '|default:'' }}" class="form-control form-control-sm uniform-input readonly-gray" readonly>
+                        </div>
+                        {% endif %}
                     </div>
 
-                    <!-- RIGHT COLUMN -->
+                    <!-- RIGHT COLUMN (Updateable Tracking Fields) -->
                     <div class="col-lg-6">
                         <div class="mb-3">
                             <label class="fw-bold extra-small d-block mb-1 required-label">Current Status:</label>
@@ -109,45 +106,42 @@ Pending/Completed Forms
                             <input type="text" name="product_code" value="{{ form_data.product_code|default:'' }}" class="form-control form-control-sm uniform-input">
                         </div>
 
+                        <!-- Qty Given (KG) - Prominent for RS -->
                         <div class="mb-3">
-                            <label class="fw-bold extra-small">Code Description:</label>
-                            <input type="text" name="code_description" value="{{ form_data.code_description|default:'' }}" class="form-control form-control-sm uniform-input">
+                            <label class="fw-bold extra-small">Qty Given (KG):</label>"{% if form_data.qty_given %}{{ form_data.qty_given }}{% elif form_data.quantity_kg %}{{ form_data.quantity_kg }}{% else %}{% endif %}"
+                            <input type="number" name="qty_given" value="{{ form_data.qty_given|default:form_data.quantity_kg }}" class="form-control form-control-sm uniform-input" placeholder="KG" step="0.01" min="0">
                         </div>
 
-                        <!-- Set-Pc & Qty Given -->
-                        <div class="row g-2 mb-3">
-                            <div class="col-6">
-                                <label class="fw-bold extra-small">Set (Pc/Pcs):</label>
-                                <input type="number" name="set_pc" value="{{ form_data.set_pc|default:'' }}" class="form-control form-control-sm uniform-input" placeholder="Qty" step="1" min="0" inputmode="numeric" onkeydown="if(['.', ',', 'e', 'E', '+', '-'].includes(event.key)) event.preventDefault();">
-                            </div>
-                            <div class="col-6">
-                                <label class="fw-bold extra-small">Qty Given:</label>
-                                <input type="number" name="qty_given" value="{{ form_data.qty_given|default:'' }}" class="form-control form-control-sm uniform-input" placeholder="KG" step="0.01" min="0" inputmode="decimal">
-                            </div>
+                        {% if not form_data.rs_no %}
+                        <div class="mb-3">
+                            <label class="fw-bold extra-small">Set (Pc/Pcs):</label>
+                            <input type="number" name="set_pc" value="{{ form_data.set_pc|default:'' }}" class="form-control form-control-sm uniform-input" placeholder="Qty" step="1">
                         </div>
+                        {% endif %}
 
                         <div class="mb-3">
                             <label class="fw-bold extra-small">Date Submitted:</label>
                             <div class="input-group input-group-sm flatpickr-container" data-wrap="true">
-                                <input type="text" name="date_submitted" value="{{ form_data.date_submitted|default:'' }}" class="form-control uniform-input date-picker-single" placeholder="MM/DD/YYYY" data-input>
+                                <input type="text" name="date_submitted" value="{{ form_data.date_submitted|default:'' }}" class="form-control uniform-input date-picker-single" data-input>
                                 <span class="input-group-text uniform-input border-start-0" data-toggle><i class="bi bi-calendar3"></i></span>
                             </div>
                         </div>
 
-                        <div class="mb-3">
-                            <label class="fw-bold extra-small">Lot No.:</label>
-                            <input type="text" name="lot_no" value="{{ form_data.lot_no|default:'' }}" class="form-control form-control-sm uniform-input">
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="fw-bold extra-small">AR No.:</label>
-                            <input type="text" name="ar_no" value="{{ form_data.ar_no|default:'' }}" class="form-control form-control-sm uniform-input">
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="fw-bold extra-small">Lot No.:</label>
+                                <input type="text" name="lot_no" value="{{ form_data.lot_no|default:'' }}" class="form-control form-control-sm uniform-input">
+                            </div>
+                            <div class="col-6">
+                                <label class="fw-bold extra-small">AR No.:</label>
+                                <input type="text" name="ar_no" value="{{ form_data.ar_no|default:'' }}" class="form-control form-control-sm uniform-input">
+                            </div>
                         </div>
 
                         <div class="mb-0">
                             <label class="fw-bold extra-small">AR Date:</label>
                             <div class="input-group input-group-sm flatpickr-container" data-wrap="true">
-                                <input type="text" name="ar_date" value="{{ form_data.ar_date|default:'' }}" class="form-control uniform-input date-picker-single" placeholder="MM/DD/YYYY" data-input>
+                                <input type="text" name="ar_date" value="{{ form_data.ar_date|default:'' }}" class="form-control uniform-input date-picker-single" data-input>
                                 <span class="input-group-text uniform-input border-start-0" data-toggle><i class="bi bi-calendar3"></i></span>
                             </div>
                         </div>
