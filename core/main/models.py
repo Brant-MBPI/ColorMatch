@@ -120,19 +120,15 @@ class tbl_resin(models.Model):
 
 class tbl_resins_selected(models.Model):
     selected_resin_no = models.AutoField(primary_key=True)
-    # References tbl_cmf (the parent)
     cm_no = models.ForeignKey(
-        'tbl_cmf', 
-        to_field="cm_no", 
-        on_delete=models.CASCADE, 
-        db_column="cm_no"
+        'tbl_cmf', to_field="cm_no", on_delete=models.CASCADE,
+        db_column="cm_no", null=True, blank=True   # <- now nullable
     )
-    # References tbl_resin (the lookup)
-    resin_no = models.ForeignKey(
-        'tbl_resin', 
-        on_delete=models.CASCADE, 
-        db_column="resin_no"
+    rs_no = models.ForeignKey(
+        'tbl_rs', to_field="rs_no", on_delete=models.CASCADE,
+        db_column="rs_no", null=True, blank=True   # <- new
     )
+    resin_no = models.ForeignKey('tbl_resin', on_delete=models.CASCADE, db_column="resin_no")
 
     class Meta:
         db_table = "tbl_resins_selected"
@@ -217,6 +213,10 @@ class tbl_cmf_color_req(models.Model):
     color_req_no = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100, blank=True, null=True)
     cm_no = models.ForeignKey(tbl_cmf, to_field="cm_no", on_delete=models.CASCADE, null=True, blank=True, db_column="cm_no")
+    rs_no = models.ForeignKey(
+        'tbl_rs', to_field="rs_no", on_delete=models.CASCADE,
+        null=True, blank=True, db_column="rs_no"   # <- new
+    )
 
     class Meta:
         db_table = "tbl_cmf_color_req"
@@ -271,7 +271,14 @@ class tbl_cmf_formula(models.Model):
 
 class tbl_cmf_process02(models.Model):
     chosen_process_no = models.AutoField(primary_key=True)
-    cmf_formula_no = models.ForeignKey(tbl_cmf_formula, on_delete=models.CASCADE, db_column="cmf_formula_no")
+    cmf_formula_no = models.ForeignKey(
+        tbl_cmf_formula, on_delete=models.CASCADE,
+        db_column="cmf_formula_no", null=True, blank=True   # <- now nullable
+    )
+    rs_no = models.ForeignKey(
+        'tbl_rs', to_field="rs_no", on_delete=models.CASCADE,
+        db_column="rs_no", null=True, blank=True   # <- new
+    )
     process_no = models.ForeignKey(tbl_cmf_process, on_delete=models.SET_NULL, null=True, blank=True, db_column="process_no")
 
     class Meta:
@@ -334,6 +341,7 @@ class tbl_rs(models.Model):
     finished_product = models.CharField(max_length=150, blank=True, null=True)
     matching_type = models.CharField(max_length=50, blank=True, null=True)
     lot_no = models.CharField(max_length=100, blank=True, null=True)
+    sm_no = models.ForeignKey(tbl_cmf_salesman, on_delete=models.SET_NULL, null=True, blank=True, db_column="sm_no")
     ar_no = models.CharField(max_length=50, blank=True, null=True)
     date_sample_received = models.DateField(blank=True, null=True)
     primary_color = models.CharField(max_length=100, blank=True, null=True)

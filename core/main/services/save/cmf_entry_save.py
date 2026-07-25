@@ -2,6 +2,7 @@ import re
 from django.core.cache import cache
 from django.db import transaction
 from datetime import datetime
+from main.services.save.utils import to_bool, format_date, clean_numeric
 from main.utils.log_audit_trail import log_audit
 from main.models import (
     tbl_cmf, tbl_cmf_color_req, tbl_cmf_dates, tbl_cmf_formula, 
@@ -46,22 +47,6 @@ def save_cmf_complete_entry(request):
         val = data.get(field, '').strip()
         if not val:
             raise Exception(f"Field required: {clean_label(field)}. This cannot be empty.")
-
-    # --- 3. HELPERS ---
-    def to_bool(val):
-        if val == 'Y': return True
-        if val == 'N': return False
-        return None
-
-    def format_date(d_str):
-        if not d_str or d_str.upper() == "ASAP": return None
-        try:
-            return datetime.strptime(d_str.split(',')[0].strip(), '%m/%d/%Y').strftime('%Y-%m-%d')
-        except: return None
-
-    def clean_numeric(val):
-        if not val: return "0"
-        return re.sub(r'[^\d.]', '', str(val))
 
     # --- 4. DATABASE TRANSACTION ---
     with transaction.atomic():
@@ -156,22 +141,6 @@ def update_cmf_complete_entry(request, original_cmf_no):
         raise Exception("Selection Required: At least one Resin Type must be selected.")
     if not selected_processes:
         raise Exception("Selection Required: At least one Process must be selected.")
-
-    # Helpers
-    def to_bool(val):
-        if val == 'Y': return True
-        if val == 'N': return False
-        return None
-
-    def format_date(d_str):
-        if not d_str or d_str.upper() == "ASAP": return None
-        try:
-            return datetime.strptime(d_str.split(',')[0].strip(), '%m/%d/%Y').strftime('%Y-%m-%d')
-        except: return None
-
-    def clean_numeric(val):
-        if not val: return "0"
-        return re.sub(r'[^\d.]', '', str(val))
 
     def get_pretty_name(field):
         mapping = {

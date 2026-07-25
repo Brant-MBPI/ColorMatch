@@ -9,6 +9,7 @@ RS Entry
 <div class="container-fluid p-0">
     <form class="rs-entry-form" method="POST" action="{% url 'rs_entry' %}">
     {% csrf_token %}
+        <input type="hidden" name="original_rs_no" value="{{ form_data.original_rs_no|default:'' }}">
         <div class="row g-2">
             <!-- LEFT COLUMN -->
             <div class="col-lg-7">
@@ -19,7 +20,7 @@ RS Entry
                         <div class="row g-2 mb-2">
                             <div class="col-md-6">
                                 <label class="fw-bold extra-small required-label">RS Number:</label>
-                                <input type="text" name="rs_no" value="{{ form_data.rs_no|default:'' }}" class="form-control form-control-sm uniform-input" required>
+                                <input type="text" name="rs_no" value="{{ form_data.rs_no|default:'' }}" class="form-control form-control-sm uniform-input" {% if is_edit %}readonly{% endif %} required>
                             </div>
                             <div class="col-md-6">
                                 <label class="fw-bold extra-small required-label">Sales Person:</label>
@@ -194,7 +195,7 @@ RS Entry
                 <i class="bi bi-plus-lg"></i> New
             </button>
             <button type="submit" class="btn btn-sm btn-success px-3 shadow-sm btn-save">
-                <i class="bi bi-save"></i> Save RS
+                <i class="bi bi-save"></i> {% if is_edit %}Update RS{% else %}Save RS{% endif %}
             </button>
         </div>
     </form>
