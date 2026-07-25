@@ -72,9 +72,11 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!tr) return;
             e.preventDefault();
 
-            const cmfNo = tr.cells[0].innerText.trim();
-            const mode = tr.dataset.mode; // "cmf" or "rs", set by the template's data-mode attribute
-            menuTitle.innerText = cmfNo;
+            const recordId = tr.cells[0].innerText.trim();   // hidden real ID — used for lookups
+            const recordNo = tr.cells[1].innerText.trim();    // visible No. — used for display only
+            const mode = tr.dataset.mode;
+
+            menuTitle.innerText = recordNo;
 
             const linkCmfEntry = document.getElementById('linkCmfEntry');
             const linkRsEntry = document.getElementById('linkRsEntry');
@@ -82,16 +84,16 @@ document.addEventListener('DOMContentLoaded', function() {
             if (mode === 'rs') {
                 linkCmfEntry.classList.add('d-none');
                 linkRsEntry.classList.remove('d-none');
-                linkRsEntry.href = `/cmf/rs-entry/?no=${encodeURIComponent(cmfNo)}`;
+                linkRsEntry.href = `/cmf/rs-entry/?no=${encodeURIComponent(recordId)}`;
             } else {
                 linkRsEntry.classList.add('d-none');
                 linkCmfEntry.classList.remove('d-none');
-                linkCmfEntry.href = `/cmf/entry/?no=${encodeURIComponent(cmfNo)}`;
+                linkCmfEntry.href = `/cmf/entry/?no=${encodeURIComponent(recordId)}`;
             }
 
-            document.getElementById('linkMbFormula').href = `/cmf/mb-formula/?no=${encodeURIComponent(cmfNo)}`;
-            document.getElementById('linkDcFormula').href = `/cmf/dc-formula/?no=${encodeURIComponent(cmfNo)}`;
-            document.getElementById('linkPendingCompleted').href = `/cmf/pending-completed/?no=${encodeURIComponent(cmfNo)}`;
+            document.getElementById('linkMbFormula').href = `/cmf/mb-formula/?no=${encodeURIComponent(recordId)}`;
+            document.getElementById('linkDcFormula').href = `/cmf/dc-formula/?no=${encodeURIComponent(recordId)}`;
+            document.getElementById('linkPendingCompleted').href = `/cmf/pending-completed/?no=${encodeURIComponent(recordId)}`;
 
             contextMenu.style.top = `${e.clientY}px`;
             contextMenu.style.left = `${e.clientX}px`;

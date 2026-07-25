@@ -65,6 +65,7 @@ Color Matching Records
             <table class="table table-hover align-middle mb-0 cmf-records-table">
                 <thead>
                     <tr class="small text-uppercase">
+                        <th class="d-none" data-col-index="id">ID</th>
                         <th class="ps-3" data-col-index="0" id="tableHeaderNo">CMF No.</th>
                         <th data-col-index="1">Customer</th>
                         <th data-col-index="2">Primary Color</th>
@@ -81,10 +82,11 @@ Color Matching Records
                         <th class="pe-3" data-col-index="12">Reason</th>
                     </tr>
                 </thead>
- 
+
                 <tbody class="small" id="recordsTbody">
                     {% for record in records %}
                     <tr class="record-row" data-mode="{{ record.mode }}" data-status="{{ record.status }}">
+                        <td class="d-none" data-col-index="id">{{ record.id }}</td>
                         <td class="ps-3 fw-bold" data-col-index="0">{{ record.no }}</td>
                         <td data-col-index="1">{{ record.customer }}</td>
                         <td data-col-index="2">{{ record.primary_color}}</td>
@@ -111,7 +113,7 @@ Color Matching Records
                     </tr>
                     {% empty %}
                     <tr id="emptyRow">
-                        <td colspan="13" class="text-center py-5 text-muted">
+                        <td colspan="14" class="text-center py-5 text-muted">
                             No records found in database.
                         </td>
                     </tr>

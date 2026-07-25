@@ -41,6 +41,7 @@ def get_cmf_records():
         dates = tbl_cmf_dates.objects.filter(cm_no=cmf.cm_no).first()
 
         results.append({
+            "id": cmf.cm_no,  # CMF's cm_no is still unique — safe to use directly
             "no": cmf.cm_no,
             "customer": formula.customer if formula else "---",
             "primary_color": cmf.in_code_no.color if cmf.in_code_no else "---",
@@ -57,10 +58,11 @@ def get_cmf_records():
             "reason": entry.reason or "",
             "mode": "cmf"
         })
-    
+
     final_results = sorted(results, key=lambda x: x['no'], reverse=True)
     cache.set('cmf_records_list', final_results, 3600)
     return final_results
+
 
 def get_rs_records():
     cached_data = cache.get('rs_records_list')
@@ -72,6 +74,7 @@ def get_rs_records():
     for entry in status_records:
         rs = entry.rs_no
         results.append({
+            "id": rs.id,  # rs_no is no longer unique — use the row's real primary key instead
             "no": rs.rs_no,
             "customer": rs.customer or "---",
             "primary_color": rs.primary_color or "---",
@@ -88,7 +91,7 @@ def get_rs_records():
             "reason": entry.reason or "",
             "mode": "rs"
         })
-    
+
     cache.set('rs_records_list', results, 3600)
     return results
 
