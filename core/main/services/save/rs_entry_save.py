@@ -4,14 +4,14 @@ from main.services.save.utils import to_bool, format_date, clean_numeric
 from main.models import tbl_feedback_details, tbl_cmf_color_req, tbl_cmf_pending_completed, tbl_cmf_process, tbl_cmf_process02, tbl_cmf_salesman, tbl_resin, tbl_resins_selected, tbl_rs
 from main.utils.log_audit_trail import log_audit
 
+
 def _extract_rs_data(request):
-    """Pulls and normalizes RS form fields from the POST payload."""
     data = request.POST
 
     colorant_type = data.get('colorantType')
     if colorant_type == "Other":
         colorant_type = data.get('colorantTypeOther')
-    print("Colorant Type:", colorant_type)  # Debugging line
+
     color_req = data.get('colorReq')
     if color_req == "other":
         color_req = data.get('colorReq_other')
@@ -35,10 +35,6 @@ def _extract_rs_data(request):
 
 
 def _save_related(request, rs_obj, data, selected_resins, selected_processes):
-    """Creates the junction-table rows (resins, processes, color req) for an RS entry.
-    Assumes any prior rows for this rs_obj have already been cleared by the caller."""
-
-    # Resins
     for r_id in selected_resins:
         try:
             resin_ref = tbl_resin.objects.get(resin_no=r_id)
@@ -46,7 +42,6 @@ def _save_related(request, rs_obj, data, selected_resins, selected_processes):
         except tbl_resin.DoesNotExist:
             raise Exception(f"Resin Error: Resin ID {r_id} does not exist.")
 
-    # Processes
     for p_name in selected_processes:
         if p_name == "others":
             p_name = request.POST.get('otherProcess')
@@ -54,19 +49,14 @@ def _save_related(request, rs_obj, data, selected_resins, selected_processes):
             p_ref, _ = tbl_cmf_process.objects.get_or_create(name=p_name.strip())
             tbl_cmf_process02.objects.create(rs_no=rs_obj, process_no=p_ref)
 
-    # Color requirement
     if data["color_req"]:
         tbl_cmf_color_req.objects.create(name=data["color_req"], rs_no=rs_obj)
 
 
 def save_rs_complete_entry(request):
-    """Creates a new RS entry. Raises Exception on duplicate rs_no or bad salesman/resin."""
+    """Creates a new RS entry. Duplicate rs_no values are allowed."""
     with transaction.atomic():
         data = _extract_rs_data(request)
-        rs_no_val = data["rs_no"]
-
-        if tbl_rs.objects.filter(rs_no=rs_no_val).exists():
-            raise Exception(f"Duplicate Error: RS No. {rs_no_val} already exists in the system.")
 
         salesman_name = (data["salesman"] or "").strip()
         salesman_obj = tbl_cmf_salesman.objects.filter(name=salesman_name).first()
@@ -77,7 +67,7 @@ def save_rs_complete_entry(request):
         selected_processes = request.POST.getlist('process')
 
         rs_obj = tbl_rs.objects.create(
-            rs_no=rs_no_val,
+            rs_no=data["rs_no"],
             customer=data["customer"],
             quantity_required=data["quantity_required"],
             date_form_made=data["date_form_made"],
@@ -108,19 +98,15 @@ def save_rs_complete_entry(request):
     return rs_obj
 
 
-def update_rs_complete_entry(request, original_rs_no):
-    """Updates an existing RS entry identified by original_rs_no.
-    Raises Exception if not found, or if renamed into a rs_no that already exists."""
+def update_rs_complete_entry(request, original_rs_id):
+    """Updates an existing RS entry identified by its primary key (id) — NOT rs_no, since
+    rs_no can now be duplicated."""
     with transaction.atomic():
-        rs_instance = tbl_rs.objects.filter(rs_no=original_rs_no).first()
+        rs_instance = tbl_rs.objects.filter(id=original_rs_id).first()
         if not rs_instance:
-            raise Exception(f"RS No. {original_rs_no} was not found.")
+            raise Exception(f"RS record (id={original_rs_id}) was not found.")
 
         data = _extract_rs_data(request)
-        rs_no_val = data["rs_no"]
-
-        if rs_no_val != original_rs_no and tbl_rs.objects.filter(rs_no=rs_no_val).exists():
-            raise Exception(f"Duplicate Error: RS No. {rs_no_val} already exists in the system.")
 
         salesman_name = (data["salesman"] or "").strip()
         salesman_obj = tbl_cmf_salesman.objects.filter(name=salesman_name).first()
@@ -130,7 +116,7 @@ def update_rs_complete_entry(request, original_rs_no):
         selected_resins = request.POST.getlist('resin')
         selected_processes = request.POST.getlist('process')
 
-        rs_instance.rs_no = rs_no_val
+        rs_instance.rs_no = data["rs_no"]
         rs_instance.customer = data["customer"]
         rs_instance.quantity_required = data["quantity_required"]
         rs_instance.date_form_made = data["date_form_made"]
@@ -144,8 +130,6 @@ def update_rs_complete_entry(request, original_rs_no):
         rs_instance.sm_no = salesman_obj
         rs_instance.save()
 
-        # Junction rows don't map cleanly to update_or_create (selection sets can shrink/grow),
-        # so clear and rebuild — same effective result as CMF's create-only flow, applied to edits.
         tbl_resins_selected.objects.filter(rs_no=rs_instance).delete()
         tbl_cmf_process02.objects.filter(rs_no=rs_instance).delete()
         tbl_cmf_color_req.objects.filter(rs_no=rs_instance).delete()
@@ -156,20 +140,17 @@ def update_rs_complete_entry(request, original_rs_no):
             defaults={"prod_code": data["product_code"]}
         )
 
-        log_audit(request, "Updated", f"RS Entry Updated: {rs_instance.rs_no}")
+        log_audit(request, "Updated", f"RS Entry Updated: {rs_instance.rs_no} (id={rs_instance.id})")
         cache.delete('rs_records_list')
 
     return rs_instance
 
 
 def build_form_data(rs_instance):
-    """Builds the form_data dict used to prefill the edit form."""
     pending = tbl_cmf_pending_completed.objects.filter(rs_no=rs_instance).first()
     color_req = tbl_cmf_color_req.objects.filter(rs_no=rs_instance).first()
 
-    STANDARD_COLOR_REQS = {
-        'transparent', 'opaque', 'translucent', 'metallic', 'fluorescent', 'pearlescent'
-    }
+    STANDARD_COLOR_REQS = {'transparent', 'opaque', 'translucent', 'metallic', 'fluorescent', 'pearlescent'}
     color_req_name = color_req.name if color_req else ''
     if color_req_name and color_req_name.lower() not in STANDARD_COLOR_REQS:
         color_req_value, color_req_other = 'other', color_req_name
@@ -177,7 +158,7 @@ def build_form_data(rs_instance):
         color_req_value, color_req_other = color_req_name.lower() if color_req_name else '', ''
 
     return {
-        'original_rs_no': rs_instance.rs_no,
+        'original_rs_id': rs_instance.id,
         'rs_no': rs_instance.rs_no,
         'customer': rs_instance.customer,
         'salesman': rs_instance.sm_no.name if rs_instance.sm_no else '',
@@ -194,12 +175,6 @@ def build_form_data(rs_instance):
         'colorantTypeOther': rs_instance.colorant_type if rs_instance.colorant_type not in ('MB', 'DC', None, '') else '',
         'colorReq': color_req_value,
         'colorReq_other': color_req_other,
-        'resin': [
-            str(x) for x in tbl_resins_selected.objects.filter(rs_no=rs_instance)
-                .values_list('resin_no__resin_no', flat=True)
-        ],
-        'process': list(
-            tbl_cmf_process02.objects.filter(rs_no=rs_instance)
-                .values_list('process_no__name', flat=True)
-        ),
+        'resin': [str(x) for x in tbl_resins_selected.objects.filter(rs_no=rs_instance).values_list('resin_no__resin_no', flat=True)],
+        'process': list(tbl_cmf_process02.objects.filter(rs_no=rs_instance).values_list('process_no__name', flat=True)),
     }

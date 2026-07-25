@@ -125,8 +125,8 @@ class tbl_resins_selected(models.Model):
         db_column="cm_no", null=True, blank=True   # <- now nullable
     )
     rs_no = models.ForeignKey(
-        'tbl_rs', to_field="rs_no", on_delete=models.CASCADE,
-        db_column="rs_no", null=True, blank=True   # <- new
+        'tbl_rs', on_delete=models.CASCADE,
+        db_column="rs_id", null=True, blank=True   # <- new
     )
     resin_no = models.ForeignKey('tbl_resin', on_delete=models.CASCADE, db_column="resin_no")
 
@@ -213,10 +213,7 @@ class tbl_cmf_color_req(models.Model):
     color_req_no = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100, blank=True, null=True)
     cm_no = models.ForeignKey(tbl_cmf, to_field="cm_no", on_delete=models.CASCADE, null=True, blank=True, db_column="cm_no")
-    rs_no = models.ForeignKey(
-        'tbl_rs', to_field="rs_no", on_delete=models.CASCADE,
-        null=True, blank=True, db_column="rs_no"   # <- new
-    )
+    rs_no = models.ForeignKey('tbl_rs', on_delete=models.CASCADE, null=True, blank=True, db_column="rs_id")
 
     class Meta:
         db_table = "tbl_cmf_color_req"
@@ -275,10 +272,7 @@ class tbl_cmf_process02(models.Model):
         tbl_cmf_formula, on_delete=models.CASCADE,
         db_column="cmf_formula_no", null=True, blank=True   # <- now nullable
     )
-    rs_no = models.ForeignKey(
-        'tbl_rs', to_field="rs_no", on_delete=models.CASCADE,
-        db_column="rs_no", null=True, blank=True   # <- new
-    )
+    rs_no = models.ForeignKey('tbl_rs', on_delete=models.CASCADE, null=True, blank=True, db_column="rs_id")
     process_no = models.ForeignKey(tbl_cmf_process, on_delete=models.SET_NULL, null=True, blank=True, db_column="process_no")
 
     class Meta:
@@ -301,11 +295,8 @@ class tbl_cmf_pending_completed(models.Model):
         'tbl_cmf', on_delete=models.SET_NULL, to_field='cm_no', 
         db_column='cm_no', blank=True, null=True
     )
-    # References tbl_rs.rs_no (string)
-    rs_no = models.ForeignKey(
-        'tbl_rs', on_delete=models.SET_NULL, to_field='rs_no', 
-        db_column='rs_no', blank=True, null=True
-    )
+    # References tbl_rs.rs_id ()
+    rs_no = models.ForeignKey('tbl_rs', on_delete=models.SET_NULL, blank=True, null=True, db_column='rs_id')
     reason = models.TextField(blank=True, null=True)
     prod_code = models.CharField(max_length=100, blank=True, null=True)
     code_details = models.TextField(blank=True, null=True)
@@ -328,7 +319,7 @@ class tbl_cmf_pending_completed(models.Model):
 
 class tbl_rs(models.Model):
     id = models.AutoField(primary_key=True)
-    rs_no = models.CharField(max_length=50, unique=True, blank=True, null=True)
+    rs_no = models.CharField(max_length=50, blank=True, null=True)
     customer = models.CharField(max_length=150, blank=True, null=True)
     quantity_required = models.DecimalField(max_digits=12, decimal_places=6, null=True, blank=True)
     date_form_made = models.DateField(blank=True, null=True)
@@ -354,7 +345,7 @@ class tbl_rs(models.Model):
 class tbl_rs_prod_codes(models.Model):
     rs_code_no = models.AutoField(primary_key=True)
     code = models.ForeignKey(tbl_generated_prod_code, on_delete=models.SET_NULL, null=True, blank=True, db_column="code_no")
-    rs = models.ForeignKey(tbl_rs, to_field="rs_no", on_delete=models.SET_NULL, null=True, blank=True, db_column="rs_no")
+    rs = models.ForeignKey(tbl_rs, on_delete=models.SET_NULL, null=True, blank=True, db_column="rs_id")
 
     class Meta:
         db_table = "tbl_rs_prod_codes"
@@ -372,7 +363,7 @@ class tbl_feedback_details(models.Model):
     
     # Foreign Keys
     cm_no = models.ForeignKey('tbl_cmf', on_delete=models.CASCADE, to_field='cm_no', db_column='cm_no', null=True)
-    rs_no = models.ForeignKey('tbl_rs', on_delete=models.CASCADE, to_field='rs_no', db_column='rs_no', null=True)
+    rs_no = models.ForeignKey('tbl_rs', on_delete=models.CASCADE, null=True, db_column='rs_id')
 
     class Meta:
         db_table = "tbl_feedback_details"
