@@ -3,9 +3,30 @@ from django.core.cache import cache
 from django.http import JsonResponse
 from ...models import (
     tbl_cmf, tbl_cmf_formula, tbl_cmf_dates, 
-    tbl_cmf_pending_completed, tbl_dc_extruder_formula, tbl_dc_extruder_formula02, tbl_mb_extruder_formula, tbl_mb_extruder_formula02, tbl_rm_incoming, tbl_rs
+    tbl_cmf_pending_completed, tbl_cmf_salesman, tbl_dc_extruder_formula, tbl_dc_extruder_formula02, tbl_internal_color_code, tbl_mb_extruder_formula, tbl_mb_extruder_formula02, tbl_resin, tbl_rm_incoming, tbl_rs
 )
 
+def get_salesman_list():
+    data = cache.get('salesman_list')
+    if not data:
+        # If not there, get from DB and save for 1 day
+        data = list(tbl_cmf_salesman.objects.all().order_by('name'))
+        cache.set('salesman_list', data, 86400)
+    return data
+
+def get_color_list():
+    data = cache.get('color_list')
+    if not data:
+        data = list(tbl_internal_color_code.objects.all().order_by('color'))
+        cache.set('color_list', data, 86400)
+    return data
+
+def get_resin_list():
+    data = cache.get('resin_list')
+    if not data:
+        data = list(tbl_resin.objects.filter(is_deleted=False).order_by('abbreviation'))
+        cache.set('resin_list', data, 86400)
+    return data
 
 def get_cmf_records():
     cached_data = cache.get('cmf_records_list')

@@ -188,9 +188,9 @@ def cmf_entry(request):
 
     context = {
         "customers": ["Masterbatch PH", "Generic Co."],
-        "salesman": tbl_cmf_salesman.objects.all().order_by('name'),
-        "primary_color": tbl_internal_color_code.objects.all().order_by('color'),
-        "resin": tbl_resin.objects.filter(is_deleted=False).order_by('abbreviation'),
+        "salesman": cmf_records_services.get_salesman_list(),
+        "primary_color": cmf_records_services.get_color_list(),
+        "resin": cmf_records_services.get_resin_list(),
         "form_data": form_data
     }
     return render(request, "sidemenu/cmf/cmf_entry.html", context)
