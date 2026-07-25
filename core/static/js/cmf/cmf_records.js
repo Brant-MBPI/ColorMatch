@@ -71,9 +71,24 @@ document.addEventListener('DOMContentLoaded', function() {
             const tr = e.target.closest('.record-row');
             if (!tr) return;
             e.preventDefault();
+
             const cmfNo = tr.cells[0].innerText.trim();
+            const mode = tr.dataset.mode; // "cmf" or "rs", set by the template's data-mode attribute
             menuTitle.innerText = cmfNo;
-            document.getElementById('linkCmfEntry').href = `/cmf/entry/?no=${encodeURIComponent(cmfNo)}`;
+
+            const linkCmfEntry = document.getElementById('linkCmfEntry');
+            const linkRsEntry = document.getElementById('linkRsEntry');
+
+            if (mode === 'rs') {
+                linkCmfEntry.classList.add('d-none');
+                linkRsEntry.classList.remove('d-none');
+                linkRsEntry.href = `/cmf/rs-entry/?no=${encodeURIComponent(cmfNo)}`;
+            } else {
+                linkRsEntry.classList.add('d-none');
+                linkCmfEntry.classList.remove('d-none');
+                linkCmfEntry.href = `/cmf/entry/?no=${encodeURIComponent(cmfNo)}`;
+            }
+
             document.getElementById('linkMbFormula').href = `/cmf/mb-formula/?no=${encodeURIComponent(cmfNo)}`;
             document.getElementById('linkDcFormula').href = `/cmf/dc-formula/?no=${encodeURIComponent(cmfNo)}`;
             document.getElementById('linkPendingCompleted').href = `/cmf/pending-completed/?no=${encodeURIComponent(cmfNo)}`;
