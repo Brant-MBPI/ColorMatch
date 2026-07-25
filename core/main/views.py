@@ -7,6 +7,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib import messages
 from datetime import datetime
 
+from core.main.services.save import rs_entry_save
 from main.services.save import mb_formula_save, dc_formula_save
 from main.decorators import role_required
 from main.models import (
@@ -14,7 +15,7 @@ from main.models import (
     tbl_cmf_process02, tbl_cmf_process02, tbl_cmf_specification02, tbl_dc_extruder_formula, 
     tbl_dc_extruder_formula02, tbl_internal_color_code, tbl_mb_extruder_formula, 
     tbl_mb_extruder_formula02, tbl_resin, tbl_cmf_salesman, tbl_resins_selected, 
-    tbl_cmf_color_req, tbl_cmf_specification, tbl_cmf_process
+    tbl_cmf_color_req, tbl_cmf_specification, tbl_cmf_process, tbl_rs
 )
 
 from .services.cmf_records import cmf_records_services
@@ -196,8 +197,32 @@ def cmf_entry(request):
     return render(request, "sidemenu/cmf/cmf_entry.html", context)
 
 def cmf_rs_entry(request):
-    return render(request, "sidemenu/cmf/rs_entry.html")
+    form_data = {}
 
+    if request.method == "POST":
+        original_rs_no = request.POST.get('original_rs_no', '').strip()
+        try:
+            if original_rs_no:
+                saved_record = rs_entry_save.update_rs_complete_entry(request, original_rs_no)
+                messages.success(request, f"Successfully updated RS No. {saved_record.rs_no}")
+            else:
+                saved_record = rs_entry_save.save_rs_complete_entry(request)
+                messages.success(request, f"RS {saved_record.rs_no} saved successfully.")
+
+            return redirect('rs_entry')
+
+        except Exception as e:
+            messages.error(request, f"Error: {str(e)}")
+            form_data = request.POST
+
+    context = {
+        "customers": ["Masterbatch PH", "Generic Co."],
+        "salesman": cmf_records_services.get_salesman_list(),
+        "primary_color": cmf_records_services.get_color_list(),
+        "resin": cmf_records_services.get_resin_list(),
+        "form_data": form_data
+    }
+    return render(request, "sidemenu/cmf/rs_entry.html", context)
 
 def cmf_record_detail(request, cm_no):
     # Get the base number by removing the last character (e.g., 'CM24-001A' -> 'CM24-001')

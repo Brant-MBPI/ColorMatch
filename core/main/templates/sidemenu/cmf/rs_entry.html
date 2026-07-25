@@ -17,16 +17,40 @@ RS Entry
                         <h6 class="cmf-section-title mb-3">General Information</h6>
 
                         <div class="row g-2 mb-2">
-                            <div class="col-md-12">
+                            <div class="col-md-6">
                                 <label class="fw-bold extra-small required-label">RS Number:</label>
                                 <input type="text" name="rs_no" value="{{ form_data.rs_no|default:'' }}" class="form-control form-control-sm uniform-input" required>
                             </div>
+                            <div class="col-md-6">
+                                <label class="fw-bold extra-small required-label">Sales Person:</label>
+                                <select class="form-select form-select-sm ts-select" name="salesman" placeholder="Select salesman..." required>
+                                    <option value=""></option>
+                                    {% for s in salesman %}
+                                        <option value="{{ s.name }}" {% if form_data.salesman == s.name %}selected{% endif %}>{{ s.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row g-2 mb-2">
                             <div class="col-md-12">
                                 <label class="fw-bold extra-small required-label">Customer:</label>
                                 <select class="form-select form-select-sm ts-select" name="customer" placeholder="Select customer..." required>
                                     <option value=""></option>
                                     {% for customer in customers %}
                                         <option value="{{ customer }}" {% if form_data.customer == customer %}selected{% endif %}>{{ customer }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row g-2 mb-2">
+                            <div class="col-md-12">
+                                <label class="fw-bold extra-small required-label">Primary Color:</label>
+                                <select class="form-select form-select-sm ts-select" name="primary_color" placeholder="Select color" required>
+                                    <option value=""></option>
+                                    {% for c in primary_color %}
+                                        <option value="{{ c.color }}" {% if form_data.primary_color == c.color %}selected{% endif %}>{{ c.color }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
@@ -78,7 +102,6 @@ RS Entry
                             </div>
                         </div>
 
-                        <!-- Color Description (Optional) -->
                         <div class="row g-2">
                             <div class="col-md-12">
                                 <label class="fw-bold extra-small">Color Description:</label>
@@ -96,6 +119,11 @@ RS Entry
                         <h6 class="cmf-section-title mb-3">Process / Specs</h6>
 
                         <div class="mb-2">
+                            <label class="fw-bold extra-small required-label">Product Code:</label>
+                            <input type="text" name="product_code" value="{{ form_data.product_code|default:'' }}" class="form-control form-control-sm uniform-input" placeholder="Enter code" required>
+                        </div>
+
+                        <div class="mb-2">
                             <label class="fw-bold extra-small required-label">Resin Type:</label>
                             <select class="form-select form-select-sm ts-select" name="resin" multiple required>
                                 <option value=""></option>
@@ -105,30 +133,17 @@ RS Entry
                             </select>
                         </div>
 
-                        <!-- Full Process Choices -->
                         <div class="mb-2">
                             <label class="fw-bold extra-small d-block mb-1 required-label">Process:</label>
                             <div class="d-flex flex-wrap gap-2">
-                                <div class="form-check d-flex align-items-center mb-0">
-                                    <input class="form-check-input visible-check" name="process" value="injection" type="checkbox" id="rs_p1" {% if 'injection' in form_data.process %}checked{% endif %}>
-                                    <label class="form-check-label extra-small ms-2" for="rs_p1">Injection</label>
-                                </div>
-                                <div class="form-check d-flex align-items-center mb-0">
-                                    <input class="form-check-input visible-check" name="process" value="blow-molding" type="checkbox" id="rs_p2" {% if 'blow-molding' in form_data.process %}checked{% endif %}>
-                                    <label class="form-check-label extra-small ms-2" for="rs_p2">Blow-Molding</label>
-                                </div>
-                                <div class="form-check d-flex align-items-center mb-0">
-                                    <input class="form-check-input visible-check" name="process" value="film" type="checkbox" id="rs_p3" {% if 'film' in form_data.process %}checked{% endif %}>
-                                    <label class="form-check-label extra-small ms-2" for="rs_p3">Film</label>
-                                </div>
-                                <div class="form-check d-flex align-items-center mb-0">
-                                    <input class="form-check-input visible-check" name="process" value="pipe-extrusion" type="checkbox" id="rs_p4" {% if 'pipe-extrusion' in form_data.process %}checked{% endif %}>
-                                    <label class="form-check-label extra-small ms-2" for="rs_p4">Pipe Extrusion</label>
-                                </div>
+                                <div class="form-check d-flex align-items-center mb-0"><input class="form-check-input visible-check" name="process" value="injection" type="checkbox" id="rs_p1" {% if 'injection' in form_data.process %}checked{% endif %}><label class="form-check-label extra-small ms-2" for="rs_p1">Injection</label></div>
+                                <div class="form-check d-flex align-items-center mb-0"><input class="form-check-input visible-check" name="process" value="blow-molding" type="checkbox" id="rs_p2" {% if 'blow-molding' in form_data.process %}checked{% endif %}><label class="form-check-label extra-small ms-2" for="rs_p2">Blow-Molding</label></div>
+                                <div class="form-check d-flex align-items-center mb-0"><input class="form-check-input visible-check" name="process" value="film" type="checkbox" id="rs_p3" {% if 'film' in form_data.process %}checked{% endif %}><label class="form-check-label extra-small ms-2" for="rs_p3">Film</label></div>
+                                <div class="form-check d-flex align-items-center mb-0"><input class="form-check-input visible-check" name="process" value="pipe-extrusion" type="checkbox" id="rs_p4" {% if 'pipe-extrusion' in form_data.process %}checked{% endif %}><label class="form-check-label extra-small ms-2" for="rs_p4">Pipe Extrusion</label></div>
                                 <div class="form-check d-flex align-items-center mb-0 js-other-container">
                                     <input class="form-check-input visible-check js-other-trigger" name="process" value="others" type="checkbox" id="rs_p5" {% if 'others' in form_data.process %}checked{% endif %}>
                                     <label class="form-check-label extra-small ms-2 me-1" for="rs_p5">Others:</label>
-                                    <input type="text" class="form-control form-control-sm uniform-input ms-1 js-other-input" name="otherProcess" id="rs_otherProcessInput" value="{{ form_data.otherProcess|default:'' }}" style="width: 120px; height: 26px;">
+                                    <input type="text" class="form-control form-control-sm uniform-input ms-1 js-other-input" name="otherProcess" id="rs_otherProcessInput" value="{{ form_data.otherProcess|default:'' }}" style="width: 100px; height: 26px;">
                                 </div>
                             </div>          
                         </div>
@@ -143,14 +158,14 @@ RS Entry
                                         <input class="form-check-input visible-check js-other-trigger" type="radio" value="Other" name="colorantType" id="rs_ct3" {% if form_data.colorantType == 'Other' %}checked{% endif %} required>
                                         <label class="form-check-label extra-small" for="rs_ct3">Others:</label>
                                     </div>
-                                    <input type="text" name="colorantTypeOther" value="{{ form_data.colorantTypeOther|default:'' }}" class="form-control form-control-sm uniform-input js-other-input" style="width: 100px; height: 26px;">
+                                    <input type="text" name="colorantTypeOther" value="{{ form_data.colorantTypeOther|default:'' }}" class="form-control form-control-sm uniform-input js-other-input" style="width: 80px; height: 26px;">
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Color Required Section (Now on the Right) -->
+                <!-- Color Required Section -->
                 <div class="card cmf-entry-card shadow-sm">
                     <div class="card-body p-3">
                         <h6 class="cmf-section-title mb-3 required-label">Color Required</h6>
@@ -166,7 +181,7 @@ RS Entry
                                     <input class="form-check-input visible-check js-other-trigger" type="radio" name="colorReq" value="other" id="rs_c7" {% if form_data.colorReq == 'other' %}checked{% endif %} required>
                                     <label class="form-check-label extra-small" for="rs_c7">Others:</label>
                                 </div>
-                                <input type="text" class="form-control form-control-sm uniform-input js-other-input" name="colorReq_other" value="{{ form_data.colorReq_other|default:'' }}" style="width: 120px; height: 26px;">
+                                <input type="text" class="form-control form-control-sm uniform-input js-other-input" name="colorReq_other" value="{{ form_data.colorReq_other|default:'' }}" style="width: 100px; height: 26px;">
                             </div>
                         </div>
                     </div>
@@ -174,7 +189,6 @@ RS Entry
             </div>
         </div>
 
-        <!-- ACTION BUTTONS -->
         <div class="d-flex justify-content-end align-items-center mt-3 mb-5 gap-1">
             <button type="button" class="btn btn-sm btn-primary px-3 shadow-sm btn-new">
                 <i class="bi bi-plus-lg"></i> New
