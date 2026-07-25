@@ -1,8 +1,8 @@
 from django.db import transaction
 from django.core.cache import cache
 from main.services.save.utils import to_bool, format_date, clean_numeric
-from core.main.models import tbl_cmf_color_req, tbl_cmf_pending_completed, tbl_cmf_process, tbl_cmf_process02, tbl_cmf_salesman, tbl_resin, tbl_resins_selected, tbl_rs
-from core.main.utils.log_audit_trail import log_audit
+from main.models import tbl_cmf_color_req, tbl_cmf_pending_completed, tbl_cmf_process, tbl_cmf_process02, tbl_cmf_salesman, tbl_resin, tbl_resins_selected, tbl_rs
+from main.utils.log_audit_trail import log_audit
 
 # from .models import tbl_rs, tbl_cmf_pending_completed
 # from .audit import log_audit
