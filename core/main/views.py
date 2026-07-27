@@ -215,6 +215,15 @@ def cmf_rs_entry(request):
             messages.error(request, f"Error: {str(e)}")
             form_data = request.POST
 
+    else:
+        record_id = request.GET.get('no')
+        if record_id:
+            rs_instance = tbl_rs.objects.filter(id=record_id).first()
+            if rs_instance:
+                form_data = rs_entry_save.build_form_data(rs_instance)
+            else:
+                messages.error(request, f"RS record with ID {record_id} not found.")
+
     context = {
         "customers": ["Masterbatch PH", "Generic Co."],
         "salesman": cmf_records_services.get_salesman_list(),

@@ -9,7 +9,7 @@ RS Entry
 <div class="container-fluid p-0">
     <form class="rs-entry-form" method="POST" action="{% url 'rs_entry' %}">
     {% csrf_token %}
-        <input type="hidden" name="original_rs_no" value="{{ form_data.original_rs_no|default:'' }}">
+        <input type="hidden" name="original_rs_no" value="{{ form_data.original_rs_id|default:'' }}">
         <div class="row g-2">
             <!-- LEFT COLUMN -->
             <div class="col-lg-7">

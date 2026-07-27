@@ -75,6 +75,7 @@ def save_rs_complete_entry(request):
             date_required=data["date_required"],
             due_date=data["due_date"],
             finished_product=data["finished_product"],
+            matching_type="request",
             color_desc=data["color_desc"],
             primary_color=data["primary_color"],
             colorant_type=data["colorant_type"],
@@ -124,6 +125,7 @@ def update_rs_complete_entry(request, original_rs_id):
         rs_instance.date_required = data["date_required"]
         rs_instance.due_date = data["due_date"]
         rs_instance.finished_product = data["finished_product"]
+        rs_instance.matching_type = "request"
         rs_instance.color_desc = data["color_desc"]
         rs_instance.primary_color = data["primary_color"]
         rs_instance.colorant_type = data["colorant_type"]
