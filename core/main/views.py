@@ -284,29 +284,31 @@ def cmf_mb_formula(request):
             form_data = request.POST
 
     else:
-        cm_no = request.GET.get('no')
+        record_no = request.GET.get('no')
+        record_type = request.GET.get('type', 'cmf')
         formula_id = request.GET.get('formula_id')
 
-        if cm_no:
-            cmf = tbl_cmf.objects.filter(cm_no=cm_no).first()
+        cmf = None  # only set when record_type == 'cmf' — used later for the formula_id lookup
+
+        if record_no and record_type == 'cmf':
+            cmf = tbl_cmf.objects.filter(cm_no=record_no).first()
             if cmf:
                 colorant_mismatch = cmf.colorant_type != "MB"
 
-                formula_info = tbl_cmf_formula.objects.filter(cm_no=cm_no).first()
+                formula_info = tbl_cmf_formula.objects.filter(cm_no=record_no).first()
 
                 resins_list = tbl_resins_selected.objects.filter(
-                    cm_no=cm_no
+                    cm_no=record_no
                 ).values_list('resin_no__abbreviation', flat=True)
                 resin_used_str = ", ".join(resins_list)
 
                 processes = tbl_cmf_process02.objects.filter(
-                    cmf_formula_no__cm_no=cm_no
+                    cmf_formula_no__cm_no=record_no
                 ).values_list('process_no__name', flat=True)
                 application_str = ", ".join(processes)
 
-                # CMF-level defaults — always populated regardless of formula_id
                 form_data = {
-                    'cm_form_no': cm_no,
+                    'cm_form_no': record_no,
                     'customer': formula_info.customer if formula_info else "",
                     'resin_used': resin_used_str,
                     'dosage': formula_info.dosage if formula_info else "",
@@ -314,42 +316,68 @@ def cmf_mb_formula(request):
                     'color': cmf.in_code_no.color if cmf.in_code_no else "",
                     'product': cmf.in_code_no.code if cmf.in_code_no else "",
                     'application': application_str,
+                    'record_type': 'cmf',
                 }
 
-                # --- Load a SPECIFIC historical formula, if one was clicked ---
-                if formula_id:
-                    header = tbl_mb_extruder_formula.objects.filter(pk=formula_id, cm_no=cmf).first()
-                    if header:
-                        form_data.update({
-                            'formula_id': header.pk,
-                            'date': header.date.strftime('%m/%d/%Y') if header.date else "",
-                            'product': header.code.product_code if header.code else "",
-                            'lot_number': header.lot_no or "",
-                            'mixing_time': header.mixing_time or "",
-                            'matched_by': header.matched_by or "",
-                            'weighed_by': header.weighted_by or "",
-                            'encoded_by': header.encoded_by or "",
-                            'total_weight': header.total_weight,
-                            'spectro_l': header.L,
-                            'spectro_a': header.A,
-                            'spectro_b': header.B,
-                            'spectro_c': header.C,
-                            'spectro_h': header.H,
-                            'srgb_hex': header.html or "",
-                            'cmyk_c': header.c,
-                            'cmyk_m': header.m,
-                            'cmyk_y': header.y,
-                            'cmyk_k': header.k,
-                        })
+        elif record_no and record_type == 'rs':
+            rs = tbl_rs.objects.filter(id=record_no).first()
+            if rs:
+                colorant_mismatch = rs.colorant_type != "MB"
 
-                        ingredients = list(
-                            tbl_mb_extruder_formula02.objects.filter(mb=header)
-                            .values('material', 'value', 'weight')
-                        )
-                        ingredients = ingredients + [{'material': '', 'value': '', 'weight': ''}] * (10 - len(ingredients))
-                        ingredients = ingredients[:10]
-                    else:
-                        messages.error(request, f"Formula record not found for ID {formula_id}.")
+                # Only fields confirmed to exist on tbl_rs (from get_rs_records).
+                # Resin/dosage/application have no confirmed source on the RS side —
+                # left blank rather than guessed.
+                form_data = {
+                    'cm_form_no': rs.rs_no,
+                    'customer': rs.customer or "",
+                    'resin_used': "",
+                    'dosage': "",
+                    'finished_product': rs.finished_product or "",
+                    'color': rs.primary_color or "",
+                    'product': "",
+                    'application': "",
+                    'record_type': 'rs',
+                }
+            else:
+                messages.error(request, f"RS record with ID {record_no} not found.")
+
+        # --- Load a SPECIFIC historical MB formula, if one was clicked ---
+        # Only reachable for CMF records — tbl_mb_extruder_formula's cm_no FK
+        # has no equivalent link to tbl_rs.
+        if formula_id and cmf:
+            header = tbl_mb_extruder_formula.objects.filter(pk=formula_id, cm_no=cmf).first()
+            if header:
+                form_data.update({
+                    'formula_id': header.pk,
+                    'date': header.date.strftime('%m/%d/%Y') if header.date else "",
+                    'product': header.code.product_code if header.code else "",
+                    'lot_number': header.lot_no or "",
+                    'mixing_time': header.mixing_time or "",
+                    'matched_by': header.matched_by or "",
+                    'weighed_by': header.weighted_by or "",
+                    'encoded_by': header.encoded_by or "",
+                    'total_weight': header.total_weight,
+                    'spectro_l': header.L,
+                    'spectro_a': header.A,
+                    'spectro_b': header.B,
+                    'spectro_c': header.C,
+                    'spectro_h': header.H,
+                    'srgb_hex': header.html or "",
+                    'cmyk_c': header.c,
+                    'cmyk_m': header.m,
+                    'cmyk_y': header.y,
+                    'cmyk_k': header.k,
+                })
+
+                ingredients = list(
+                    tbl_mb_extruder_formula02.objects.filter(mb=header)
+                    .values('material', 'value', 'weight')
+                )
+                ingredients = ingredients + [{'material': '', 'value': '', 'weight': ''}] * (10 - len(ingredients))
+                ingredients = ingredients[:10]
+            else:
+                messages.error(request, f"Formula record not found for ID {formula_id}.")
+
     if not ingredients:
         ingredients = [{'material': '', 'value': '', 'weight': ''}] * 10
     user_names = User.objects.filter(is_active=True).exclude(first_name="").values_list('first_name', flat=True).distinct().order_by('first_name')
@@ -361,6 +389,7 @@ def cmf_mb_formula(request):
         "colorant_mismatch": colorant_mismatch,
         "ingredients": ingredients,
     }
+    print(form_data.get('cm_form_no'))
     return render(request, "sidemenu/cmf/formula_mb.html", context)
 
 
