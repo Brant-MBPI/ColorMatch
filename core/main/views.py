@@ -409,70 +409,96 @@ def cmf_dc_formula(request):
             form_data = request.POST
 
     else:
-        cm_no = request.GET.get('no')
+        record_no = request.GET.get('no')
+        record_type = request.GET.get('type', 'cmf')
         formula_id = request.GET.get('formula_id')
 
-        if cm_no:
-            cmf = tbl_cmf.objects.filter(cm_no=cm_no).first()
+        cmf = None  # only set when record_type == 'cmf' — used later for the formula_id lookup
+
+        if record_no and record_type == 'cmf':
+            cmf = tbl_cmf.objects.filter(cm_no=record_no).first()
             if cmf:
                 colorant_mismatch = cmf.colorant_type != "DC"
 
-                formula_info = tbl_cmf_formula.objects.filter(cm_no=cm_no).first()
+                formula_info = tbl_cmf_formula.objects.filter(cm_no=record_no).first()
 
-                resins_list = tbl_resins_selected.objects.filter(cm_no=cm_no).values_list('resin_no__abbreviation', flat=True)
+                resins_list = tbl_resins_selected.objects.filter(cm_no=record_no).values_list('resin_no__abbreviation', flat=True)
                 resin_str = ", ".join(resins_list)
 
-                processes = tbl_cmf_process02.objects.filter(cmf_formula_no__cm_no=cm_no).values_list('process_no__name', flat=True)
+                processes = tbl_cmf_process02.objects.filter(cmf_formula_no__cm_no=record_no).values_list('process_no__name', flat=True)
                 app_str = ", ".join(processes)
 
                 form_data = {
-                    'cm_form_no': cm_no,
+                    'cm_form_no': record_no,
                     'customer': formula_info.customer if formula_info else "",
                     'resin': resin_str,
                     'dosage': formula_info.dosage if formula_info else "",
                     'finished_product': formula_info.finished_product if formula_info else "",
                     'color': cmf.in_code_no.color if cmf.in_code_no else "",
-                    'product': cmf.in_code_no.code if cmf.in_code_no else "",
                     'application': app_str,
+                    'record_type': 'cmf',
                 }
 
-                if formula_id:
-                    header = tbl_dc_extruder_formula.objects.filter(pk=formula_id, cm_no=cmf).first()
-                    if header:
-                        form_data.update({
-                            'formula_id': header.pk,
-                            'date_matched': header.date.strftime('%m/%d/%Y') if header.date else "",
-                            'product_code': header.code.product_code if header.code else "",
-                            'sample_size': header.sample_size or "",
-                            'mixing_time': header.mixing_time or "",
-                            'matched_by': header.matched_by or "",
-                            'weighed_by': header.weighted_by or "",
-                            'encoded_by': header.encoded_by or "",
-                            'total_weight': header.total_weight,
-                            'spectro_l': header.L,
-                            'spectro_a': header.A,
-                            'spectro_b': header.B,
-                            'spectro_c': header.C,
-                            'spectro_h': header.H,
-                            'srgb_hex': header.html or "",
-                            'cmyk_c': header.c,
-                            'cmyk_m': header.m,
-                            'cmyk_y': header.y,
-                            'cmyk_k': header.k,
-                        })
+        elif record_no and record_type == 'rs':
+            rs = tbl_rs.objects.filter(pk=record_no).first()
+            if rs:
+                colorant_mismatch = rs.colorant_type != "DC"
 
-                        ingredients = list(
-                            tbl_dc_extruder_formula02.objects.filter(dc=header)
-                            .values('material', 'value', 'weight')
-                        )
-                        # Pad/truncate to exactly 10 rows so the template can loop plainly
-                        ingredients = ingredients + [{'material': '', 'value': '', 'weight': ''}] * (10 - len(ingredients))
-                        ingredients = ingredients[:10]
-                    else:
-                        messages.error(request, f"Formula record not found for ID {formula_id}.")
+                # Only fields confirmed to exist on tbl_rs (from get_rs_records).
+                # Resin/dosage/application have no confirmed source on the RS side —
+                # left blank rather than guessed.
+                form_data = {
+                    'cm_form_no': rs.rs_no,
+                    'customer': rs.customer or "",
+                    'resin': "",
+                    'dosage': "",
+                    'finished_product': rs.finished_product or "",
+                    'color': rs.primary_color or "",
+                    'application': "",
+                    'record_type': 'rs',
+                }
+            else:
+                messages.error(request, f"RS record with ID {record_no} not found.")
+
+        # --- Load a SPECIFIC historical DC formula, if one was clicked ---
+        # Only reachable for CMF records — tbl_dc_extruder_formula's cm_no FK
+        # has no equivalent link to tbl_rs.
+        if formula_id and cmf:
+            header = tbl_dc_extruder_formula.objects.filter(pk=formula_id, cm_no=cmf).first()
+            if header:
+                form_data.update({
+                    'formula_id': header.pk,
+                    'date_matched': header.date.strftime('%m/%d/%Y') if header.date else "",
+                    'product_code': header.code.product_code if header.code else "",
+                    'sample_size': header.sample_size or "",
+                    'mixing_time': header.mixing_time or "",
+                    'matched_by': header.matched_by or "",
+                    'weighed_by': header.weighed_by or "",
+                    'encoded_by': header.encoded_by or "",
+                    'total_weight': header.total_weight,
+                    'spectro_l': header.L,
+                    'spectro_a': header.A,
+                    'spectro_b': header.B,
+                    'spectro_c': header.C,
+                    'spectro_h': header.H,
+                    'srgb_hex': header.html or "",
+                    'cmyk_c': header.c,
+                    'cmyk_m': header.m,
+                    'cmyk_y': header.y,
+                    'cmyk_k': header.k,
+                })
+
+                ingredients = list(
+                    tbl_dc_extruder_formula02.objects.filter(dc=header)
+                    .values('material', 'value', 'weight')
+                )
+                ingredients = ingredients + [{'material': '', 'value': '', 'weight': ''}] * (10 - len(ingredients))
+                ingredients = ingredients[:10]
+            else:
+                messages.error(request, f"Formula record not found for ID {formula_id}.")
+
     if not ingredients:
-            ingredients = [{'material': '', 'value': '', 'weight': ''}] * 10
-
+        ingredients = [{'material': '', 'value': '', 'weight': ''}] * 10
     user_names = User.objects.filter(is_active=True).exclude(first_name="").values_list('first_name', flat=True).distinct().order_by('first_name')
 
     context = {
@@ -487,31 +513,117 @@ def cmf_dc_formula(request):
 
 def cmf_pending_completed(request):
     form_data = {}
-    cm_no = request.GET.get('no')
+    record_no = request.GET.get('no') or request.POST.get('record_no')
+    record_type = request.GET.get('type') or request.POST.get('record_type', 'cmf')
 
-    if cm_no:
-        cmf = tbl_cmf.objects.filter(cm_no=cm_no).first()
-        if cmf:
-            dates = tbl_cmf_dates.objects.filter(cm_no=cmf).first()
-            formula_info = tbl_cmf_formula.objects.filter(cm_no=cmf).first()
+    if request.method == "POST":
+        try:
+            data = request.POST
+            record_type = data.get('record_type', 'cmf')
 
-            form_data = {
-                'cmf_no': cmf.cm_no,
-                'customer': formula_info.customer if formula_info else "",
+            def format_date(d_str):
+                if not d_str:
+                    return None
+                try:
+                    return datetime.strptime(d_str.strip(), '%m/%d/%Y').strftime('%Y-%m-%d')
+                except ValueError:
+                    return None
 
-                # DateField — needs strftime
-                'date_created': dates.form_made.strftime('%m/%d/%Y') if dates and dates.form_made else "",
-                'due_date': dates.due_date_lab.strftime('%m/%d/%Y') if dates and dates.due_date_lab else "",
+            is_completed = data.get('status') == 'Completed'
 
-                # CharField — stored exactly as Flatpickr formatted it, pass through as-is
-                'required_date': dates.date_required if dates else "",
-                'date_received': dates.date_received_lab if dates else "",
-
-                'finished_product': formula_info.finished_product if formula_info else "",
-                'color_description': cmf.color_desc,
-                'matchType': cmf.matching_type.upper() if cmf.matching_type else "",
-                'salesman': cmf.sm.name if cmf.sm else "",
+            tracking_defaults = {
+                'reason': data.get('pending_reason', ''),
+                'prod_code': data.get('product_code', ''),
+                'code_details': data.get('code_description', ''),
+                'date_submitted': format_date(data.get('date_submitted')),
+                'ar_no': data.get('ar_no', ''),
+                'ar_date': format_date(data.get('ar_date')),
+                'is_completed': is_completed,
             }
+
+            if record_type == 'cmf':
+                cmf = tbl_cmf.objects.filter(cm_no=record_no).first()
+                if not cmf:
+                    raise Exception(f"CMF No. {record_no} not found.")
+                tbl_cmf_pending_completed.objects.update_or_create(
+                    cm_no=cmf, defaults=tracking_defaults
+                )
+            elif record_type == 'rs':
+                rs = tbl_rs.objects.filter(pk=record_no).first()
+                if not rs:
+                    raise Exception(f"RS record with ID {record_no} not found.")
+                tbl_cmf_pending_completed.objects.update_or_create(
+                    rs_no=rs, defaults=tracking_defaults
+                )
+            else:
+                raise Exception("Unknown record type.")
+
+            messages.success(request, f"Successfully updated tracking for {record_no}")
+            return redirect(f"{request.path}?no={record_no}&type={record_type}")
+
+        except Exception as e:
+            messages.error(request, str(e))
+
+    if record_no:
+        if record_type == 'cmf':
+            cmf = tbl_cmf.objects.filter(cm_no=record_no).first()
+            if cmf:
+                dates = tbl_cmf_dates.objects.filter(cm_no=cmf).first()
+                formula_info = tbl_cmf_formula.objects.filter(cm_no=cmf).first()
+                tracking = tbl_cmf_pending_completed.objects.filter(cm_no=cmf).first()
+
+                form_data = {
+                    'cmf_no': cmf.cm_no,
+                    'customer': formula_info.customer if formula_info else "",
+                    'date_created': dates.form_made.strftime('%m/%d/%Y') if dates and dates.form_made else "",
+                    'due_date': dates.due_date_lab.strftime('%m/%d/%Y') if dates and dates.due_date_lab else "",
+                    'required_date': dates.date_required if dates else "",
+                    'date_received': dates.date_received_lab if dates else "",
+                    'finished_product': formula_info.finished_product if formula_info else "",
+                    'color_description': cmf.color_desc,
+                    'matchType': cmf.matching_type.upper() if cmf.matching_type else "",
+                    'salesman': cmf.sm.name if cmf.sm else "",
+                    'status': 'Completed' if (tracking and tracking.is_completed) else 'Pending',
+                    'pending_reason': tracking.reason if tracking else "",
+                    'product_code': tracking.prod_code if tracking else "",
+                    'code_description': tracking.code_details if tracking else "",
+                    'date_submitted': tracking.date_submitted.strftime('%m/%d/%Y') if tracking and tracking.date_submitted else "",
+                    'ar_no': tracking.ar_no if tracking else "",
+                    'ar_date': tracking.ar_date.strftime('%m/%d/%Y') if tracking and tracking.ar_date else "",
+                    'record_no': cmf.cm_no,
+                    'record_type': 'cmf',
+                }
+
+        elif record_type == 'rs':
+            rs = tbl_rs.objects.filter(id=record_no).first()
+            if rs:
+                tracking = tbl_cmf_pending_completed.objects.filter(rs_no=rs).first()
+
+                # Only fields confirmed to exist on tbl_rs — dates/salesman
+                # have no confirmed source on the RS side, left blank.
+                form_data = {
+                    'cmf_no': rs.rs_no,
+                    'customer': rs.customer or "",
+                    'date_created': rs.date_form_made.strftime('%m/%d/%Y') if rs.date_form_made else "",
+                    'due_date': rs.due_date.strftime('%m/%d/%Y') if rs.due_date else "",
+                    'required_date': rs.date_required or "",
+                    'date_received': rs.date_lab_received if rs.date_lab_received else "",
+                    'finished_product': rs.finished_product or "",
+                    'color_description': rs.color_desc or "",
+                    'matchType': rs.matching_type.upper() if rs.matching_type else "",
+                    'salesman': rs.sm_no.name if rs.sm_no else "",
+                    'status': 'Completed' if (tracking and tracking.is_completed) else 'Pending',
+                    'pending_reason': tracking.reason if tracking else "",
+                    'product_code': tracking.prod_code if tracking else "",
+                    'code_description': tracking.code_details if tracking else "",
+                    'date_submitted': tracking.date_submitted.strftime('%m/%d/%Y') if tracking and tracking.date_submitted else "",
+                    'ar_no': tracking.ar_no if tracking else "",
+                    'ar_date': tracking.ar_date.strftime('%m/%d/%Y') if tracking and tracking.ar_date else "",
+                    'record_no': rs.id,
+                    'record_type': 'rs',
+                }
+            else:
+                messages.error(request, f"RS record with ID {record_no} not found.")
 
     context = {
         "form_data": form_data,

@@ -8,6 +8,8 @@ Pending/Completed Forms
 {% block content %}
 <div class="container-fluid p-0">
     <form id="updateStatusForm">
+        <input type="hidden" name="record_no" value="{{ form_data.record_no|default:'' }}">
+        <input type="hidden" name="record_type" value="{{ form_data.record_type|default:'cmf' }}">
         <div class="card pc-card shadow-sm border-0 rounded-3">
             <div class="card-body p-4">
                 <h5 class="fw-bold mb-4 pc-title">
