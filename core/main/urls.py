@@ -22,4 +22,5 @@ urlpatterns = [
 
 
     path('cmf/records/<str:cm_no>/', cmf_records_services.get_cmf_formulas, name='get_formulas'),
+    path('cmf/rs-records/<int:rs_id>/', views.rs_record_detail, name='rs_record_detail'),
 ]

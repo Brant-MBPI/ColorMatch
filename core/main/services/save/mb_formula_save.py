@@ -41,10 +41,10 @@ def save_mb_complete_formula(request):
             parent_label = None
 
             if record_type == 'rs':
-                rs_obj = tbl_rs.objects.get(pk=post_data.get('cm_form_no'))
+                rs_obj = tbl_rs.objects.get(pk=post_data.get('record_id'))
                 parent_label = f"RS: {rs_obj.rs_no}"
             else:
-                cmf_obj = tbl_cmf.objects.get(cm_no=post_data.get('cm_form_no'))
+                cmf_obj = tbl_cmf.objects.get(cm_no=post_data.get('record_id'))
                 parent_label = f"CMF: {cmf_obj.cm_no}"
 
             # 3. Standardize Date

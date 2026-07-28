@@ -11,13 +11,18 @@ document.addEventListener('DOMContentLoaded', function () {
         const tr = e.target.closest('.record-row');
         if (!tr) return;
 
-        const cmfNo = tr.cells[0].innerText.trim();
-        
+        const recordId = tr.cells[0].innerText.trim(); // hidden real ID — cm_no string or rs pk
+        const mode = tr.dataset.mode; // "cmf" or "rs"
+
         modalTableBody.innerHTML = '<tr><td colspan="7" class="text-center py-5"><div class="spinner-border text-teal spinner-border-sm"></div> Fetching data...</td></tr>';
         bsModal.show();
 
         try {
-            const response = await fetch(`/cmf/records/${encodeURIComponent(cmfNo)}/`);
+            const url = mode === 'rs'
+                ? `/cmf/rs-records/${encodeURIComponent(recordId)}/`
+                : `/cmf/records/${encodeURIComponent(recordId)}/`;
+
+            const response = await fetch(url);
             const htmlSnippet = await response.text();
             modalTableBody.innerHTML = htmlSnippet;
         } catch (error) {
@@ -35,22 +40,23 @@ document.addEventListener('DOMContentLoaded', function () {
         if (editIcon) {
             e.stopPropagation();
 
-            const cmNo = editIcon.dataset.cmNo;
+            const recordNo = editIcon.dataset.cmNo;
             const formulaId = editIcon.dataset.formulaId;
             const formulaType = editIcon.dataset.formulaType;
+            const recordType = editIcon.dataset.recordType || 'cmf'; // falls back to 'cmf' — the existing CMF template has no data-record-type attribute at all, so this preserves its current behavior untouched
 
             const basePath = formulaType === 'mb' ? '/cmf/mb-formula/' : '/cmf/dc-formula/';
-            window.location.href = `${basePath}?no=${encodeURIComponent(cmNo)}&formula_id=${encodeURIComponent(formulaId)}`;
+            window.location.href = `${basePath}?no=${encodeURIComponent(recordNo)}&formula_id=${encodeURIComponent(formulaId)}&type=${encodeURIComponent(recordType)}`;
             return;
         }
 
-        // B. Toggle Main Parent Row (CMF Record detail)
+        // B. Toggle Main Parent Row (CMF/RS Record detail)
         const parentRow = e.target.closest('.main-modal-parent-row');
         if (parentRow) {
             const formulaRow = parentRow.nextElementSibling;
             const icon = parentRow.querySelector('.toggle-main-icon');
             const isHidden = formulaRow.classList.toggle('d-none');
-            
+
             icon.className = isHidden ? 'bi bi-plus-circle-fill toggle-main-icon' : 'bi bi-dash-circle-fill toggle-main-icon text-danger';
             return;
         }
@@ -60,7 +66,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (formulaHeader) {
             const ingredientRow = formulaHeader.nextElementSibling;
             ingredientRow.classList.toggle('d-none');
-            
+
             if (!ingredientRow.classList.contains('d-none')) {
                 formulaHeader.style.backgroundColor = 'var(--sidebar-hover-bg)';
             } else {

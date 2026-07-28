@@ -277,6 +277,47 @@ def cmf_record_detail(request, cm_no):
     
     return render(request, "modal/cmf-record/cmf_record_detail.html", context)
 
+def rs_record_detail(request, rs_id):
+    # rs_id is the row's real primary key (unique), since rs_no can now repeat.
+    rs_instance = tbl_rs.objects.filter(pk=rs_id).first()
+    if not rs_instance:
+        return render(request, "modal/cmf-record/rs_record_detail.html", {"revisions": []})
+
+    # Group all RS rows sharing the same rs_no — mirrors CMF's "revisions" concept
+    # (which groups by cm_no prefix), since duplicate rs_no values now represent
+    # related/re-submitted entries rather than distinct records.
+    rs_revisions = tbl_rs.objects.filter(rs_no=rs_instance.rs_no).order_by('-id')
+
+    revisions_data = []
+    for rs in rs_revisions:
+        pending_info = tbl_cmf_pending_completed.objects.filter(rs_no=rs).first()
+
+        mb_list = []
+        mb_qs = tbl_mb_extruder_formula.objects.filter(rs_no=rs).select_related('code')
+        for f in mb_qs:
+            ingredients = tbl_mb_extruder_formula02.objects.filter(mb=f)
+            mb_list.append({'header': f, 'ingredients': ingredients})
+
+        dc_list = []
+        dc_qs = tbl_dc_extruder_formula.objects.filter(rs_no=rs).select_related('code')
+        for f in dc_qs:
+            ingredients = tbl_dc_extruder_formula02.objects.filter(dc=f)
+            dc_list.append({'header': f, 'ingredients': ingredients})
+
+        revisions_data.append({
+            'rs': rs,
+            'pending_info': pending_info,
+            'mb_formulas': mb_list,
+            'dc_formulas': dc_list,
+        })
+
+    context = {
+        'revisions': revisions_data,
+        'rs_no': rs_instance.rs_no,
+    }
+
+    return render(request, "modal/cmf-record/rs_record_detail.html", context)
+
 def cmf_mb_formula(request):
     form_data = {}
     ingredients = []
@@ -320,6 +361,7 @@ def cmf_mb_formula(request):
 
                 form_data = {
                     'cm_form_no': record_no,
+                    'record_id': record_no,
                     'customer': formula_info.customer if formula_info else "",
                     'resin_used': resin_used_str,
                     'dosage': formula_info.dosage if formula_info else "",
@@ -355,6 +397,7 @@ def cmf_mb_formula(request):
 
                 form_data = {
                     'cm_form_no': rs.rs_no,
+                    'record_id': rs.pk,
                     'customer': rs.customer or "",
                     'resin_used': resin_used_str,
                     'dosage': getattr(rs, 'dosage', '') or '',
@@ -462,6 +505,7 @@ def cmf_dc_formula(request):
 
                 form_data = {
                     'cm_form_no': record_no,
+                    'record_id': record_no,
                     'customer': formula_info.customer if formula_info else "",
                     'resin': resin_str,
                     'dosage': formula_info.dosage if formula_info else "",
@@ -492,6 +536,7 @@ def cmf_dc_formula(request):
 
                 form_data = {
                     'cm_form_no': rs.rs_no,
+                    'record_id': rs.pk,
                     'customer': rs.customer or "",
                     'resin': resin_str,
                     'dosage': getattr(rs, 'dosage', '') or '',
