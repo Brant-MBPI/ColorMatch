@@ -285,7 +285,8 @@ def cmf_mb_formula(request):
     if request.method == "POST":
         try:
             saved_record = mb_formula_save.save_mb_complete_formula(request)
-            messages.success(request, f"Successfully saved MB Formula for CMF No. {saved_record.cm_no.cm_no}")
+            parent_display = saved_record.cm_no.cm_no if saved_record.cm_no else saved_record.rs_no.rs_no
+            messages.success(request, f"Successfully saved MB Formula for {parent_display}")
             cache.delete('cmf_records_list')
             return redirect('mb_formula')
         except Exception as e:
@@ -430,7 +431,8 @@ def cmf_dc_formula(request):
     if request.method == "POST":
         try:
             saved_record = dc_formula_save.save_dc_complete_formula(request)
-            messages.success(request, f"Successfully saved DC Formula for CMF No. {saved_record.cm_no.cm_no}")
+            parent_display = saved_record.cm_no.cm_no if saved_record.cm_no else saved_record.rs_no.rs_no
+            messages.success(request, f"Successfully saved MB Formula for {parent_display}")
             cache.delete('cmf_records_list')
             return redirect('dc_formula')
         except Exception as e:

@@ -8,6 +8,7 @@
 <form id="formulaForm" method="POST">
     {% csrf_token %}
     <input type="hidden" name="formula_id" value="{{ form_data.formula_id|default:'' }}">
+    <input type="hidden" name="record_type" value="{{ form_data.record_type|default:'cmf' }}">
     <div class="row g-4">
         <!-- LEFT COLUMN: Input Sections -->
         <div class="col-lg-3 col-md-4">
