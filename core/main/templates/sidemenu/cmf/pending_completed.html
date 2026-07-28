@@ -35,8 +35,11 @@ Pending/Completed Forms
                                 <input type="text" value="{{ form_data.date_created|default:'' }}" class="form-control form-control-sm uniform-input readonly-gray" readonly>
                             </div>
                             <div class="col-6">
-                                <label class="fw-bold extra-small">Quantity Required (KG):</label>
-                                <input type="text" value="{{ form_data.quantity_kg|default:'0.00' }}" class="form-control form-control-sm uniform-input readonly-gray" readonly>
+                                <label class="fw-bold extra-small">Required:</label>
+                                <div class="input-group input-group-sm flatpickr-container" data-wrap="true">
+                                    <input type="text" name="required_date" value="{{ form_data.required_date|default:'' }}" class="form-control uniform-input date-picker-single readonly-gray" placeholder="MM/DD/YYYY or ASAP" data-input readonly>
+                                    <span class="input-group-text uniform-input border-start-0" data-toggle><i class="bi bi-calendar3"></i></span>
+                                </div>
                             </div>
                         </div>
 
@@ -88,6 +91,10 @@ Pending/Completed Forms
                             <label class="fw-bold extra-small">Process:</label>
                             <input type="text" value="{{ form_data.process|join:', '|default:'' }}" class="form-control form-control-sm uniform-input readonly-gray" readonly>
                         </div>
+                        <div class="col-6">
+                                <label class="fw-bold extra-small">Quantity Required (KG):</label>
+                                <input type="text" value="{{ form_data.quantity_kg|default:'0.00' }}" class="form-control form-control-sm uniform-input readonly-gray" readonly>
+                            </div>
                         {% endif %}
                     </div>
 
@@ -163,7 +170,7 @@ Pending/Completed Forms
 
         <!-- Update Button -->
         <div class="d-flex justify-content-end mt-4 mb-5">
-            <button type="submit" class="btn btn-success px-4 py-2 shadow-sm d-flex align-items-center">
+            <button type="button" class="btn btn-success px-4 py-2 shadow-sm d-flex align-items-center btn-save">
                 <i class="bi bi-save me-2"></i> Update Record
             </button>
         </div>

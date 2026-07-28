@@ -297,7 +297,8 @@ def cmf_mb_formula(request):
         record_type = request.GET.get('type', 'cmf')
         formula_id = request.GET.get('formula_id')
 
-        cmf = None  # only set when record_type == 'cmf' — used later for the formula_id lookup
+        cmf = None  # only set when record_type == 'cmf'
+        rs = None   # only set when record_type == 'rs'
 
         if record_no and record_type == 'cmf':
             cmf = tbl_cmf.objects.filter(cm_no=record_no).first()
@@ -327,34 +328,54 @@ def cmf_mb_formula(request):
                     'application': application_str,
                     'record_type': 'cmf',
                 }
+            else:
+                messages.error(request, f"CMF No. {record_no} not found.")
 
         elif record_no and record_type == 'rs':
             rs = tbl_rs.objects.filter(id=record_no).first()
             if rs:
                 colorant_mismatch = rs.colorant_type != "MB"
 
-                # Only fields confirmed to exist on tbl_rs (from get_rs_records).
-                # Resin/dosage/application have no confirmed source on the RS side —
-                # left blank rather than guessed.
+                # Resin — same pattern as CMF, filtered via the rs_no FK on tbl_resins_selected
+                resins_list = tbl_resins_selected.objects.filter(
+                    rs_no=rs
+                ).values_list('resin_no__abbreviation', flat=True)
+                resin_used_str = ", ".join(resins_list)
+
+                # Process — same pattern as CMF, but tbl_cmf_process02 links directly via rs_no
+                # here rather than through a formula record (RS has no tbl_cmf_formula row)
+                processes = tbl_cmf_process02.objects.filter(
+                    rs_no=rs
+                ).values_list('process_no__name', flat=True)
+                application_str = ", ".join(processes)
+
+                # Product code lives on tbl_cmf_pending_completed for RS records
+                pending = tbl_cmf_pending_completed.objects.filter(rs_no=rs).first()
+
                 form_data = {
                     'cm_form_no': rs.rs_no,
                     'customer': rs.customer or "",
-                    'resin_used': "",
-                    'dosage': "",
+                    'resin_used': resin_used_str,
+                    'dosage': getattr(rs, 'dosage', '') or '',
                     'finished_product': rs.finished_product or "",
                     'color': rs.primary_color or "",
-                    'product': "",
-                    'application': "",
+                    'product': pending.prod_code if pending else "",
+                    'application': application_str,
                     'record_type': 'rs',
                 }
             else:
                 messages.error(request, f"RS record with ID {record_no} not found.")
 
         # --- Load a SPECIFIC historical MB formula, if one was clicked ---
-        # Only reachable for CMF records — tbl_mb_extruder_formula's cm_no FK
-        # has no equivalent link to tbl_rs.
-        if formula_id and cmf:
-            header = tbl_mb_extruder_formula.objects.filter(pk=formula_id, cm_no=cmf).first()
+        # tbl_mb_extruder_formula has both cm_no and rs_no FKs, so the filter
+        # needs to match whichever side actually resolved above.
+        if formula_id:
+            header = None
+            if cmf:
+                header = tbl_mb_extruder_formula.objects.filter(pk=formula_id, cm_no=cmf).first()
+            elif rs:
+                header = tbl_mb_extruder_formula.objects.filter(pk=formula_id, rs_no=rs).first()
+
             if header:
                 form_data.update({
                     'formula_id': header.pk,
@@ -398,7 +419,6 @@ def cmf_mb_formula(request):
         "colorant_mismatch": colorant_mismatch,
         "ingredients": ingredients,
     }
-    print(form_data.get('cm_form_no'))
     return render(request, "sidemenu/cmf/formula_mb.html", context)
 
 
@@ -611,8 +631,9 @@ def cmf_pending_completed(request):
                 # Only fields confirmed to exist on tbl_rs — dates/salesman
                 # have no confirmed source on the RS side, left blank.
                 form_data = {
-                    'cmf_no': rs.rs_no,
+                    'rs_no': rs.rs_no,
                     'customer': rs.customer or "",
+                    'quantity_kg': rs.quantity_required or "",
                     'date_created': rs.date_form_made.strftime('%m/%d/%Y') if rs.date_form_made else "",
                     'due_date': rs.due_date.strftime('%m/%d/%Y') if rs.due_date else "",
                     'required_date': rs.date_required or "",

@@ -1,14 +1,16 @@
 document.addEventListener('DOMContentLoaded', function() {
 
-    
-
     // --- 2. DOM ELEMENTS ---
-    const cmfForm = document.querySelector('.cmf-entry-form');
     const saveBtn = document.querySelector('.btn-save');
     const newBtn = document.querySelector('.btn-new');
-    const printBtn = document.querySelector('.btn-print'); // Changed selector to class
+    const printBtn = document.querySelector('.btn-print');
     const refreshBtn = document.getElementById('refreshBtn');
-    
+
+    // Works on any page — CMF Entry, RS Entry, or anywhere else these
+    // buttons appear — since it finds whichever <form> actually wraps
+    // the Save button, instead of relying on a hardcoded form class.
+    const entryForm = saveBtn ? saveBtn.closest('form') : null;
+
     const completedCheckbox = document.getElementById('completed');
     const pendingCheckbox = document.getElementById('pending');
     const modeToggle = document.getElementById('modeToggle');
@@ -28,26 +30,29 @@ document.addEventListener('DOMContentLoaded', function() {
         input.addEventListener('keypress', restrictToNumbers);
     });
 
-    // --- 4. BUTTON LISTENERS (THE FIX IS HERE) ---
+    // --- 4. BUTTON LISTENERS ---
 
-    if (saveBtn && cmfForm) {
+    if (saveBtn && entryForm) {
         saveBtn.addEventListener('click', function() {
             // 1. Validate Form
-            if (cmfForm.reportValidity()) {
-                // 2. Check if updating or saving new
-                // We check the value of the hidden field 'original_cmf_no'
-                const hiddenInput = cmfForm.querySelector('input[name="original_cmf_no"]');
+            if (entryForm.reportValidity()) {
+                // 2. Check if updating or saving new.
+                // CMF Entry uses original_cmf_no, RS Entry uses original_rs_no,
+                // Pending/Completed uses record_no (it's update-only, no "new" state).
+                const hiddenInput = entryForm.querySelector(
+                    '[name="original_cmf_no"], [name="original_rs_no"], [name="record_no"]'
+                );
                 const isUpdate = hiddenInput && hiddenInput.value.trim() !== '';
 
                 // 3. Trigger Confirmation
                 Preline.confirm(
                     isUpdate ? 'Update Entry?' : 'Save Entry?',
                     isUpdate
-                        ? 'Are you sure you want to update this color matching entry? Existing records will be modified.'
-                        : 'Are you sure you want to save this new color matching entry? Please verify all technical specs before confirming.',
+                        ? 'Are you sure you want to update this entry? Existing records will be modified.'
+                        : 'Are you sure you want to save this new entry? Please verify all technical specs before confirming.',
                     'success',
                     () => {
-                        cmfForm.submit();
+                        entryForm.submit();
                     }
                 );
             }
