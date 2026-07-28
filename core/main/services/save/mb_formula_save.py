@@ -43,6 +43,11 @@ def save_mb_complete_formula(request):
             if record_type == 'rs':
                 rs_obj = tbl_rs.objects.get(pk=post_data.get('record_id'))
                 parent_label = f"RS: {rs_obj.rs_no}"
+
+                dosage_val = clean_num(post_data.get('dosage'))
+                if dosage_val is not None:
+                    rs_obj.dosage = dosage_val
+                    rs_obj.save(update_fields=['dosage'])
             else:
                 cmf_obj = tbl_cmf.objects.get(cm_no=post_data.get('record_id'))
                 parent_label = f"CMF: {cmf_obj.cm_no}"

@@ -400,7 +400,7 @@ def cmf_mb_formula(request):
                     'record_id': rs.pk,
                     'customer': rs.customer or "",
                     'resin_used': resin_used_str,
-                    'dosage': getattr(rs, 'dosage', '') or '',
+                    'dosage': rs.dosage or getattr(rs, 'dosage', '') or '',
                     'finished_product': rs.finished_product or "",
                     'color': rs.primary_color or "",
                     'product': pending.prod_code if pending else "",
