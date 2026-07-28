@@ -85,11 +85,11 @@ Pending/Completed Forms
                         </div>
                         <div class="mb-3">
                             <label class="fw-bold extra-small">Resin:</label>
-                            <input type="text" value="{{ form_data.resin_names|default:'' }}" class="form-control form-control-sm uniform-input readonly-gray" readonly>
+                            <input type="text" value="{{ form_data.resin|default:'' }}" class="form-control form-control-sm uniform-input readonly-gray" readonly>
                         </div>
                         <div class="mb-3">
                             <label class="fw-bold extra-small">Process:</label>
-                            <input type="text" value="{{ form_data.process|join:', '|default:'' }}" class="form-control form-control-sm uniform-input readonly-gray" readonly>
+                            <input type="text" value="{{ form_data.application|default:'' }}" class="form-control form-control-sm uniform-input readonly-gray" readonly>
                         </div>
                         <div class="col-6">
                                 <label class="fw-bold extra-small">Quantity Required (KG):</label>

@@ -476,6 +476,7 @@ def cmf_dc_formula(request):
             if rs:
                 colorant_mismatch = rs.colorant_type != "DC"
 
+
                 # Resin — same pattern as CMF, filtered via the rs_no FK on tbl_resins_selected
                 resins_list = tbl_resins_selected.objects.filter(rs_no=rs).values_list('resin_no__abbreviation', flat=True)
                 resin_str = ", ".join(resins_list)
@@ -484,7 +485,6 @@ def cmf_dc_formula(request):
                 # (no tbl_cmf_formula row to go through, unlike CMF)
                 processes = tbl_cmf_process02.objects.filter(rs_no=rs).values_list('process_no__name', flat=True)
                 app_str = ", ".join(processes)
-
                 # Product code lives on tbl_cmf_pending_completed for RS records
                 pending = tbl_cmf_pending_completed.objects.filter(rs_no=rs).first()
 
@@ -617,7 +617,7 @@ def cmf_pending_completed(request):
                 dates = tbl_cmf_dates.objects.filter(cm_no=cmf).first()
                 formula_info = tbl_cmf_formula.objects.filter(cm_no=cmf).first()
                 tracking = tbl_cmf_pending_completed.objects.filter(cm_no=cmf).first()
-
+                
                 form_data = {
                     'cmf_no': cmf.cm_no,
                     'customer': formula_info.customer if formula_info else "",
@@ -628,6 +628,7 @@ def cmf_pending_completed(request):
                     'finished_product': formula_info.finished_product if formula_info else "",
                     'color_description': cmf.color_desc,
                     'matchType': cmf.matching_type.upper() if cmf.matching_type else "",
+                    'colorantType': cmf.colorant_type.upper() if cmf.colorant_type else "",
                     'salesman': cmf.sm.name if cmf.sm else "",
                     'status': 'Completed' if (tracking and tracking.is_completed) else 'Pending',
                     'pending_reason': tracking.reason if tracking else "",
@@ -644,9 +645,16 @@ def cmf_pending_completed(request):
             rs = tbl_rs.objects.filter(id=record_no).first()
             if rs:
                 tracking = tbl_cmf_pending_completed.objects.filter(rs_no=rs).first()
+                color_req = tbl_cmf_color_req.objects.filter(rs_no=rs).first()
+                # Resin — same pattern as CMF, filtered via the rs_no FK on tbl_resins_selected
+                resins_list = tbl_resins_selected.objects.filter(rs_no=rs).values_list('resin_no__abbreviation', flat=True)
+                resin_str = ", ".join(resins_list)
 
-                # Only fields confirmed to exist on tbl_rs — dates/salesman
-                # have no confirmed source on the RS side, left blank.
+                # Process — tbl_cmf_process02 links directly via rs_no for RS records
+                # (no tbl_cmf_formula row to go through, unlike CMF)
+                processes = tbl_cmf_process02.objects.filter(rs_no=rs).values_list('process_no__name', flat=True)
+                app_str = ", ".join(processes)
+                
                 form_data = {
                     'rs_no': rs.rs_no,
                     'customer': rs.customer or "",
@@ -658,8 +666,12 @@ def cmf_pending_completed(request):
                     'finished_product': rs.finished_product or "",
                     'color_description': rs.color_desc or "",
                     'matchType': rs.matching_type.upper() if rs.matching_type else "",
+                    'colorantType': rs.colorant_type.upper() if rs.colorant_type else "",
+                    'colorReq': color_req.name if color_req else "",
                     'salesman': rs.sm_no.name if rs.sm_no else "",
                     'status': 'Completed' if (tracking and tracking.is_completed) else 'Pending',
+                    'resin': resin_str,
+                    'application': app_str,
                     'pending_reason': tracking.reason if tracking else "",
                     'product_code': tracking.prod_code if tracking else "",
                     'code_description': tracking.code_details if tracking else "",
