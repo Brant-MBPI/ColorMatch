@@ -45,7 +45,7 @@ Formula DC
                             <div class="col-7">
                                 <input type="text" name="customer" id="id_dc_customer" 
                                        value="{{ form_data.customer|default:'' }}" 
-                                       class="form-control form-control-sm uniform-input readonly-gray"
+                                       class="form-control form-control-sm uniform-input readonly-gray" readonly
                                        required>
                             </div>
                         </div>
@@ -54,7 +54,7 @@ Formula DC
                             <div class="col-7">
                                 <input type="text" name="resin" id="id_dc_resin" 
                                        value="{{ form_data.resin|default:'' }}" 
-                                       class="form-control form-control-sm uniform-input readonly-gray" 
+                                       class="form-control form-control-sm uniform-input readonly-gray" readonly
                                        required>
                             </div>
                         </div>
@@ -63,7 +63,7 @@ Formula DC
                             <div class="col-7">
                                 <input type="text" name="color" id="id_dc_color" 
                                        value="{{ form_data.color|default:'' }}" 
-                                       class="form-control form-control-sm uniform-input readonly-gray"
+                                       class="form-control form-control-sm uniform-input readonly-gray" readonly
                                        required>
                             </div>
                         </div>
@@ -85,7 +85,7 @@ Formula DC
                             <div class="col-7">
                                 <input type="text" name="dosage" id="id_dc_dosage" 
                                        value="{{ form_data.dosage|default:'' }}" 
-                                       class="form-control form-control-sm uniform-input readonly-gray"
+                                       class="form-control form-control-sm uniform-input {% if form_data.dosage %} readonly-gray" readonly {% else %}" {% endif %}
                                        required>
                             </div>
                         </div>
@@ -121,7 +121,7 @@ Formula DC
                             <div class="col-7">
                                 <input type="text" name="application" id="id_dc_application" 
                                        value="{{ form_data.application|default:'' }}" 
-                                       class="form-control form-control-sm uniform-input readonly-gray"
+                                       class="form-control form-control-sm uniform-input readonly-gray" readonly
                                        required>
                             </div>
                         </div>
@@ -130,7 +130,7 @@ Formula DC
                             <div class="col-7">
                                 <input type="text" name="finished_product" id="id_dc_finished_product" 
                                        value="{{ form_data.finished_product|default:'' }}" 
-                                       class="form-control form-control-sm uniform-input readonly-gray"
+                                       class="form-control form-control-sm uniform-input readonly-gray" readonly
                                        required>
                             </div>
                         </div>
@@ -171,7 +171,7 @@ Formula DC
                             <div class="col-7">
                                 <input type="text" name="encoded_by" id="id_dc_encoded_by" 
                                        value="{% if form_data.encoded_by %}{{ form_data.encoded_by }}{% else %}{{ user.first_name|default:'' }}{% endif %}" 
-                                       class="form-control form-control-sm uniform-input readonly-gray" required>
+                                       class="form-control form-control-sm uniform-input readonly-gray" readonly required> 
                             </div>
                         </div>
                     </div>
