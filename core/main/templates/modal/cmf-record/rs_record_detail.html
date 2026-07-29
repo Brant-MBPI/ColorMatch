@@ -54,6 +54,11 @@
                             <td>{{ item.header.mixing_time|default:"---" }}</td>
                             <td>{{ item.header.matched_by|default:"---" }}</td>
                             <td class="text-end pe-3">
+                                <i class="bi {% if item.header.is_final %}bi-star-fill text-warning{% else %}bi-star text-muted{% endif %} formula-final-icon me-2"
+                                   data-formula-id="{{ item.header.pk }}"
+                                   data-formula-type="mb"
+                                   data-is-final="{% if item.header.is_final %}true{% else %}false{% endif %}"
+                                   title="{% if item.header.is_final %}Final formula — click to unmark{% else %}Mark as final formula{% endif %}"></i>
                                 <i class="bi bi-pencil-square formula-edit-icon"
                                 data-cm-no="{{ rev.rs.pk }}"
                                 data-formula-id="{{ item.header.pk }}"
@@ -112,6 +117,11 @@
                             <td>{{ item.header.mixing_time|default:"---" }}</td>
                             <td>{{ item.header.matched_by|default:"---" }}</td>
                             <td class="text-end pe-3">
+                                <i class="bi {% if item.header.is_final %}bi-star-fill text-warning{% else %}bi-star text-muted{% endif %} formula-final-icon me-2"
+                                   data-formula-id="{{ item.header.pk }}"
+                                   data-formula-type="dc"
+                                   data-is-final="{% if item.header.is_final %}true{% else %}false{% endif %}"
+                                   title="{% if item.header.is_final %}Final formula — click to unmark{% else %}Mark as final formula{% endif %}"></i>
                                 <i class="bi bi-pencil-square formula-edit-icon"
                                 data-cm-no="{{ rev.rs.pk }}"
                                 data-formula-id="{{ item.header.pk }}"
