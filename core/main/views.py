@@ -786,7 +786,7 @@ def feedback(request):
             data.update({
                 'matching_no': fb.rs_no.rs_no,
                 'customer': fb.rs_no.customer or '---',
-                'color_desc': fb.rs_no.color_description or '---',
+                'color_desc': fb.rs_no.color_desc or '---',
                 'finished_prod': fb.rs_no.finished_product or '---',
                 'required_date': fb.rs_no.date_required or '---',
                 'due_date': fb.rs_no.due_date.strftime('%m/%d/%Y') if fb.rs_no.due_date else '---',
