@@ -750,8 +750,57 @@ def cmf_pending_completed(request):
     }
     return render(request, "sidemenu/cmf/pending_completed.html", context)
 
+from django.shortcuts import render
+from .models import tbl_feedback_details, tbl_cmf_formula, tbl_cmf_dates
+
 def feedback(request):
-    return render(request, "sidemenu/feedback/feedback.html")
+    feedback_qs = tbl_feedback_details.objects.all().select_related('cm_no', 'rs_no').order_by('-feedback_no')
+    
+    records_list = []
+    for fb in feedback_qs:
+        data = {
+            'feedback_no': fb.feedback_no,
+            'status': fb.status,
+            'details': fb.comment or '---',
+            'package_details': fb.storage_details or '---',
+            'prod_code': fb.code_submitted or '---',
+        }
+        
+        if fb.cm_no:
+            # Metadata for CMF lives in formula and dates tables
+            formula = tbl_cmf_formula.objects.filter(cm_no=fb.cm_no).first()
+            dates = tbl_cmf_dates.objects.filter(cm_no=fb.cm_no).first()
+            
+            data.update({
+                'matching_no': fb.cm_no.cm_no,
+                'customer': formula.customer if formula else '---',
+                'color_desc': fb.cm_no.color_desc or '---',
+                'finished_prod': formula.finished_product if formula else '---',
+                'required_date': dates.date_required if dates else '---',
+                'due_date': dates.due_date_lab.strftime('%m/%d/%Y') if dates and dates.due_date_lab else '---',
+                'type': fb.cm_no.matching_type or '---',
+                'mode': 'cmf'
+            })
+        elif fb.rs_no:
+            # Metadata for RS lives directly on tbl_rs
+            data.update({
+                'matching_no': fb.rs_no.rs_no,
+                'customer': fb.rs_no.customer or '---',
+                'color_desc': fb.rs_no.color_description or '---',
+                'finished_prod': fb.rs_no.finished_product or '---',
+                'required_date': fb.rs_no.date_required or '---',
+                'due_date': fb.rs_no.due_date.strftime('%m/%d/%Y') if fb.rs_no.due_date else '---',
+                'type': fb.rs_no.matching_type or '---',
+                'mode': 'rs'
+            })
+            
+        records_list.append(data)
+
+    context = {
+        'feedback_records': records_list,
+        'record_count': len(records_list)
+    }
+    return render(request, "sidemenu/feedback/feedback.html", context)
 
 
 @role_required
