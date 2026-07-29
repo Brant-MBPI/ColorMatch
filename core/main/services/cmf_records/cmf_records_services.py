@@ -1,7 +1,9 @@
 from datetime import datetime
+from django.views.decorators.http import require_POST
 from django.db import transaction
 from django.core.cache import cache
 from django.http import JsonResponse
+from main.utils.log_audit_trail import log_audit
 from ...models import (
     tbl_cmf, tbl_cmf_formula, tbl_cmf_dates, 
     tbl_cmf_pending_completed, tbl_cmf_salesman, tbl_dc_extruder_formula, tbl_dc_extruder_formula02, tbl_internal_color_code, tbl_mb_extruder_formula, tbl_mb_extruder_formula02, tbl_resin, tbl_rm_incoming, tbl_rs
@@ -197,28 +199,37 @@ def get_cmf_formulas(request, cm_no):
 
     return JsonResponse(results, safe=False)
 
-@transaction.atomic
-def set_formula_final(request):
-    formula_id = request.POST.get('formula_id')
-    formula_type = request.POST.get('formula_type') # 'mb' or 'dc'
-    parent_type = request.POST.get('parent_type')   # 'cmf' or 'rs'
-    parent_id = request.POST.get('parent_id')       # cm_no string or rs_id int
+@require_POST
+def toggle_final_formula(request, formula_type, formula_id):
+    model = tbl_mb_extruder_formula if formula_type == 'mb' else tbl_dc_extruder_formula
+    header = model.objects.filter(pk=formula_id).first()
 
-    try:
-        # 1. Reset ALL formulas for this parent to is_final = False
-        if parent_type == 'rs':
-            tbl_mb_extruder_formula.objects.filter(rs_no_id=parent_id).update(is_final=False)
-            tbl_dc_extruder_formula.objects.filter(rs_no_id=parent_id).update(is_final=False)
+    if not header:
+        return JsonResponse({'success': False, 'error': 'Formula record not found.'}, status=404)
+
+    with transaction.atomic():
+        if header.is_final:
+            # Already final — clicking again removes final status, leaving none final
+            header.is_final = False
+            header.save(update_fields=['is_final'])
+            is_final_now = False
         else:
-            tbl_mb_extruder_formula.objects.filter(cm_no_id=parent_id).update(is_final=False)
-            tbl_dc_extruder_formula.objects.filter(cm_no_id=parent_id).update(is_final=False)
+            # Unset any other formula marked final for the SAME parent record
+            # (cm_no for CMF-originated formulas, rs_no for RS-originated ones)
+            # — mirrors the same cm_no/rs_no exclusivity used everywhere else.
+            if header.cm_no_id:
+                model.objects.filter(cm_no=header.cm_no).exclude(pk=header.pk).update(is_final=False)
+            elif header.rs_no_id:
+                model.objects.filter(rs_no=header.rs_no).exclude(pk=header.pk).update(is_final=False)
 
-        # 2. Set the chosen formula to is_final = True
-        if formula_type == 'mb':
-            tbl_mb_extruder_formula.objects.filter(pk=formula_id).update(is_final=True)
-        else:
-            tbl_dc_extruder_formula.objects.filter(pk=formula_id).update(is_final=True)
+            header.is_final = True
+            header.save(update_fields=['is_final'])
+            is_final_now = True
 
-        return JsonResponse({'status': 'success', 'message': 'Formula marked as Final'})
-    except Exception as e:
-        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+        log_audit(
+            request,
+            "Updated",
+            f"{'Marked' if is_final_now else 'Unmarked'} {formula_type.upper()} formula (id={header.pk}) as final."
+        )
+
+    return JsonResponse({'success': True, 'is_final': is_final_now})

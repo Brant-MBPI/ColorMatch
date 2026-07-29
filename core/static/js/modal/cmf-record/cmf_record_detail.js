@@ -6,16 +6,32 @@ document.addEventListener('DOMContentLoaded', function () {
     const modalTableBody = document.getElementById('modalTableBody');
     const bsModal = new bootstrap.Modal(modalElement);
 
-    // --- 1. DOUBLE CLICK TRIGGER: Background Fetch (No Redirect) ---
-    recordsTbody.addEventListener('dblclick', async function (e) {
-        const tr = e.target.closest('.record-row');
-        if (!tr) return;
+    // Remember the last-opened record so we can refresh the modal in place
+    // after a final-status toggle, instead of forcing a full page reload.
+    let currentRecordId = null;
+    let currentMode = null;
 
-        const recordId = tr.cells[0].innerText.trim(); // hidden real ID — cm_no string or rs pk
-        const mode = tr.dataset.mode; // "cmf" or "rs"
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+                cookie = cookie.trim();
+                if (cookie.startsWith(name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    const csrftoken = getCookie('csrftoken');
+
+    async function loadModalContent(recordId, mode) {
+        currentRecordId = recordId;
+        currentMode = mode;
 
         modalTableBody.innerHTML = '<tr><td colspan="7" class="text-center py-5"><div class="spinner-border text-teal spinner-border-sm"></div> Fetching data...</td></tr>';
-        bsModal.show();
 
         try {
             const url = mode === 'rs'
@@ -29,13 +45,67 @@ document.addEventListener('DOMContentLoaded', function () {
             console.error('Fetch Error:', error);
             modalTableBody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-danger">Error fetching database records.</td></tr>';
         }
+    }
+
+    // --- 1. DOUBLE CLICK TRIGGER: Background Fetch (No Redirect) ---
+    recordsTbody.addEventListener('dblclick', function (e) {
+        const tr = e.target.closest('.record-row');
+        if (!tr) return;
+
+        const recordId = tr.cells[0].innerText.trim();
+        const mode = tr.dataset.mode;
+
+        bsModal.show();
+        loadModalContent(recordId, mode);
     });
 
-    // --- 2. MODAL INTERACTION LOGIC (Click to Expand / Edit) ---
+    // --- 2. MODAL INTERACTION LOGIC (Click to Expand / Edit / Mark Final) ---
     modalTableBody.addEventListener('click', function (e) {
 
-        // A. Edit Pen Icon — check FIRST and stop propagation so it doesn't
-        //    also trigger the formula-header-clickable toggle below.
+        // A. Mark/Unmark Final — check first, stop propagation
+        const finalIcon = e.target.closest('.formula-final-icon');
+        if (finalIcon) {
+            e.stopPropagation();
+
+            const formulaId = finalIcon.dataset.formulaId;
+            const formulaType = finalIcon.dataset.formulaType;
+            const isFinal = finalIcon.dataset.isFinal === 'true';
+
+            Preline.confirm(
+                isFinal ? 'Remove Final Status?' : 'Mark as Final Formula?',
+                isFinal
+                    ? 'This will unmark this formula as the final version for this record.'
+                    : 'This will mark this formula as the final version and unmark any other final formula for this record.',
+                'warning',
+                async () => {
+                    try {
+                        const response = await fetch(
+                            `/cmf/formula/${formulaType}/${formulaId}/toggle-final/`,
+                            {
+                                method: 'POST',
+                                headers: { 'X-CSRFToken': csrftoken }
+                            }
+                        );
+                        const data = await response.json();
+
+                        if (data.success) {
+                            Preline.toast('Final status updated.', 'success');
+                            if (currentRecordId && currentMode) {
+                                loadModalContent(currentRecordId, currentMode);
+                            }
+                        } else {
+                            Preline.toast(data.error || 'Failed to update final status.', 'error');
+                        }
+                    } catch (err) {
+                        console.error('Toggle Final Error:', err);
+                        Preline.toast('Error updating final status.', 'error');
+                    }
+                }
+            );
+            return;
+        }
+
+        // B. Edit Pen Icon — check next, stop propagation
         const editIcon = e.target.closest('.formula-edit-icon');
         if (editIcon) {
             e.stopPropagation();
@@ -43,14 +113,14 @@ document.addEventListener('DOMContentLoaded', function () {
             const recordNo = editIcon.dataset.cmNo;
             const formulaId = editIcon.dataset.formulaId;
             const formulaType = editIcon.dataset.formulaType;
-            const recordType = editIcon.dataset.recordType || 'cmf'; // falls back to 'cmf' — the existing CMF template has no data-record-type attribute at all, so this preserves its current behavior untouched
+            const recordType = editIcon.dataset.recordType || 'cmf';
 
             const basePath = formulaType === 'mb' ? '/cmf/mb-formula/' : '/cmf/dc-formula/';
             window.location.href = `${basePath}?no=${encodeURIComponent(recordNo)}&formula_id=${encodeURIComponent(formulaId)}&type=${encodeURIComponent(recordType)}`;
             return;
         }
 
-        // B. Toggle Main Parent Row (CMF/RS Record detail)
+        // C. Toggle Main Parent Row (CMF/RS Record detail)
         const parentRow = e.target.closest('.main-modal-parent-row');
         if (parentRow) {
             const formulaRow = parentRow.nextElementSibling;
@@ -61,7 +131,7 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        // C. Toggle Internal Formula Headers (Show Ingredients)
+        // D. Toggle Internal Formula Headers (Show Ingredients)
         const formulaHeader = e.target.closest('.formula-header-clickable');
         if (formulaHeader) {
             const ingredientRow = formulaHeader.nextElementSibling;
@@ -72,54 +142,6 @@ document.addEventListener('DOMContentLoaded', function () {
             } else {
                 formulaHeader.style.backgroundColor = '';
             }
-        }
-
-        const finalIcon = e.target.closest('.formula-final-icon');
-        if (finalIcon) {
-            e.stopPropagation();
-
-            // Prevent clicking if already final
-            if (finalIcon.classList.contains('bi-star-fill')) return;
-
-            const { formulaId, formulaType, parentType, parentId } = finalIcon.dataset;
-
-            // Use Preline Confirmation (assuming your Preline.confirm wrapper exists)
-            Preline.confirm(
-                'Set as Final?',
-                'Marking this formula as final will unmark any previously selected final formula for this record. Continue?',
-                'success',
-                async () => {
-                    const formData = new FormData();
-                    formData.append('formula_id', formulaId);
-                    formData.append('formula_type', formulaType);
-                    formData.append('parent_type', parentType);
-                    formData.append('parent_id', parentId);
-                    formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
-
-                    try {
-                        const response = await fetch('/cmf/set-formula-final/', {
-                            method: 'POST',
-                            body: formData
-                        });
-                        const data = await response.json();
-
-                        if (data.status === 'success') {
-                            // UI REFRESH: Instead of reloading the whole page, 
-                            // we find all icons in the current revision container and reset them
-                            const container = finalIcon.closest('.formula-container');
-                            container.querySelectorAll('.formula-final-icon').forEach(icon => {
-                                icon.className = 'bi bi-star text-muted formula-final-icon me-2';
-                            });
-                            // Set current one to active
-                            finalIcon.className = 'bi bi-star-fill text-warning formula-final-icon me-2';
-                        } else {
-                            alert('Error: ' + data.message);
-                        }
-                    } catch (err) {
-                        console.error(err);
-                    }
-                }
-            );
         }
     });
 });
