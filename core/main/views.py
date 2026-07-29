@@ -150,6 +150,19 @@ def cmf_entry(request):
                     .values_list('spec_no__name', flat=True)
                 )
 
+                final_formula = tbl_mb_extruder_formula.objects.filter(
+                    cm_no=cmf, is_final=True
+                ).select_related('code').first()
+
+                if not final_formula:
+                    final_formula = tbl_dc_extruder_formula.objects.filter(
+                        cm_no=cmf, is_final=True
+                    ).select_related('code').first()
+
+                final_prod_code = ""
+                if final_formula and final_formula.code:
+                    final_prod_code = final_formula.code.product_code
+
                 form_data = {
                     'cmf_no': cmf.cm_no,
                     'customer': formula_info.customer if formula_info else "",
@@ -180,6 +193,7 @@ def cmf_entry(request):
                     'color_guide_return': 'Y' if cmf.is_guide_to_return else ('N' if cmf.is_guide_to_return is False else ''),
                     'is_low_cost': 'Y' if cmf.is_low_cost else ('N' if cmf.is_low_cost is False else ''),
                     'remarks': cmf.remarks,
+                    'product_code': final_prod_code,
 
                     # plain lists — NOT a QueryDict, template must use "in form_data.resin" (not .getlist.resin)
                     'resin': [str(rid) for rid in resin_ids],
