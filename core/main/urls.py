@@ -21,6 +21,7 @@ urlpatterns = [
     path('audit-trail/', views.audit_trail, name='audit_trail'),
 
 
+    path('cmf/set-formula-final/', cmf_records_services.set_formula_final, name='set_formula'),
     path('cmf/records/<str:cm_no>/', cmf_records_services.get_cmf_formulas, name='get_formulas'),
     path('cmf/rs-records/<int:rs_id>/', views.rs_record_detail, name='rs_record_detail'),
 ]

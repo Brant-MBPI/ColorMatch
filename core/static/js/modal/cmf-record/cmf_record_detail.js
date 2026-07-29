@@ -73,5 +73,53 @@ document.addEventListener('DOMContentLoaded', function () {
                 formulaHeader.style.backgroundColor = '';
             }
         }
+
+        const finalIcon = e.target.closest('.formula-final-icon');
+        if (finalIcon) {
+            e.stopPropagation();
+
+            // Prevent clicking if already final
+            if (finalIcon.classList.contains('bi-star-fill')) return;
+
+            const { formulaId, formulaType, parentType, parentId } = finalIcon.dataset;
+
+            // Use Preline Confirmation (assuming your Preline.confirm wrapper exists)
+            Preline.confirm(
+                'Set as Final?',
+                'Marking this formula as final will unmark any previously selected final formula for this record. Continue?',
+                'success',
+                async () => {
+                    const formData = new FormData();
+                    formData.append('formula_id', formulaId);
+                    formData.append('formula_type', formulaType);
+                    formData.append('parent_type', parentType);
+                    formData.append('parent_id', parentId);
+                    formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+
+                    try {
+                        const response = await fetch('/cmf/set-formula-final/', {
+                            method: 'POST',
+                            body: formData
+                        });
+                        const data = await response.json();
+
+                        if (data.status === 'success') {
+                            // UI REFRESH: Instead of reloading the whole page, 
+                            // we find all icons in the current revision container and reset them
+                            const container = finalIcon.closest('.formula-container');
+                            container.querySelectorAll('.formula-final-icon').forEach(icon => {
+                                icon.className = 'bi bi-star text-muted formula-final-icon me-2';
+                            });
+                            // Set current one to active
+                            finalIcon.className = 'bi bi-star-fill text-warning formula-final-icon me-2';
+                        } else {
+                            alert('Error: ' + data.message);
+                        }
+                    } catch (err) {
+                        console.error(err);
+                    }
+                }
+            );
+        }
     });
 });

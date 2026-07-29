@@ -54,10 +54,20 @@
                             <td>{{ item.header.mixing_time|default:"---" }}</td>
                             <td>{{ item.header.matched_by|default:"---" }}</td>
                             <td class="text-end pe-3">
-                                <i class="bi bi-pencil-square formula-edit-icon"
-                                data-cm-no="{{ rev.cmf.cm_no }}"
+                                <!-- FINAL BUTTON -->
+                                <i class="bi {% if item.header.is_final %}bi-star-fill text-warning{% else %}bi-star text-muted{% endif %} formula-final-icon me-2"
+                                style="cursor: pointer;"
                                 data-formula-id="{{ item.header.pk }}"
                                 data-formula-type="mb"
+                                data-parent-type="{% if rev.rs %}rs{% else %}cmf{% endif %}"
+                                data-parent-id="{% if rev.rs %}{{ rev.rs.pk }}{% else %}{{ rev.cmf.cm_no }}{% endif %}"
+                                title="Mark as Final"></i>
+
+                                <i class="bi bi-pencil-square formula-edit-icon"
+                                data-cm-no="{% if rev.rs %}{{ rev.rs.pk }}{% else %}{{ rev.cmf.cm_no }}{% endif %}"
+                                data-formula-id="{{ item.header.pk }}"
+                                data-formula-type="mb"
+                                data-record-type="{% if rev.rs %}rs{% else %}cmf{% endif %}"
                                 title="Edit this MB formula"></i>
                             </td>
                         </tr>
@@ -111,6 +121,14 @@
                             <td>{{ item.header.mixing_time|default:"---" }}</td>
                             <td>{{ item.header.matched_by|default:"---" }}</td>
                             <td class="text-end pe-3">
+                                <i class="bi {% if item.header.is_final %}bi-star-fill text-warning{% else %}bi-star text-muted{% endif %} formula-final-icon me-2"
+                                style="cursor: pointer;"
+                                data-formula-id="{{ item.header.pk }}"
+                                data-formula-type="dc"
+                                data-parent-type="{% if rev.rs %}rs{% else %}cmf{% endif %}"
+                                data-parent-id="{% if rev.rs %}{{ rev.rs.pk }}{% else %}{{ rev.cmf.cm_no }}{% endif %}"
+                                title="Mark as Final"></i>
+                                
                                 <i class="bi bi-pencil-square formula-edit-icon"
                                 data-cm-no="{{ rev.cmf.cm_no }}"
                                 data-formula-id="{{ item.header.pk }}"

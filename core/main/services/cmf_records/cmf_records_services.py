@@ -1,4 +1,5 @@
 from datetime import datetime
+from django.db import transaction
 from django.core.cache import cache
 from django.http import JsonResponse
 from ...models import (
@@ -195,3 +196,29 @@ def get_cmf_formulas(request, cm_no):
     }]
 
     return JsonResponse(results, safe=False)
+
+@transaction.atomic
+def set_formula_final(request):
+    formula_id = request.POST.get('formula_id')
+    formula_type = request.POST.get('formula_type') # 'mb' or 'dc'
+    parent_type = request.POST.get('parent_type')   # 'cmf' or 'rs'
+    parent_id = request.POST.get('parent_id')       # cm_no string or rs_id int
+
+    try:
+        # 1. Reset ALL formulas for this parent to is_final = False
+        if parent_type == 'rs':
+            tbl_mb_extruder_formula.objects.filter(rs_no_id=parent_id).update(is_final=False)
+            tbl_dc_extruder_formula.objects.filter(rs_no_id=parent_id).update(is_final=False)
+        else:
+            tbl_mb_extruder_formula.objects.filter(cm_no_id=parent_id).update(is_final=False)
+            tbl_dc_extruder_formula.objects.filter(cm_no_id=parent_id).update(is_final=False)
+
+        # 2. Set the chosen formula to is_final = True
+        if formula_type == 'mb':
+            tbl_mb_extruder_formula.objects.filter(pk=formula_id).update(is_final=True)
+        else:
+            tbl_dc_extruder_formula.objects.filter(pk=formula_id).update(is_final=True)
+
+        return JsonResponse({'status': 'success', 'message': 'Formula marked as Final'})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
