@@ -754,20 +754,35 @@ from django.shortcuts import render
 from .models import tbl_feedback_details, tbl_cmf_formula, tbl_cmf_dates
 
 def feedback(request):
+    # Fetch feedback records with parents pre-loaded
     feedback_qs = tbl_feedback_details.objects.all().select_related('cm_no', 'rs_no').order_by('-feedback_no')
     
     records_list = []
     for fb in feedback_qs:
+        # Initialize basic data
         data = {
             'feedback_no': fb.feedback_no,
             'status': fb.status,
             'details': fb.comment or '---',
             'package_details': fb.storage_details or '---',
-            'prod_code': fb.code_submitted or '---',
         }
         
+        # --- LOGIC TO GET PRODUCT CODE FROM FINAL FORMULA ---
+        final_formula = None
+        
         if fb.cm_no:
-            # Metadata for CMF lives in formula and dates tables
+            # 1. Check MB for Final
+            final_formula = tbl_mb_extruder_formula.objects.filter(
+                cm_no=fb.cm_no, is_final=True
+            ).select_related('code').first()
+            
+            # 2. If not in MB, check DC for Final
+            if not final_formula:
+                final_formula = tbl_dc_extruder_formula.objects.filter(
+                    cm_no=fb.cm_no, is_final=True
+                ).select_related('code').first()
+
+            # Metadata for CMF
             formula = tbl_cmf_formula.objects.filter(cm_no=fb.cm_no).first()
             dates = tbl_cmf_dates.objects.filter(cm_no=fb.cm_no).first()
             
@@ -781,8 +796,20 @@ def feedback(request):
                 'type': fb.cm_no.matching_type or '---',
                 'mode': 'cmf'
             })
+
         elif fb.rs_no:
-            # Metadata for RS lives directly on tbl_rs
+            # 1. Check MB for Final (using rs_no instance/id)
+            final_formula = tbl_mb_extruder_formula.objects.filter(
+                rs_no=fb.rs_no, is_final=True
+            ).select_related('code').first()
+            
+            # 2. If not in MB, check DC for Final
+            if not final_formula:
+                final_formula = tbl_dc_extruder_formula.objects.filter(
+                    rs_no=fb.rs_no, is_final=True
+                ).select_related('code').first()
+
+            # Metadata for RS
             data.update({
                 'matching_no': fb.rs_no.rs_no,
                 'customer': fb.rs_no.customer or '---',
@@ -793,6 +820,13 @@ def feedback(request):
                 'type': fb.rs_no.matching_type or '---',
                 'mode': 'rs'
             })
+
+        # Assign the product code from the final formula found
+        # Priority: Final Formula Code > feedback.code_submitted > '---'
+        if final_formula and final_formula.code:
+            data['prod_code'] = final_formula.code.product_code
+        else:
+            data['prod_code'] = fb.code_submitted or '---'
             
         records_list.append(data)
 
