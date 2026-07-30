@@ -13,7 +13,7 @@ from main.decorators import role_required
 from main.models import (
     tbl_audit_trail, tbl_cmf, tbl_cmf_dates, tbl_cmf_formula, tbl_cmf_pending_completed, 
     tbl_cmf_process02, tbl_cmf_process02, tbl_cmf_specification02, tbl_dc_extruder_formula, 
-    tbl_dc_extruder_formula02, tbl_internal_color_code, tbl_mb_extruder_formula, 
+    tbl_dc_extruder_formula02, tbl_feedback_details, tbl_internal_color_code, tbl_mb_extruder_formula, 
     tbl_mb_extruder_formula02, tbl_resin, tbl_cmf_salesman, tbl_resins_selected, 
     tbl_cmf_color_req, tbl_cmf_specification, tbl_cmf_process, tbl_rs
 )
@@ -750,42 +750,106 @@ def cmf_pending_completed(request):
     }
     return render(request, "sidemenu/cmf/pending_completed.html", context)
 
-from django.shortcuts import render
-from .models import tbl_feedback_details, tbl_cmf_formula, tbl_cmf_dates
-
 def feedback(request):
-    # Fetch feedback records with parents pre-loaded
+    form_data = {}
+    feedback_no = request.GET.get('feedback_no')
+
+    if feedback_no:
+        fb = tbl_feedback_details.objects.select_related('cm_no', 'rs_no').filter(feedback_no=feedback_no).first()
+        if fb:
+            final_formula = None
+
+            if fb.cm_no:
+                final_formula = tbl_mb_extruder_formula.objects.filter(cm_no=fb.cm_no, is_final=True).select_related('code').first()
+                if not final_formula:
+                    final_formula = tbl_dc_extruder_formula.objects.filter(cm_no=fb.cm_no, is_final=True).select_related('code').first()
+
+                formula = tbl_cmf_formula.objects.filter(cm_no=fb.cm_no).first()
+                dates = tbl_cmf_dates.objects.filter(cm_no=fb.cm_no).first()
+                pending = tbl_cmf_pending_completed.objects.filter(cm_no=fb.cm_no).first()
+
+                form_data = {
+                    'feedback_no': fb.feedback_no,
+                    'matching_no': fb.cm_no.cm_no,
+                    'customer': formula.customer if formula else '',
+                    'date_created': dates.form_made.strftime('%m/%d/%Y') if dates and dates.form_made else '',
+                    'required_date': dates.date_required if dates else '',
+                    'date_received': dates.date_received_lab if dates else '',
+                    'due_date': dates.due_date_lab.strftime('%m/%d/%Y') if dates and dates.due_date_lab else '',
+                    'finished_product': formula.finished_product if formula else '',
+                    'color_description': fb.cm_no.color_desc or '',
+                    'matching_type': fb.cm_no.matching_type or '',
+                    'sales_person': fb.cm_no.sm.name if fb.cm_no.sm else '',
+                    'current_status': 'Completed' if (pending and pending.is_completed) else 'Pending',
+                    'pending_reason': pending.reason if pending else '',
+                    'product_code': (final_formula.code.product_code if final_formula and final_formula.code else (fb.code_submitted or '')),
+                    'code_description': pending.code_details if pending else '',
+                    'date_submitted': pending.date_submitted.strftime('%m/%d/%Y') if pending and pending.date_submitted else '',
+                    'ar_number': pending.ar_no if pending else '',
+                    'ar_date': pending.ar_date.strftime('%m/%d/%Y') if pending and pending.ar_date else '',
+                    'record_type': 'cmf',
+                    # Feedback & Monitoring — the only editable section
+                    'feedback_status': fb.status or 'Pending',
+                    'comments': fb.comment or '',
+                    'storage_details': fb.storage_details or '',
+                }
+
+            elif fb.rs_no:
+                final_formula = tbl_mb_extruder_formula.objects.filter(rs_no=fb.rs_no, is_final=True).select_related('code').first()
+                if not final_formula:
+                    final_formula = tbl_dc_extruder_formula.objects.filter(rs_no=fb.rs_no, is_final=True).select_related('code').first()
+
+                pending = tbl_cmf_pending_completed.objects.filter(rs_no=fb.rs_no).first()
+
+                form_data = {
+                    'feedback_no': fb.feedback_no,
+                    'matching_no': fb.rs_no.rs_no,
+                    'customer': fb.rs_no.customer or '',
+                    'date_created': '',
+                    'required_date': fb.rs_no.date_required or '',
+                    'date_received': '',
+                    'due_date': fb.rs_no.due_date.strftime('%m/%d/%Y') if fb.rs_no.due_date else '',
+                    'finished_product': fb.rs_no.finished_product or '',
+                    'color_description': fb.rs_no.color_desc or '',
+                    'matching_type': fb.rs_no.matching_type or '',
+                    'sales_person': fb.rs_no.sm_no.name if fb.rs_no.sm_no else '',
+                    'current_status': 'Completed' if (pending and pending.is_completed) else 'Pending',
+                    'pending_reason': pending.reason if pending else '',
+                    'product_code': (final_formula.code.product_code if final_formula and final_formula.code else (fb.code_submitted or '')),
+                    'code_description': pending.code_details if pending else '',
+                    'date_submitted': pending.date_submitted.strftime('%m/%d/%Y') if pending and pending.date_submitted else '',
+                    'ar_number': pending.ar_no if pending else '',
+                    'ar_date': pending.ar_date.strftime('%m/%d/%Y') if pending and pending.ar_date else '',
+                    'record_type': 'rs',
+                    'feedback_status': fb.status or 'Pending',
+                    'comments': fb.comment or '',
+                    'storage_details': fb.storage_details or '',
+                }
+        else:
+            messages.error(request, f"Feedback record with ID {feedback_no} not found.")
+
+    # --- Existing records list logic, unchanged ---
     feedback_qs = tbl_feedback_details.objects.all().select_related('cm_no', 'rs_no').order_by('-feedback_no')
-    
+
     records_list = []
     for fb in feedback_qs:
-        # Initialize basic data
         data = {
             'feedback_no': fb.feedback_no,
             'status': fb.status,
             'details': fb.comment or '---',
             'package_details': fb.storage_details or '---',
         }
-        
-        # --- LOGIC TO GET PRODUCT CODE FROM FINAL FORMULA ---
-        final_formula = None
-        
-        if fb.cm_no:
-            # 1. Check MB for Final
-            final_formula = tbl_mb_extruder_formula.objects.filter(
-                cm_no=fb.cm_no, is_final=True
-            ).select_related('code').first()
-            
-            # 2. If not in MB, check DC for Final
-            if not final_formula:
-                final_formula = tbl_dc_extruder_formula.objects.filter(
-                    cm_no=fb.cm_no, is_final=True
-                ).select_related('code').first()
 
-            # Metadata for CMF
+        final_formula = None
+
+        if fb.cm_no:
+            final_formula = tbl_mb_extruder_formula.objects.filter(cm_no=fb.cm_no, is_final=True).select_related('code').first()
+            if not final_formula:
+                final_formula = tbl_dc_extruder_formula.objects.filter(cm_no=fb.cm_no, is_final=True).select_related('code').first()
+
             formula = tbl_cmf_formula.objects.filter(cm_no=fb.cm_no).first()
             dates = tbl_cmf_dates.objects.filter(cm_no=fb.cm_no).first()
-            
+
             data.update({
                 'matching_no': fb.cm_no.cm_no,
                 'customer': formula.customer if formula else '---',
@@ -798,18 +862,10 @@ def feedback(request):
             })
 
         elif fb.rs_no:
-            # 1. Check MB for Final (using rs_no instance/id)
-            final_formula = tbl_mb_extruder_formula.objects.filter(
-                rs_no=fb.rs_no, is_final=True
-            ).select_related('code').first()
-            
-            # 2. If not in MB, check DC for Final
+            final_formula = tbl_mb_extruder_formula.objects.filter(rs_no=fb.rs_no, is_final=True).select_related('code').first()
             if not final_formula:
-                final_formula = tbl_dc_extruder_formula.objects.filter(
-                    rs_no=fb.rs_no, is_final=True
-                ).select_related('code').first()
+                final_formula = tbl_dc_extruder_formula.objects.filter(rs_no=fb.rs_no, is_final=True).select_related('code').first()
 
-            # Metadata for RS
             data.update({
                 'matching_no': fb.rs_no.rs_no,
                 'customer': fb.rs_no.customer or '---',
@@ -821,21 +877,19 @@ def feedback(request):
                 'mode': 'rs'
             })
 
-        # Assign the product code from the final formula found
-        # Priority: Final Formula Code > feedback.code_submitted > '---'
         if final_formula and final_formula.code:
             data['prod_code'] = final_formula.code.product_code
         else:
             data['prod_code'] = fb.code_submitted or '---'
-            
+
         records_list.append(data)
 
     context = {
         'feedback_records': records_list,
-        'record_count': len(records_list)
+        'record_count': len(records_list),
+        'form_data': form_data,
     }
     return render(request, "sidemenu/feedback/feedback.html", context)
-
 
 @role_required
 def audit_trail(request):

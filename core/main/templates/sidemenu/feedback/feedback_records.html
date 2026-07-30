@@ -23,6 +23,7 @@
             <table class="table table-hover align-middle mb-0" id="feedbackTable">
                 <thead class="sticky-top bg-white" style="z-index: 10;">
                     <tr class="small text-uppercase">
+                        <th class="d-none">ID</th>
                         <th class="ps-3">Matching No.</th>
                         <th>Customer</th>
                         <th>Product Code</th>
@@ -38,7 +39,8 @@
                 </thead>
                 <tbody class="extra-small">
                     {% for record in feedback_records %}
-                    <tr class="record-row" data-mode="{{ record.mode }}">
+                    <tr class="record-row" data-mode="{{ record.mode }}" style="cursor: pointer;" title="Double-click to open feedback entry">
+                        <td class="d-none">{{ record.feedback_no }}</td>
                         <td class="ps-3 fw-bold {% if record.mode == 'rs' %}text-primary{% else %}text-teal{% endif %}">
                             {{ record.matching_no }}
                         </td>
