@@ -304,7 +304,7 @@ def rs_record_detail(request, rs_id):
 
     revisions_data = []
     for rs in rs_revisions:
-        pending_info = tbl_cmf_pending_completed.objects.filter(rs_no=rs).first()
+        pending_info = tbl_cmf_pending_completed.objects.filter(rs_no=rs).select_related('code').first()
 
         mb_list = []
         mb_qs = tbl_mb_extruder_formula.objects.filter(rs_no=rs).select_related('code')
