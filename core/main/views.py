@@ -260,7 +260,7 @@ def cmf_record_detail(request, cm_no):
     for cmf in cmf_revisions:
         # Fetch data specific to this revision
         formula_info = tbl_cmf_formula.objects.filter(cm_no=cmf.cm_no).first()
-        pending_info = tbl_cmf_pending_completed.objects.filter(cm_no=cmf.cm_no).first()
+        pending_info = tbl_cmf_pending_completed.objects.filter(cm_no=cmf.cm_no).select_related('code').first()
 
         # MB Formulas for this revision
         mb_list = []
