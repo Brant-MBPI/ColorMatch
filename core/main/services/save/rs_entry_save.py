@@ -2,7 +2,7 @@ from django.db import transaction
 from django.core.cache import cache
 from main.services.save.utils import to_bool, format_date, clean_numeric
 from main.models import (
-    tbl_feedback_details, tbl_cmf_color_req, tbl_cmf_pending_completed, 
+    tbl_cmf_dates, tbl_feedback_details, tbl_cmf_color_req, tbl_cmf_pending_completed, 
     tbl_cmf_process, tbl_cmf_process02, tbl_cmf_salesman, tbl_resin, 
     tbl_resins_selected, tbl_rs, tbl_generated_prod_code
 )
@@ -88,10 +88,6 @@ def save_rs_complete_entry(request):
             rs_no=data["rs_no"],
             customer=data["customer"],
             quantity_required=data["quantity_required"],
-            date_form_made=data["date_form_made"],
-            date_lab_received=data["date_lab_received"],
-            date_required=data["date_required"],
-            due_date=data["due_date"],
             finished_product=data["finished_product"],
             matching_type="request",
             color_desc=data["color_desc"],
@@ -100,6 +96,13 @@ def save_rs_complete_entry(request):
             user=request.user,
             sm_no=salesman_obj,
             code_no=code_obj # Optional: if you also added this field to tbl_rs
+        )
+        tbl_cmf_dates.objects.create(
+            rs_no=rs_obj,
+            form_made=data["date_form_made"],
+            date_lab_received=data["date_lab_received"], # Check field name matches: date_received_lab in model
+            date_required=data["date_required"],
+            due_date_lab=data["due_date"],
         )
 
         _save_related(request, rs_obj, data, selected_resins, selected_processes)

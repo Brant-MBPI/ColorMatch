@@ -812,15 +812,15 @@ def feedback(request):
                     final_formula = tbl_dc_extruder_formula.objects.filter(rs_no=fb.rs_no, is_final=True).select_related('code').first()
 
                 pending = tbl_cmf_pending_completed.objects.filter(rs_no=fb.rs_no).first()
-
+                dates = tbl_cmf_dates.objects.filter(rs_no=fb.rs_no).first()
                 form_data = {
                     'feedback_no': fb.feedback_no,
                     'matching_no': fb.rs_no.rs_no,
                     'customer': fb.rs_no.customer or '',
-                    'date_created': '',
-                    'required_date': fb.rs_no.date_required or '',
-                    'date_received': '',
-                    'due_date': fb.rs_no.due_date.strftime('%m/%d/%Y') if fb.rs_no.due_date else '',
+                    'date_created': dates.form_made.strftime('%m/%d/%Y') if dates and dates.form_made else '',
+                    'required_date': dates.date_required if dates else '',
+                    'date_received': dates.date_received_lab if dates else '',
+                    'due_date': dates.due_date_lab.strftime('%m/%d/%Y') if dates and dates.due_date_lab else '',
                     'finished_product': fb.rs_no.finished_product or '',
                     'color_description': fb.rs_no.color_desc or '',
                     'matching_type': fb.rs_no.matching_type or '',
@@ -877,14 +877,14 @@ def feedback(request):
             final_formula = tbl_mb_extruder_formula.objects.filter(rs_no=fb.rs_no, is_final=True).select_related('code').first()
             if not final_formula:
                 final_formula = tbl_dc_extruder_formula.objects.filter(rs_no=fb.rs_no, is_final=True).select_related('code').first()
-
+            dates = tbl_cmf_dates.objects.filter(rs_no=fb.rs_no).first()
             data.update({
                 'matching_no': fb.rs_no.rs_no,
                 'customer': fb.rs_no.customer or '---',
                 'color_desc': fb.rs_no.color_desc or '---',
                 'finished_prod': fb.rs_no.finished_product or '---',
-                'required_date': fb.rs_no.date_required or '---',
-                'due_date': fb.rs_no.due_date.strftime('%m/%d/%Y') if fb.rs_no.due_date else '---',
+                'required_date': dates.date_required if dates else '---',
+                'due_date':  dates.due_date_lab.strftime('%m/%d/%Y') if dates and dates.due_date_lab else '---',
                 'type': fb.rs_no.matching_type or '---',
                 'mode': 'rs'
             })

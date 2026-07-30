@@ -85,6 +85,8 @@ def get_rs_records():
     results = []
     for entry in status_records:
         rs = entry.rs_no
+        dates = tbl_cmf_dates.objects.filter(rs_no=rs).first()
+
         results.append({
             "id": rs.id,
             "no": rs.rs_no,
@@ -92,8 +94,8 @@ def get_rs_records():
             "primary_color": rs.primary_color or "---",
             "description": rs.color_desc or "---",
             "product": rs.finished_product or "---",
-            "required_date": rs.date_required or "---",
-            "target_date": rs.due_date.strftime('%m/%d/%y') if rs.due_date else "---",
+            "required_date": dates.date_required if dates else "---",
+            "target_date": dates.due_date_lab.strftime('%m/%d/%y') if (dates and dates.due_date_lab) else "---",
             "type": rs.matching_type or "---",
             "colorant_type": rs.colorant_type or "---",
             # Updated: Access string via the new 'code' ForeignKey
