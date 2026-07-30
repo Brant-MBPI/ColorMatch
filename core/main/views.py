@@ -407,7 +407,7 @@ def cmf_mb_formula(request):
                 application_str = ", ".join(processes)
 
                 # Product code lives on tbl_cmf_pending_completed for RS records
-                pending = tbl_cmf_pending_completed.objects.filter(rs_no=rs).first()
+                pending = tbl_cmf_pending_completed.objects.filter(rs_no=rs).select_related('code').first()
 
                 form_data = {
                     'cm_form_no': rs.rs_no,
@@ -417,7 +417,7 @@ def cmf_mb_formula(request):
                     'dosage': rs.dosage or getattr(rs, 'dosage', '') or '',
                     'finished_product': rs.finished_product or "",
                     'color': rs.primary_color or "",
-                    'product': pending.prod_code if pending else "",
+                    'product': pending.code.prod_code if pending else "",
                     'application': application_str,
                     'record_type': 'rs',
                 }
@@ -546,7 +546,7 @@ def cmf_dc_formula(request):
                 processes = tbl_cmf_process02.objects.filter(rs_no=rs).values_list('process_no__name', flat=True)
                 app_str = ", ".join(processes)
                 # Product code lives on tbl_cmf_pending_completed for RS records
-                pending = tbl_cmf_pending_completed.objects.filter(rs_no=rs).first()
+                pending = tbl_cmf_pending_completed.objects.filter(rs_no=rs).select_related('code').first()
 
                 form_data = {
                     'cm_form_no': rs.rs_no,
@@ -556,7 +556,7 @@ def cmf_dc_formula(request):
                     'dosage': getattr(rs, 'dosage', '') or '',
                     'finished_product': rs.finished_product or "",
                     'color': rs.primary_color or "",
-                    'product_code': pending.prod_code if pending else "",
+                    'product_code': pending.code.prod_code if pending else "",
                     'application': app_str,
                     'record_type': 'rs',
                 }

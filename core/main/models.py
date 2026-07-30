@@ -243,8 +243,9 @@ class tbl_cmf_dates(models.Model):
     date_required = models.CharField(max_length=36, blank=True, null=True)
     date_received_lab = models.CharField(max_length=36, blank=True, null=True)
     due_date_lab = models.DateField(blank=True, null=True)
-    cm_no = models.ForeignKey(tbl_cmf, to_field="cm_no", on_delete=models.CASCADE, db_column="cm_no")
-
+    cm_no = models.ForeignKey('tbl_cmf', to_field="cm_no", on_delete=models.CASCADE, db_column="cm_no", null=True, blank=True)
+    # Add the RS link
+    rs_no = models.ForeignKey('tbl_rs', on_delete=models.CASCADE, blank=True, null=True, db_column='rs_id')
     class Meta:
         db_table = "tbl_cmf_dates"
 
@@ -328,10 +329,6 @@ class tbl_rs(models.Model):
     rs_no = models.CharField(max_length=50, blank=True, null=True)
     customer = models.CharField(max_length=150, blank=True, null=True)
     quantity_required = models.DecimalField(max_digits=12, decimal_places=6, null=True, blank=True)
-    date_form_made = models.DateField(blank=True, null=True)
-    date_lab_received = models.CharField(max_length=36, blank=True, null=True)
-    date_required = models.CharField(max_length=36, blank=True, null=True)
-    due_date = models.DateField(blank=True, null=True)
     dosage = models.DecimalField(max_digits=12, decimal_places=6, null=True, blank=True)
     finished_product = models.CharField(max_length=150, blank=True, null=True)
     matching_type = models.CharField(max_length=50, blank=True, null=True)
