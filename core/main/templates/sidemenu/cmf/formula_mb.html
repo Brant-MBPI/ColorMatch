@@ -290,7 +290,8 @@
                     </div>
 
                     <!-- Color Swatch Preview -->
-                    <div class="rounded shadow-sm flex-shrink-0 color-swatch" style="width: clamp(130px, 18vw, 220px); height: clamp(60px, 10vw, 110px); background-color: {{ form_data.srgb_hex|default:'#FFFFFF' }}; border: 1px solid rgba(0,0,0,0.15);"></div>
+                    <div class="rounded shadow-sm flex-shrink-0 color-swatch" style="width: clamp(130px, 18vw, 220px); height: clamp(60px, 10vw, 110px); 
+                                border: 1px solid rgba(0,0,0,0.15); background-color: {{ form_data.srgb_hex|default:'#FFFFFF' }}; "></div>
                 </div>
             </div>
         </div>
