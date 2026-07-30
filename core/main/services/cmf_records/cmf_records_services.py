@@ -36,7 +36,11 @@ def get_cmf_records():
     if cached_data is not None:
         return cached_data
 
-    status_records = tbl_cmf_pending_completed.objects.filter(cm_no__isnull=False).select_related('cm_no').order_by('-cm_no')
+    # Added 'code' to select_related for efficiency
+    status_records = tbl_cmf_pending_completed.objects.filter(
+        cm_no__isnull=False
+    ).select_related('cm_no', 'code').order_by('-cm_no')
+    
     results = []
     for entry in status_records:
         cmf = entry.cm_no
@@ -44,7 +48,7 @@ def get_cmf_records():
         dates = tbl_cmf_dates.objects.filter(cm_no=cmf.cm_no).first()
 
         results.append({
-            "id": cmf.cm_no,  # CMF's cm_no is still unique — safe to use directly
+            "id": cmf.cm_no,
             "no": cmf.cm_no,
             "customer": formula.customer if formula else "---",
             "primary_color": cmf.in_code_no.color if cmf.in_code_no else "---",
@@ -54,7 +58,8 @@ def get_cmf_records():
             "target_date": dates.due_date_lab.strftime('%m/%d/%y') if (dates and dates.due_date_lab) else "---",
             "type": cmf.matching_type or "---",
             "colorant_type": cmf.colorant_type or "---",
-            "code": entry.prod_code or "---",
+            # Updated: Access string via the new 'code' ForeignKey
+            "code": entry.code.product_code if entry.code else "---",
             "status": "Completed" if entry.is_completed else "Pending",
             "submitted_date": entry.date_submitted.strftime('%m/%d/%y') if entry.date_submitted else "",
             "ar_no": entry.ar_no or "",
@@ -72,12 +77,16 @@ def get_rs_records():
     if cached_data is not None:
         return cached_data
 
-    status_records = tbl_cmf_pending_completed.objects.filter(rs_no__isnull=False).select_related('rs_no').order_by('-rs_no')
+    # Added 'code' to select_related
+    status_records = tbl_cmf_pending_completed.objects.filter(
+        rs_no__isnull=False
+    ).select_related('rs_no', 'code').order_by('-rs_no')
+    
     results = []
     for entry in status_records:
         rs = entry.rs_no
         results.append({
-            "id": rs.id,  # rs_no is no longer unique — use the row's real primary key instead
+            "id": rs.id,
             "no": rs.rs_no,
             "customer": rs.customer or "---",
             "primary_color": rs.primary_color or "---",
@@ -87,7 +96,8 @@ def get_rs_records():
             "target_date": rs.due_date.strftime('%m/%d/%y') if rs.due_date else "---",
             "type": rs.matching_type or "---",
             "colorant_type": rs.colorant_type or "---",
-            "code": entry.prod_code or "---",
+            # Updated: Access string via the new 'code' ForeignKey
+            "code": entry.code.product_code if entry.code else "---",
             "status": "Completed" if entry.is_completed else "Pending",
             "submitted_date": entry.date_submitted.strftime('%m/%d/%y') if entry.date_submitted else "",
             "ar_no": entry.ar_no or "",
@@ -135,7 +145,7 @@ def get_cmf_formulas(request, cm_no):
 
     # Fetch extra details from related tables
     formula_info = tbl_cmf_formula.objects.filter(cm_no=cm_no).first()
-    pending_info = tbl_cmf_pending_completed.objects.filter(cm_no=cm_no).first()
+    pending_info = tbl_cmf_pending_completed.objects.filter(cm_no=cm_no).select_related('code').first()
 
     # 2. Process MB Formulas
     mb_list = []
@@ -191,7 +201,7 @@ def get_cmf_formulas(request, cm_no):
         'customer': formula_info.customer if formula_info else '---',
         'color': cmf.in_code_no.color if cmf.in_code_no else '---',
         'type': cmf.matching_type or '---',
-        'code': pending_info.prod_code if pending_info else '---',
+        'code': pending_info.code.product_code if pending_info and pending_info.code else '---',
         'status': ("Completed" if pending_info.is_completed else "Pending") if pending_info else "Pending",
         'mb_formulas': mb_list,
         'dc_formulas': dc_list
@@ -202,21 +212,23 @@ def get_cmf_formulas(request, cm_no):
 @require_POST
 def toggle_final_formula(request, formula_type, formula_id):
     model = tbl_mb_extruder_formula if formula_type == 'mb' else tbl_dc_extruder_formula
-    header = model.objects.filter(pk=formula_id).first()
+    
+    # Optimization: select_related parent objects so audit log doesn't trigger extra DB hits
+    header = model.objects.filter(pk=formula_id).select_related('code', 'cm_no', 'rs_no').first()
 
     if not header:
         return JsonResponse({'success': False, 'error': 'Formula record not found.'}, status=404)
 
     with transaction.atomic():
         if header.is_final:
-            # Already final — clicking again removes final status, leaving none final
+            # 1. REMOVE FINAL STATUS
             header.is_final = False
             header.save(update_fields=['is_final'])
             is_final_now = False
+            new_status_code = None
         else:
+            # 2. SET AS FINAL
             # Unset any other formula marked final for the SAME parent record
-            # (cm_no for CMF-originated formulas, rs_no for RS-originated ones)
-            # — mirrors the same cm_no/rs_no exclusivity used everywhere else.
             if header.cm_no_id:
                 model.objects.filter(cm_no=header.cm_no).exclude(pk=header.pk).update(is_final=False)
             elif header.rs_no_id:
@@ -225,11 +237,33 @@ def toggle_final_formula(request, formula_type, formula_id):
             header.is_final = True
             header.save(update_fields=['is_final'])
             is_final_now = True
+            new_status_code = header.code
 
-        log_audit(
-            request,
-            "Updated",
-            f"{'Marked' if is_final_now else 'Unmarked'} {formula_type.upper()} formula (id={header.pk}) as final."
-        )
+        # --- UPDATE PENDING/COMPLETED STATUS RECORD ---
+        # We perform the update directly on the queryset. 
+        # No need to fetch 'status_record' into a variable first.
+        if header.cm_no_id:
+            tbl_cmf_pending_completed.objects.filter(cm_no=header.cm_no).update(code=new_status_code)
+        elif header.rs_no_id:
+            tbl_cmf_pending_completed.objects.filter(rs_no=header.rs_no).update(code=new_status_code)
 
+        # --- PREPARE AUDIT MESSAGE ---
+        # Determine formula identifier (Lot for MB, Product Code for DC)
+        if formula_type == 'mb':
+            formula_id_display = f"Lot: {header.lot_no or 'N/A'}"
+        else:
+            formula_id_display = f"Code: {header.code.product_code if header.code else 'N/A'}"
+
+        # Determine parent identifier (CMF No or RS No)
+        parent_display = header.cm_no.cm_no if header.cm_no else (header.rs_no.rs_no if header.rs_no else "Unknown")
+
+        action = "Marked" if is_final_now else "Unmarked"
+        audit_msg = f"{action} {formula_type.upper()} formula ({formula_id_display}) as Final for {parent_display}."
+
+        log_audit(request, "Updated", audit_msg)
+
+    # Clear caches
+    cache.delete('cmf_records_list')
+    cache.delete('rs_records_list')
+    
     return JsonResponse({'success': True, 'is_final': is_final_now})
