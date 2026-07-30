@@ -1,8 +1,23 @@
 from django.db import transaction
 from django.core.cache import cache
 from main.services.save.utils import to_bool, format_date, clean_numeric
-from main.models import tbl_feedback_details, tbl_cmf_color_req, tbl_cmf_pending_completed, tbl_cmf_process, tbl_cmf_process02, tbl_cmf_salesman, tbl_resin, tbl_resins_selected, tbl_rs
+from main.models import (
+    tbl_feedback_details, tbl_cmf_color_req, tbl_cmf_pending_completed, 
+    tbl_cmf_process, tbl_cmf_process02, tbl_cmf_salesman, tbl_resin, 
+    tbl_resins_selected, tbl_rs, tbl_generated_prod_code
+)
 from main.utils.log_audit_trail import log_audit
+
+
+def _get_prod_code_obj(code_str):
+    """Helper to resolve the product code string into a database object."""
+    if not code_str or not code_str.strip():
+        return None
+    # Get or create the production code record based on the string provided in the UI
+    code_obj, _ = tbl_generated_prod_code.objects.get_or_create(
+        product_code=code_str.strip()
+    )
+    return code_obj
 
 
 def _extract_rs_data(request):
@@ -30,7 +45,7 @@ def _extract_rs_data(request):
         "due_date": format_date(data.get('due_date')),
         "colorant_type": colorant_type,
         "color_req": color_req,
-        "product_code": data.get('product_code'),
+        "product_code_str": data.get('product_code'), # Raw string from UI
     }
 
 
@@ -54,7 +69,7 @@ def _save_related(request, rs_obj, data, selected_resins, selected_processes):
 
 
 def save_rs_complete_entry(request):
-    """Creates a new RS entry. Duplicate rs_no values are allowed."""
+    """Creates a new RS entry."""
     with transaction.atomic():
         data = _extract_rs_data(request)
 
@@ -65,6 +80,9 @@ def save_rs_complete_entry(request):
 
         selected_resins = request.POST.getlist('resin')
         selected_processes = request.POST.getlist('process')
+
+        # Resolve the string into a ForeignKey object
+        code_obj = _get_prod_code_obj(data["product_code_str"])
 
         rs_obj = tbl_rs.objects.create(
             rs_no=data["rs_no"],
@@ -81,13 +99,15 @@ def save_rs_complete_entry(request):
             colorant_type=data["colorant_type"],
             user=request.user,
             sm_no=salesman_obj,
+            code_no=code_obj # Optional: if you also added this field to tbl_rs
         )
 
         _save_related(request, rs_obj, data, selected_resins, selected_processes)
 
+        # Update: Use 'code' field (FK) instead of 'prod_code' (String)
         tbl_cmf_pending_completed.objects.create(
             rs_no=rs_obj,
-            prod_code=data["product_code"],
+            code=code_obj, 
             is_completed=False
         )
 
@@ -100,8 +120,7 @@ def save_rs_complete_entry(request):
 
 
 def update_rs_complete_entry(request, original_rs_id):
-    """Updates an existing RS entry identified by its primary key (id) — NOT rs_no, since
-    rs_no can now be duplicated."""
+    """Updates an existing RS entry identified by primary key."""
     with transaction.atomic():
         rs_instance = tbl_rs.objects.filter(id=original_rs_id).first()
         if not rs_instance:
@@ -116,6 +135,9 @@ def update_rs_complete_entry(request, original_rs_id):
 
         selected_resins = request.POST.getlist('resin')
         selected_processes = request.POST.getlist('process')
+        
+        # Resolve the string into a ForeignKey object
+        code_obj = _get_prod_code_obj(data["product_code_str"])
 
         rs_instance.rs_no = data["rs_no"]
         rs_instance.customer = data["customer"]
@@ -130,6 +152,7 @@ def update_rs_complete_entry(request, original_rs_id):
         rs_instance.primary_color = data["primary_color"]
         rs_instance.colorant_type = data["colorant_type"]
         rs_instance.sm_no = salesman_obj
+        rs_instance.code_no = code_obj # Update FK on main RS table if exists
         rs_instance.save()
 
         tbl_resins_selected.objects.filter(rs_no=rs_instance).delete()
@@ -137,9 +160,10 @@ def update_rs_complete_entry(request, original_rs_id):
         tbl_cmf_color_req.objects.filter(rs_no=rs_instance).delete()
         _save_related(request, rs_instance, data, selected_resins, selected_processes)
 
+        # Update: Use 'code' field (FK) defaults
         tbl_cmf_pending_completed.objects.update_or_create(
             rs_no=rs_instance,
-            defaults={"prod_code": data["product_code"]}
+            defaults={"code": code_obj}
         )
 
         log_audit(request, "Updated", f"RS Entry Updated: {rs_instance.rs_no} (id={rs_instance.id})")
@@ -149,7 +173,8 @@ def update_rs_complete_entry(request, original_rs_id):
 
 
 def build_form_data(rs_instance):
-    pending = tbl_cmf_pending_completed.objects.filter(rs_no=rs_instance).first()
+    # Use select_related to get the code string in one query
+    pending = tbl_cmf_pending_completed.objects.filter(rs_no=rs_instance).select_related('code').first()
     color_req = tbl_cmf_color_req.objects.filter(rs_no=rs_instance).first()
 
     STANDARD_COLOR_REQS = {'transparent', 'opaque', 'translucent', 'metallic', 'fluorescent', 'pearlescent'}
@@ -172,7 +197,8 @@ def build_form_data(rs_instance):
         'required_date': rs_instance.date_required,
         'date_received': rs_instance.date_lab_received,
         'due_date': rs_instance.due_date,
-        'product_code': pending.prod_code if pending else '',
+        # Updated: Access string through the ForeignKey relation
+        'product_code': pending.code.product_code if pending and pending.code else '',
         'colorantType': rs_instance.colorant_type if rs_instance.colorant_type in ('MB', 'DC') else 'Other',
         'colorantTypeOther': rs_instance.colorant_type if rs_instance.colorant_type not in ('MB', 'DC', None, '') else '',
         'colorReq': color_req_value,
