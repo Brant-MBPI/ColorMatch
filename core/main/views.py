@@ -678,6 +678,18 @@ def cmf_pending_completed(request):
                 dates = tbl_cmf_dates.objects.filter(cm_no=cmf).first()
                 formula_info = tbl_cmf_formula.objects.filter(cm_no=cmf).first()
                 tracking = tbl_cmf_pending_completed.objects.filter(cm_no=cmf).first()
+                final_formula = tbl_mb_extruder_formula.objects.filter(
+                    cm_no=cmf, is_final=True
+                ).select_related('code').first()
+
+                if not final_formula:
+                    final_formula = tbl_dc_extruder_formula.objects.filter(
+                        cm_no=cmf, is_final=True
+                    ).select_related('code').first()
+
+                final_prod_code = ""
+                if final_formula and final_formula.code:
+                    final_prod_code = final_formula.code.product_code
                 
                 form_data = {
                     'cmf_no': cmf.cm_no,
@@ -693,7 +705,7 @@ def cmf_pending_completed(request):
                     'salesman': cmf.sm.name if cmf.sm else "",
                     'status': 'Completed' if (tracking and tracking.is_completed) else 'Pending',
                     'pending_reason': tracking.reason if tracking else "",
-                    'product_code': tracking.prod_code if tracking else "",
+                    'product_code': final_prod_code,
                     'code_description': tracking.code_details if tracking else "",
                     'date_submitted': tracking.date_submitted.strftime('%m/%d/%Y') if tracking and tracking.date_submitted else "",
                     'ar_no': tracking.ar_no if tracking else "",

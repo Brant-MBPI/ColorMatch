@@ -298,8 +298,14 @@ class tbl_cmf_pending_completed(models.Model):
     # References tbl_rs.rs_id ()
     rs_no = models.ForeignKey('tbl_rs', on_delete=models.SET_NULL, blank=True, null=True, db_column='rs_id')
     reason = models.TextField(blank=True, null=True)
-    prod_code = models.CharField(max_length=100, blank=True, null=True)
     code_details = models.TextField(blank=True, null=True)
+    code = models.ForeignKey(
+        'tbl_generated_prod_code', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        db_column="code_no"
+    )
     date_submitted = models.DateField(blank=True, null=True)
     lot_no = models.CharField(max_length=60, blank=True, null=True)
     ar_no = models.CharField(max_length=50, blank=True, null=True)
