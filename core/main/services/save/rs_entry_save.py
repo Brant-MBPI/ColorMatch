@@ -179,7 +179,7 @@ def build_form_data(rs_instance):
     # Use select_related to get the code string in one query
     pending = tbl_cmf_pending_completed.objects.filter(rs_no=rs_instance).select_related('code').first()
     color_req = tbl_cmf_color_req.objects.filter(rs_no=rs_instance).first()
-
+    dates = tbl_cmf_dates.objects.filter(rs_no=rs_instance).first()
     STANDARD_COLOR_REQS = {'transparent', 'opaque', 'translucent', 'metallic', 'fluorescent', 'pearlescent'}
     color_req_name = color_req.name if color_req else ''
     if color_req_name and color_req_name.lower() not in STANDARD_COLOR_REQS:
@@ -196,10 +196,10 @@ def build_form_data(rs_instance):
         'quantity_kg': rs_instance.quantity_required,
         'finished_product': rs_instance.finished_product,
         'color_description': rs_instance.color_desc,
-        'date_created': rs_instance.date_form_made,
-        'required_date': rs_instance.date_required,
-        'date_received': rs_instance.date_lab_received,
-        'due_date': rs_instance.due_date,
+        'date_created': dates.form_made,
+        'required_date': dates.date_required,
+        'date_received': dates.date_received_lab,
+        'due_date': dates.due_date_lab,
         # Updated: Access string through the ForeignKey relation
         'product_code': pending.code.product_code if pending and pending.code else '',
         'colorantType': rs_instance.colorant_type if rs_instance.colorant_type in ('MB', 'DC') else 'Other',

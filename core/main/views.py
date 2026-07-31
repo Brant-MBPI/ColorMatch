@@ -717,8 +717,9 @@ def cmf_pending_completed(request):
         elif record_type == 'rs':
             rs = tbl_rs.objects.filter(id=record_no).first()
             if rs:
-                tracking = tbl_cmf_pending_completed.objects.filter(rs_no=rs).first()
+                tracking = tbl_cmf_pending_completed.objects.filter(rs_no=rs).select_related('code').first()
                 color_req = tbl_cmf_color_req.objects.filter(rs_no=rs).first()
+                dates = tbl_cmf_dates.objects.filter(rs_no=rs).first()
                 # Resin — same pattern as CMF, filtered via the rs_no FK on tbl_resins_selected
                 resins_list = tbl_resins_selected.objects.filter(rs_no=rs).values_list('resin_no__abbreviation', flat=True)
                 resin_str = ", ".join(resins_list)
@@ -732,10 +733,10 @@ def cmf_pending_completed(request):
                     'rs_no': rs.rs_no,
                     'customer': rs.customer or "",
                     'quantity_kg': rs.quantity_required or "",
-                    'date_created': rs.date_form_made.strftime('%m/%d/%Y') if rs.date_form_made else "",
-                    'due_date': rs.due_date.strftime('%m/%d/%Y') if rs.due_date else "",
-                    'required_date': rs.date_required or "",
-                    'date_received': rs.date_lab_received if rs.date_lab_received else "",
+                    'date_created': dates.form_made.strftime('%m/%d/%Y') if dates and dates.form_made else "",
+                    'due_date': dates.due_date_lab.strftime('%m/%d/%Y') if dates and dates.due_date_lab else "",
+                    'required_date': dates.date_required if dates else "",
+                    'date_received': dates.date_received_lab if dates else "",
                     'finished_product': rs.finished_product or "",
                     'color_description': rs.color_desc or "",
                     'matchType': rs.matching_type.upper() if rs.matching_type else "",
@@ -746,7 +747,7 @@ def cmf_pending_completed(request):
                     'resin': resin_str,
                     'application': app_str,
                     'pending_reason': tracking.reason if tracking else "",
-                    'product_code': tracking.prod_code if tracking else "",
+                    'product_code': tracking.code.product_code if tracking else "",
                     'code_description': tracking.code_details if tracking else "",
                     'date_submitted': tracking.date_submitted.strftime('%m/%d/%Y') if tracking and tracking.date_submitted else "",
                     'ar_no': tracking.ar_no if tracking else "",
