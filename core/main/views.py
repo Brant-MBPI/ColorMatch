@@ -417,7 +417,7 @@ def cmf_mb_formula(request):
                     'dosage': rs.dosage or getattr(rs, 'dosage', '') or '',
                     'finished_product': rs.finished_product or "",
                     'color': rs.primary_color or "",
-                    'product': pending.code.prod_code if pending else "",
+                    'product': pending.code.product_code if pending else "",
                     'application': application_str,
                     'record_type': 'rs',
                 }
@@ -556,7 +556,7 @@ def cmf_dc_formula(request):
                     'dosage': getattr(rs, 'dosage', '') or '',
                     'finished_product': rs.finished_product or "",
                     'color': rs.primary_color or "",
-                    'product_code': pending.code.prod_code if pending else "",
+                    'product_code': pending.code.product_code if pending else "",
                     'application': app_str,
                     'record_type': 'rs',
                 }
@@ -770,13 +770,9 @@ def feedback(request):
     if feedback_no:
         fb = tbl_feedback_details.objects.select_related('cm_no', 'rs_no').filter(feedback_no=feedback_no).first()
         if fb:
-            final_formula = None
 
             if fb.cm_no:
-                final_formula = tbl_mb_extruder_formula.objects.filter(cm_no=fb.cm_no, is_final=True).select_related('code').first()
-                if not final_formula:
-                    final_formula = tbl_dc_extruder_formula.objects.filter(cm_no=fb.cm_no, is_final=True).select_related('code').first()
-
+                pending_info = tbl_cmf_pending_completed.objects.filter(cm_no=fb.cm_no).select_related('code').first()
                 formula = tbl_cmf_formula.objects.filter(cm_no=fb.cm_no).first()
                 dates = tbl_cmf_dates.objects.filter(cm_no=fb.cm_no).first()
                 pending = tbl_cmf_pending_completed.objects.filter(cm_no=fb.cm_no).first()
@@ -795,7 +791,7 @@ def feedback(request):
                     'sales_person': fb.cm_no.sm.name if fb.cm_no.sm else '',
                     'current_status': 'Completed' if (pending and pending.is_completed) else 'Pending',
                     'pending_reason': pending.reason if pending else '',
-                    'product_code': (final_formula.code.product_code if final_formula and final_formula.code else (fb.code_submitted or '')),
+                    'product_code': pending_info.code.product_code if pending_info else "",
                     'code_description': pending.code_details if pending else '',
                     'date_submitted': pending.date_submitted.strftime('%m/%d/%Y') if pending and pending.date_submitted else '',
                     'ar_number': pending.ar_no if pending else '',
@@ -808,10 +804,7 @@ def feedback(request):
                 }
 
             elif fb.rs_no:
-                final_formula = tbl_mb_extruder_formula.objects.filter(rs_no=fb.rs_no, is_final=True).select_related('code').first()
-                if not final_formula:
-                    final_formula = tbl_dc_extruder_formula.objects.filter(rs_no=fb.rs_no, is_final=True).select_related('code').first()
-
+                pending_info = tbl_cmf_pending_completed.objects.filter(rs_no=fb.rs_no).select_related('code').first()
                 pending = tbl_cmf_pending_completed.objects.filter(rs_no=fb.rs_no).first()
                 dates = tbl_cmf_dates.objects.filter(rs_no=fb.rs_no).first()
                 form_data = {
@@ -828,7 +821,7 @@ def feedback(request):
                     'sales_person': fb.rs_no.sm_no.name if fb.rs_no.sm_no else '',
                     'current_status': 'Completed' if (pending and pending.is_completed) else 'Pending',
                     'pending_reason': pending.reason if pending else '',
-                    'product_code': (final_formula.code.product_code if final_formula and final_formula.code else (fb.code_submitted or '')),
+                    'product_code': pending_info.code.product_code if pending_info else "",
                     'code_description': pending.code_details if pending else '',
                     'date_submitted': pending.date_submitted.strftime('%m/%d/%Y') if pending and pending.date_submitted else '',
                     'ar_number': pending.ar_no if pending else '',
@@ -873,27 +866,27 @@ def feedback(request):
                 'type': fb.cm_no.matching_type or '---',
                 'mode': 'cmf'
             })
+            if final_formula and final_formula.code:
+                data['prod_code'] = final_formula.code.product_code
+            else:
+                data['prod_code'] = fb.code_submitted or '---'
 
         elif fb.rs_no:
-            final_formula = tbl_mb_extruder_formula.objects.filter(rs_no=fb.rs_no, is_final=True).select_related('code').first()
-            if not final_formula:
-                final_formula = tbl_dc_extruder_formula.objects.filter(rs_no=fb.rs_no, is_final=True).select_related('code').first()
+            pending_info = tbl_cmf_pending_completed.objects.filter(rs_no=fb.rs_no).select_related('code').first()
             dates = tbl_cmf_dates.objects.filter(rs_no=fb.rs_no).first()
             data.update({
                 'matching_no': fb.rs_no.rs_no,
                 'customer': fb.rs_no.customer or '---',
                 'color_desc': fb.rs_no.color_desc or '---',
+                'prod_code': pending_info.code.product_code if pending_info else "",
                 'finished_prod': fb.rs_no.finished_product or '---',
                 'required_date': dates.date_required if dates else '---',
                 'due_date':  dates.due_date_lab.strftime('%m/%d/%Y') if dates and dates.due_date_lab else '---',
                 'type': fb.rs_no.matching_type or '---',
                 'mode': 'rs'
             })
-
-        if final_formula and final_formula.code:
-            data['prod_code'] = final_formula.code.product_code
-        else:
-            data['prod_code'] = fb.code_submitted or '---'
+        # TODO: = keep sa cmf lang yung selected productcode(isfinal) while sa rs yung nasa pending completed na product code
+        
 
         records_list.append(data)
 
