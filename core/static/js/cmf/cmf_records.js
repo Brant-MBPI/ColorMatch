@@ -114,4 +114,84 @@ document.addEventListener('DOMContentLoaded', function() {
     if (refreshBtn) refreshBtn.addEventListener('click', () => window.location.reload());
 
     applyFilters();
+
+    // --- EXPORT FILTER PANEL ---
+    const exportFilterBtn = document.getElementById('exportFilterBtn');
+    const exportFilterPanel = document.getElementById('exportFilterPanel');
+    const exportDateFrom = document.getElementById('exportDateFrom');
+    const exportDateTo = document.getElementById('exportDateTo');
+    const exportIncludeRs = document.getElementById('exportIncludeRs');
+    const exportExcelBtn = document.getElementById('exportExcelBtn');
+
+    function formatDateMMDDYYYY(date) {
+        const mm = String(date.getMonth() + 1).padStart(2, '0');
+        const dd = String(date.getDate()).padStart(2, '0');
+        const yyyy = date.getFullYear();
+        return `${mm}/${dd}/${yyyy}`;
+    }
+
+    if (exportFilterBtn && exportFilterPanel) {
+        // Set defaults: To = today, From = 7 days ago
+        const today = new Date();
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(today.getDate() - 7);
+
+        if (exportDateTo) exportDateTo.value = formatDateMMDDYYYY(today);
+        if (exportDateFrom) exportDateFrom.value = formatDateMMDDYYYY(sevenDaysAgo);
+
+        exportFilterBtn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            exportFilterPanel.classList.toggle('d-none');
+        });
+
+        // Close the panel when clicking anywhere outside it
+        document.addEventListener('click', function (e) {
+            if (!exportFilterPanel.contains(e.target) && e.target !== exportFilterBtn) {
+                exportFilterPanel.classList.add('d-none');
+            }
+        });
+
+        // Prevent clicks inside the panel (e.g. on the date pickers) from closing it
+        exportFilterPanel.addEventListener('click', function (e) {
+            e.stopPropagation();
+        });
+    }
+
+    if (exportExcelBtn) {
+        exportExcelBtn.addEventListener('click', function () {
+            const dateFrom = exportDateFrom?.value || '';
+            const dateTo = exportDateTo?.value || '';
+            const includeRs = exportIncludeRs?.checked ?? false;
+            const showCompleted = completedCheckbox?.checked ?? true;
+            const showPending = pendingCheckbox?.checked ?? true;
+
+            // Build a human-readable summary of what's about to be exported
+            const statusParts = [];
+            if (showCompleted) statusParts.push('Completed');
+            if (showPending) statusParts.push('Pending');
+            const statusText = statusParts.length ? statusParts.join(' & ') : 'No statuses selected';
+
+            const message = `
+                Date Range: ${dateFrom} to ${dateTo}
+                Status: ${statusText}
+                Include RS Data: ${includeRs ? 'Yes' : 'No'}
+            `;
+
+            Preline.confirm(
+                'Export to Excel?',
+                message,
+                'success',
+                () => {
+                    const params = new URLSearchParams();
+                    params.set('date_from', dateFrom);
+                    params.set('date_to', dateTo);
+                    params.set('include_rs', includeRs ? '1' : '0');
+                    params.set('completed', showCompleted ? '1' : '0');
+                    params.set('pending', showPending ? '1' : '0');
+
+                    window.location.href = `/cmf/records/export/?${params.toString()}`;
+                }
+            );
+        });
+    }
 });

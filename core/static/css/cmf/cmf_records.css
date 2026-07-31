@@ -87,3 +87,11 @@ body.dark-mode .custom-context-menu .bg-light {
     background-color: var(--sidebar-hover-bg) !important;
     color: var(--text-muted) !important;
 }
+
+.export-filter-panel {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    right: 0;
+    width: 320px;
+    z-index: 1000;
+}

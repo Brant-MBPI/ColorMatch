@@ -68,7 +68,12 @@ const Preline = {
 
         newConfirmBtn.onclick = () => {
             confirmed = true;
-            onConfirm();
+            
+            // FIX: Only call onConfirm if it is actually a function
+            if (typeof onConfirm === 'function') {
+                onConfirm();
+            }
+            
             modal.hide();
         };
 
