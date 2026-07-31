@@ -885,8 +885,6 @@ def feedback(request):
                 'type': fb.rs_no.matching_type or '---',
                 'mode': 'rs'
             })
-        # TODO: = keep sa cmf lang yung selected productcode(isfinal) while sa rs yung nasa pending completed na product code
-        
 
         records_list.append(data)
 
