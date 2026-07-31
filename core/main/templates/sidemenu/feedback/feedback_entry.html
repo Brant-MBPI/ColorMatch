@@ -1,5 +1,6 @@
 <div class="feedback-entry-form-container">
     <form id="feedbackEntryForm" method="POST">
+        {% csrf_token %}
         <input type="hidden" name="feedback_no" value="{{ form_data.feedback_no|default:'' }}">
         <input type="hidden" name="record_type" value="{{ form_data.record_type|default:'cmf' }}">
         <div class="row g-4">
@@ -161,7 +162,7 @@
 
         <!-- Action Button -->
         <div class="mt-5 d-flex justify-content-end">
-            <button type="submit" class="btn btn-success btn-sm px-4 py-2 shadow-sm">
+            <button type="button" class="btn btn-success btn-sm px-4 py-2 shadow-sm btn-save-feedback">
                 <i class="bi bi-save me-2"></i>Save Update
             </button>
         </div>

@@ -45,12 +45,22 @@ const Preline = {
         const iconContainer = document.getElementById('modalIconContainer');
         const icon = document.getElementById('modalIcon');
         
-        // Reset classes
-        iconContainer.className = 'modal-icon-circle icon-' + (type || 'success');
-        icon.className = 'bi ' + (type === 'danger' ? 'bi-exclamation-triangle' : 'bi-check-lg');
+        // 1. Normalize type (map 'error' to 'danger')
+        const cleanType = (type === 'error') ? 'danger' : (type || 'success');
+        
+        // 2. Set Circle Color Class
+        iconContainer.className = 'modal-icon-circle icon-' + cleanType;
+        
+        // 3. Set the specific Icon
+        if (cleanType === 'danger') {
+            icon.className = 'bi bi-exclamation-triangle'; // Error Triangle
+        } else if (cleanType === 'warning') {
+            icon.className = 'bi bi-exclamation-circle';   // Warning Circle
+        } else {
+            icon.className = 'bi bi-check-lg';              // Success Check
+        }
 
         const confirmBtn = document.getElementById('modalConfirmBtn');
-        // Clear previous listeners
         const newConfirmBtn = confirmBtn.cloneNode(true);
         confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
 
@@ -62,7 +72,6 @@ const Preline = {
             modal.hide();
         };
 
-        // Fires no matter how the modal closes: confirm, X button, backdrop click, Escape
         modalEl.addEventListener('hidden.bs.modal', function handler() {
             if (!confirmed && typeof onCancel === 'function') {
                 onCancel();
