@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block navigation %}
+Export Preview
+{% endblock navigation %}
+
+{% block content %}
+<div class="container-fluid p-0">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="fw-bold m-0">Export Preview</h4>
+            <small class="text-muted">
+                {{ date_from }} to {{ date_to }}
+                {% if include_rs %} &middot; Including RS data{% endif %}
+            </small>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'cmf_records' %}" class="btn btn-sm btn-secondary px-3">
+                <i class="bi bi-arrow-left"></i> Back to Records
+            </a>
+            <button type="button" id="downloadExcelBtn" class="btn btn-sm btn-success px-3"
+                data-date-from="{{ date_from }}"
+                data-date-to="{{ date_to }}"
+                data-include-rs="{{ include_rs|yesno:'1,0' }}"
+                data-completed="{{ include_completed|yesno:'1,0' }}"
+                data-pending="{{ include_pending|yesno:'1,0' }}">
+                <i class="bi bi-file-earmark-excel"></i> Download Excel
+            </button>
+        </div>
+    </div>
+
+    {% if include_pending %}
+    <div class="card border-0 shadow-sm rounded-3 mb-4">
+        <div class="card-body p-0">
+            <div class="p-3 border-bottom">
+                <h6 class="fw-bold m-0 text-uppercase extra-small">Pending Records ({{ pending_rows|length }})</h6>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr class="small text-uppercase">
+                            <th class="ps-3">Matching No</th>
+                            <th>Customer</th>
+                            <th>Date when form was made</th>
+                            <th>Date when CMF was received by lab</th>
+                            <th>Date needed by sales</th>
+                            <th>Target date of lab</th>
+                            <th>End product</th>
+                            <th>Color</th>
+                            <th>Matching Type</th>
+                            <th>SM</th>
+                            <th class="pe-3">Reason</th>
+                        </tr>
+                    </thead>
+                    <tbody class="small">
+                        {% for row in pending_rows %}
+                        <tr>
+                            <td class="ps-3 fw-bold">{{ row.matching_no }}</td>
+                            <td>{{ row.customer }}</td>
+                            <td>{{ row.date_form_made }}</td>
+                            <td>{{ row.date_lab_received }}</td>
+                            <td>{{ row.date_needed }}</td>
+                            <td>{{ row.target_date }}</td>
+                            <td>{{ row.end_product }}</td>
+                            <td>{{ row.color }}</td>
+                            <td>{{ row.matching_type }}</td>
+                            <td>{{ row.sm }}</td>
+                            <td class="pe-3">{{ row.reason }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="11" class="text-center py-4 text-muted">No pending records match this filter.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if include_completed %}
+    <div class="card border-0 shadow-sm rounded-3 mb-4">
+        <div class="card-body p-0">
+            <div class="p-3 border-bottom">
+                <h6 class="fw-bold m-0 text-uppercase extra-small">Completed Records ({{ completed_rows|length }})</h6>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-sm table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr class="small text-uppercase">
+                            <th class="ps-3">Customer</th>
+                            <th>Code</th>
+                            <th>Date Request</th>
+                            <th>Date Lab Received</th>
+                            <th>Date Submitted</th>
+                            <th>AR #</th>
+                            <th class="pe-3">AR Date</th>
+                        </tr>
+                    </thead>
+                    <tbody class="small">
+                        {% for row in completed_rows %}
+                        <tr>
+                            <td class="ps-3 fw-bold">{{ row.customer }}</td>
+                            <td>{{ row.code }}</td>
+                            <td>{{ row.date_request }}</td>
+                            <td>{{ row.date_lab_received }}</td>
+                            <td>{{ row.date_submitted }}</td>
+                            <td>{{ row.ar_no }}</td>
+                            <td class="pe-3">{{ row.ar_date }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-4 text-muted">No completed records match this filter.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.getElementById('downloadExcelBtn').addEventListener('click', function () {
+        const btn = this;
+        const params = new URLSearchParams({
+            date_from: btn.dataset.dateFrom,
+            date_to: btn.dataset.dateTo,
+            include_rs: btn.dataset.includeRs,
+            completed: btn.dataset.completed,
+            pending: btn.dataset.pending,
+        });
+        window.location.href = `{% url 'cmf_records_export_download' %}?${params.toString()}`;
+    });
+</script>
+{% endblock %}

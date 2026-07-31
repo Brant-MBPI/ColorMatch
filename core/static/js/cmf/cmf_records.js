@@ -165,7 +165,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const showCompleted = completedCheckbox?.checked ?? true;
             const showPending = pendingCheckbox?.checked ?? true;
 
-            // Build a human-readable summary of what's about to be exported
             const statusParts = [];
             if (showCompleted) statusParts.push('Completed');
             if (showPending) statusParts.push('Pending');

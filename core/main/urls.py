@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views
 from .services.cmf_records import cmf_records_services
+from .services.export import cmf_record_export
 
 urlpatterns = [
     path('', views.index, name='index'),
@@ -11,7 +12,6 @@ urlpatterns = [
     path('other/', views.otherPage, name='other'),
     path('dashboard/', views.dashboard, name='dashboard'),
     path('cmf/records/', views.cmf_records, name='cmf_records'),
-    path('cmf/records/<str:cm_no>/', views.cmf_record_detail, name='cmf_record_detail'),
     path('cmf/entry/', views.cmf_entry, name='cmf_entry'),
     path('cmf/rs-entry/', views.cmf_rs_entry, name='rs_entry'),
     path('cmf/mb-formula/', views.cmf_mb_formula, name='mb_formula'),
@@ -20,8 +20,12 @@ urlpatterns = [
     path('feedback', views.feedback, name='feedback'),
     path('audit-trail/', views.audit_trail, name='audit_trail'),
 
+    # export
+    path('cmf/records/export/', views.cmf_records_export_preview, name='cmf_records_export_preview'),
+    path('cmf/records/export/download/', views.cmf_records_export_download, name='cmf_records_export_download'),
 
+    path('cmf/records/<str:cm_no>/', views.cmf_record_detail, name='cmf_record_detail'),
     path('cmf/formula/<str:formula_type>/<int:formula_id>/toggle-final/', cmf_records_services.toggle_final_formula, name='toggle_final_formula'),
-    path('cmf/records/<str:cm_no>/', cmf_records_services.get_cmf_formulas, name='get_formulas'),
+    # path('cmf/records/<str:cm_no>/', cmf_records_services.get_cmf_formulas, name='get_formulas'),
     path('cmf/rs-records/<int:rs_id>/', views.rs_record_detail, name='rs_record_detail'),
 ]

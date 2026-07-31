@@ -3,6 +3,7 @@ from urllib import request
 from django.core.cache import cache
 from django.contrib.auth import authenticate, login, logout, get_user_model 
 from django.contrib.auth.models import User
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib import messages
 from datetime import datetime
@@ -20,6 +21,7 @@ from main.models import (
 
 from .services.cmf_records import cmf_records_services
 from .services.save import cmf_entry_save
+from .services.export import cmf_record_export
 # Create your views here.
 User = get_user_model()
 
@@ -916,3 +918,36 @@ def audit_trail(request):
         "record_count": len(records),
     }
     return render(request, "sidemenu/audit_trail.html", context)
+
+
+
+
+
+
+
+# EXPORT 
+def cmf_records_export_preview(request):
+    date_from = request.GET.get('date_from', '')
+    date_to = request.GET.get('date_to', '')
+    include_rs = request.GET.get('include_rs') == '1'
+    include_completed = request.GET.get('completed', '1') == '1'
+    include_pending = request.GET.get('pending', '1') == '1'
+
+    pending_rows, completed_rows = cmf_record_export.get_export_data(
+        date_from, date_to, include_completed, include_pending, include_rs
+    )
+
+    context = {
+        'date_from': date_from,
+        'date_to': date_to,
+        'include_rs': include_rs,
+        'include_completed': include_completed,
+        'include_pending': include_pending,
+        'pending_rows': pending_rows,
+        'completed_rows': completed_rows,
+    }
+    return render(request, "sidemenu/export/cmf_report_preview.html", context)
+
+def cmf_records_export_download(request):
+    # Placeholder — real Excel generation still needs to be built.
+    return HttpResponse("Export download not yet implemented.")
