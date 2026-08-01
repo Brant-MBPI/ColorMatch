@@ -1,5 +1,6 @@
 from urllib import request
 
+import base64
 from django.core.cache import cache
 from django.contrib.auth import authenticate, login, logout, get_user_model 
 from django.contrib.auth.models import User
@@ -937,6 +938,10 @@ def cmf_records_export_preview(request):
         date_from, date_to, include_completed, include_pending, include_rs
     )
 
+    file_bytes = cmf_record_export.build_export_workbook(pending_rows, completed_rows, include_pending, include_completed)
+    file_b64 = base64.b64encode(file_bytes).decode('ascii')
+    filename = f"cmf_records_export_{date_from.replace('/', '-')}_to_{date_to.replace('/', '-')}.xlsx"
+
     context = {
         'date_from': date_from,
         'date_to': date_to,
@@ -945,6 +950,8 @@ def cmf_records_export_preview(request):
         'include_pending': include_pending,
         'pending_rows': pending_rows,
         'completed_rows': completed_rows,
+        'export_file_b64': file_b64,
+        'export_filename': filename,
     }
     return render(request, "sidemenu/export/cmf_report_preview.html", context)
 

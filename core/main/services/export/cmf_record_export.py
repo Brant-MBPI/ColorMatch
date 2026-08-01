@@ -1,4 +1,7 @@
 from datetime import datetime
+import base64
+from openpyxl import Workbook
+from openpyxl.styles import Font
 from main.models import (
     tbl_cmf_dates, tbl_cmf_formula, tbl_cmf_pending_completed,
 )
@@ -119,3 +122,65 @@ def get_export_data(date_from, date_to, include_completed, include_pending, incl
                 })
 
     return pending_rows, completed_rows
+
+
+def build_export_workbook(pending_rows, completed_rows, include_pending, include_completed):
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "CMF Records"
+
+    header_font = Font(name="Arial", bold=True)
+    normal_font = Font(name="Arial")
+
+    row_idx = 1
+
+    if include_pending:
+        pending_headers = [
+            "MATCHING No", "CUSTOMER", "DATE WHEN FORM WAS MADE",
+            "Date when CMF was receive by lab", "Date Needed by sales",
+            "Target date of lab", "End product", "Color", "MATCHING TYPE",
+            "SM", "REASON"
+        ]
+        for col_idx, header in enumerate(pending_headers, start=1):
+            ws.cell(row=row_idx, column=col_idx, value=header).font = header_font
+        row_idx += 1
+
+        for row in pending_rows:
+            values = [
+                row["matching_no"], row["customer"], row["date_form_made"],
+                row["date_lab_received"], row["date_needed"], row["target_date"],
+                row["end_product"], row["color"], row["matching_type"],
+                row["sm"], row["reason"],
+            ]
+            for col_idx, value in enumerate(values, start=1):
+                ws.cell(row=row_idx, column=col_idx, value=value).font = normal_font
+            row_idx += 1
+
+    if include_pending and include_completed:
+        row_idx += 5
+
+    if include_completed:
+        completed_headers = [
+            "CUSTOMER", "CODE", "DATE REQUEST", "DATE LAB RECEIVED",
+            "DATE SUBMITTED", "AR#", "AR DATE"
+        ]
+        for col_idx, header in enumerate(completed_headers, start=1):
+            ws.cell(row=row_idx, column=col_idx, value=header).font = header_font
+        row_idx += 1
+
+        for row in completed_rows:
+            values = [
+                row["customer"], row["code"], row["date_request"],
+                row["date_lab_received"], row["date_submitted"],
+                row["ar_no"], row["ar_date"],
+            ]
+            for col_idx, value in enumerate(values, start=1):
+                ws.cell(row=row_idx, column=col_idx, value=value).font = normal_font
+            row_idx += 1
+
+    for col_idx in range(1, 12):
+        ws.column_dimensions[chr(64 + col_idx)].width = 22
+
+    buffer = io.BytesIO()
+    wb.save(buffer)
+    return buffer.getvalue()

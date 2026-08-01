@@ -21,13 +21,12 @@ Export Preview
                 <i class="bi bi-arrow-left"></i> Back to Records
             </a>
             <button type="button" id="downloadExcelBtn" class="btn btn-sm btn-success px-3"
-                data-date-from="{{ date_from }}"
-                data-date-to="{{ date_to }}"
-                data-include-rs="{{ include_rs|yesno:'1,0' }}"
-                data-completed="{{ include_completed|yesno:'1,0' }}"
-                data-pending="{{ include_pending|yesno:'1,0' }}">
+                data-filename="{{ export_filename }}">
                 <i class="bi bi-file-earmark-excel"></i> Download Excel
             </button>
+
+            <!-- Hidden — carries the pre-built workbook bytes (base64) down to the client -->
+            <textarea id="exportFileData" class="d-none">{{ export_file_b64 }}</textarea>
         </div>
     </div>
 
@@ -130,14 +129,34 @@ Export Preview
 <script>
     document.getElementById('downloadExcelBtn').addEventListener('click', function () {
         const btn = this;
-        const params = new URLSearchParams({
-            date_from: btn.dataset.dateFrom,
-            date_to: btn.dataset.dateTo,
-            include_rs: btn.dataset.includeRs,
-            completed: btn.dataset.completed,
-            pending: btn.dataset.pending,
+        const base64Data = document.getElementById('exportFileData').value;
+        const filename = btn.dataset.filename;
+
+        // Decode base64 → raw bytes → Blob, entirely in the browser —
+        // no network request needed since the file already arrived
+        // embedded in this page's HTML.
+        const byteChars = atob(base64Data);
+        const byteNumbers = new Array(byteChars.length);
+        for (let i = 0; i < byteChars.length; i++) {
+            byteNumbers[i] = byteChars.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], {
+            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         });
-        window.location.href = `{% url 'cmf_records_export_download' %}?${params.toString()}`;
+
+        const blobUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(blobUrl);
+
+        // The file is fully in the browser's hands the moment the blob
+        // was created — safe to redirect immediately, no delay needed.
+        window.location.href = "{% url 'cmf_records' %}";
     });
 </script>
 {% endblock %}
