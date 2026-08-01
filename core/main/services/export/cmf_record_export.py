@@ -1,5 +1,5 @@
 from datetime import datetime
-import base64
+import io
 from openpyxl import Workbook
 from openpyxl.styles import Font
 from main.models import (
