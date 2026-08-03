@@ -136,4 +136,36 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initial run
     applyFilters();
+
+    
+    // CMF  previous data lookup logic
+    const cmfInput = document.getElementById('id_cmf_no');
+
+    // The function that checks the database
+    const handleCmfLookup = debounce(async (event) => {
+        const query = event.target.value;
+        if (query.length < 3) return; // Don't search for very short strings
+
+        try {
+            const response = await fetch(`/check-previous-matching/?cm_no=${query}`);
+            const data = await response.json();
+
+            if (data.match) {
+                const confirmFill = window.confirm(
+                    `Found previous record (${data.latest_cm_no}). Fill other fields using its data?`
+                );
+
+                if (confirmFill) {
+                    // We pass 'no' (the source of data) AND 'new_no' (the ID the user wants to use)
+                    const userInput = cmfInput.value;
+                    window.location.href = `/cmf/entry/?no=${data.latest_cm_no}&new_no=${userInput}`;
+                }
+            }
+        } catch (error) {
+            console.error("Error fetching matching data:", error);
+        }
+    }, 800);
+
+    // Attach to the input event
+    cmfInput.addEventListener('input', handleCmfLookup);
 });

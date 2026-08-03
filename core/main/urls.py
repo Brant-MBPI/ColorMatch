@@ -1,6 +1,7 @@
 from django.urls import path
+
 from . import views
-from .services.cmf_records import cmf_records_services
+from .services.cmf_records import cmf_records_services, previous_cmf_record
 from .services.export import cmf_record_export
 
 urlpatterns = [
@@ -28,4 +29,6 @@ urlpatterns = [
     path('cmf/formula/<str:formula_type>/<int:formula_id>/toggle-final/', cmf_records_services.toggle_final_formula, name='toggle_final_formula'),
     # path('cmf/records/<str:cm_no>/', cmf_records_services.get_cmf_formulas, name='get_formulas'),
     path('cmf/rs-records/<int:rs_id>/', views.rs_record_detail, name='rs_record_detail'),
+
+    path('check-previous-matching/', previous_cmf_record.check_previous_matching, name='check_previous_matching'),
 ]

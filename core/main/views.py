@@ -134,6 +134,7 @@ def cmf_entry(request):
 
     else:
         cm_no = request.GET.get('no')
+        cm_no_override = request.GET.get('new_no')
         if cm_no:
             cmf = tbl_cmf.objects.filter(cm_no=cm_no).first()
             if cmf:
@@ -167,7 +168,7 @@ def cmf_entry(request):
                     final_prod_code = final_formula.code.product_code
 
                 form_data = {
-                    'cmf_no': cmf.cm_no,
+                    'cmf_no': cm_no_override if cm_no_override else cmf.cm_no,
                     'customer': formula_info.customer if formula_info else "",
 
                     # DateField — needs strftime
