@@ -682,19 +682,31 @@ def cmf_pending_completed(request):
                 dates = tbl_cmf_dates.objects.filter(cm_no=cmf).first()
                 formula_info = tbl_cmf_formula.objects.filter(cm_no=cmf).first()
                 tracking = tbl_cmf_pending_completed.objects.filter(cm_no=cmf).first()
-                final_formula = tbl_mb_extruder_formula.objects.filter(
-                    cm_no=cmf, is_final=True
-                ).select_related('code').first()
-
+                is_dc = (cmf.colorant_type or "").upper() == 'DC'
+                final_formula = tbl_mb_extruder_formula.objects.filter(cm_no=cmf, is_final=True).select_related('code').first()
                 if not final_formula:
-                    final_formula = tbl_dc_extruder_formula.objects.filter(
-                        cm_no=cmf, is_final=True
-                    ).select_related('code').first()
+                    final_formula = tbl_dc_extruder_formula.objects.filter(cm_no=cmf, is_final=True).select_related('code').first()
+                    if final_formula: is_dc = True
 
-                final_prod_code = ""
-                if final_formula and final_formula.code:
-                    final_prod_code = final_formula.code.product_code
-                
+                final_prod_code = final_formula.code.product_code if final_formula and final_formula.code else ""
+
+                lot_options = []
+                selected_lot = ""
+
+                if is_dc:
+                    selected_lot = "N/A"
+                    lot_options = ["N/A"
+                                   ]
+                elif final_formula and final_formula.code:
+                    selected_lot = final_formula.lot_no or ""
+                    # Fetch all unique lots for this code in this CMF record
+                    mb_lots = tbl_mb_extruder_formula.objects.filter(cm_no=cmf, code=final_formula.code).values_list('lot_no', flat=True)
+                    all_lots = list(set(filter(None, mb_lots)))
+                    
+                    if selected_lot in all_lots:
+                        all_lots.remove(selected_lot)
+                    lot_options = [selected_lot] + all_lots if selected_lot else all_lots
+
                 form_data = {
                     'cmf_no': cmf.cm_no,
                     'customer': formula_info.customer if formula_info else "",
@@ -710,6 +722,9 @@ def cmf_pending_completed(request):
                     'status': 'Completed' if (tracking and tracking.is_completed) else 'Pending',
                     'pending_reason': tracking.reason if tracking else "",
                     'product_code': final_prod_code,
+                    'lot_no': selected_lot,
+                    'lot_options': lot_options,
+                    'is_dc': is_dc,
                     'code_description': tracking.code_details if tracking else "",
                     'date_submitted': tracking.date_submitted.strftime('%m/%d/%Y') if tracking and tracking.date_submitted else "",
                     'ar_no': tracking.ar_no if tracking else "",
@@ -732,6 +747,29 @@ def cmf_pending_completed(request):
                 # (no tbl_cmf_formula row to go through, unlike CMF)
                 processes = tbl_cmf_process02.objects.filter(rs_no=rs).values_list('process_no__name', flat=True)
                 app_str = ", ".join(processes)
+
+                is_dc = (rs.colorant_type or "").upper() == 'DC'
+                prod_code_obj = tracking.code if tracking else None
+                final_prod_code = prod_code_obj.product_code if prod_code_obj else ""
+
+                lot_options = []
+                selected_lot = ""
+
+                if is_dc:
+                    selected_lot = "N/A"
+                    lot_options = ["N/A"]
+                elif prod_code_obj:
+                    # Look for final lot in MB formulas for RS
+                    final_f = tbl_mb_extruder_formula.objects.filter(rs_no=rs, code=prod_code_obj, is_final=True).first()
+                    selected_lot = final_f.lot_no if final_f else ""
+
+                    mb_lots = tbl_mb_extruder_formula.objects.filter(rs_no=rs, code=prod_code_obj).values_list('lot_no', flat=True)
+                    all_lots = list(set(filter(None, mb_lots)))
+                    
+                    if selected_lot in all_lots:
+                        all_lots.remove(selected_lot)
+                    lot_options = [selected_lot] + all_lots if selected_lot else all_lots
+
                 
                 form_data = {
                     'rs_no': rs.rs_no,
@@ -751,7 +789,10 @@ def cmf_pending_completed(request):
                     'resin': resin_str,
                     'application': app_str,
                     'pending_reason': tracking.reason if tracking else "",
-                    'product_code': tracking.code.product_code if tracking else "",
+                    'product_code': final_prod_code if final_prod_code else tracking.code.product_code if tracking else "",
+                    'lot_no': selected_lot,
+                    'lot_options': lot_options,
+                    'is_dc': is_dc,
                     'code_description': tracking.code_details if tracking else "",
                     'date_submitted': tracking.date_submitted.strftime('%m/%d/%Y') if tracking and tracking.date_submitted else "",
                     'ar_no': tracking.ar_no if tracking else "",

@@ -148,7 +148,24 @@ Pending/Completed Forms
                         <div class="row g-2 mb-3">
                             <div class="col-6">
                                 <label class="fw-bold extra-small">Lot No.:</label>
-                                <input type="text" name="lot_no" value="{{ form_data.lot_no|default:'' }}" class="form-control form-control-sm uniform-input">
+                                <input type="text" 
+                                    name="lot_no" 
+                                    value="{{ form_data.lot_no|default:'' }}" 
+                                    {% if not form_data.is_dc %}list="lot_list"{% endif %} 
+                                    class="form-control form-control-sm uniform-input"
+                                    {% if form_data.is_dc %}readonly value="N/A"{% endif %}
+                                    autocomplete="off">
+                                
+                                <!-- Only render the datalist if it's NOT a DC record -->
+                                {% if not form_data.is_dc %}
+                                <datalist id="lot_list">
+                                    {% for lot in form_data.lot_options %}
+                                        {% if lot %}
+                                            <option value="{{ lot }}"></option>
+                                        {% endif %}
+                                    {% endfor %}
+                                </datalist>
+                                {% endif %}
                             </div>
                             <div class="col-6">
                                 <label class="fw-bold extra-small">AR No.:</label>
