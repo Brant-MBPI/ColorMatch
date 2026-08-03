@@ -124,6 +124,8 @@ def get_export_data(date_from, date_to, include_completed, include_pending, incl
     return pending_rows, completed_rows
 
 
+from openpyxl.utils import get_column_letter # Add this import
+
 def build_export_workbook(pending_rows, completed_rows, include_pending, include_completed):
     wb = Workbook()
     ws = wb.active
@@ -134,6 +136,7 @@ def build_export_workbook(pending_rows, completed_rows, include_pending, include
 
     row_idx = 1
 
+    # --- Pending Section ---
     if include_pending:
         pending_headers = [
             "MATCHING No", "CUSTOMER", "DATE WHEN FORM WAS MADE",
@@ -159,6 +162,7 @@ def build_export_workbook(pending_rows, completed_rows, include_pending, include
     if include_pending and include_completed:
         row_idx += 5
 
+    # --- Completed Section ---
     if include_completed:
         completed_headers = [
             "CUSTOMER", "CODE", "DATE REQUEST", "DATE LAB RECEIVED",
@@ -178,8 +182,25 @@ def build_export_workbook(pending_rows, completed_rows, include_pending, include
                 ws.cell(row=row_idx, column=col_idx, value=value).font = normal_font
             row_idx += 1
 
-    for col_idx in range(1, 12):
-        ws.column_dimensions[chr(64 + col_idx)].width = 22
+    # --- AUTO-ADJUST COLUMN WIDTH ---
+    for column_cells in ws.columns:
+        max_length = 0
+        column_letter = get_column_letter(column_cells[0].column) # Get column name (A, B, C...)
+
+        for cell in column_cells:
+            try:
+                if cell.value:
+                    # Calculate length of string representation of the value
+                    val_len = len(str(cell.value))
+                    if val_len > max_length:
+                        max_length = val_len
+            except:
+                pass
+        
+        # Apply the width: max_length + a little extra padding for comfort
+        # We also set a minimum width of 10 and a maximum of 50 so columns aren't too small/huge
+        adjusted_width = max(10, min(max_length + 2, 50))
+        ws.column_dimensions[column_letter].width = adjusted_width
 
     buffer = io.BytesIO()
     wb.save(buffer)
