@@ -137,7 +137,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initial run
     applyFilters();
 
-    
+
     // CMF  previous data lookup logic
     const cmfInput = document.getElementById('id_cmf_no');
 
@@ -151,15 +151,19 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await response.json();
 
             if (data.match) {
-                const confirmFill = window.confirm(
-                    `Found previous record (${data.latest_cm_no}). Fill other fields using its data?`
+                Preline.confirm(
+                    'Previous Matching Found',
+                    `A previous record (${data.latest_cm_no}) exists. Do you want to auto-fill the fields with its data?`,
+                    'info',
+                    () => {
+                        // CONFIRMED: Redirect to load data but keep the user's NEW ID
+                        const userInput = cmfInput.value;
+                        window.location.href = `/cmf/entry/?no=${data.latest_cm_no}&new_no=${userInput}`;
+                    },
+                    () => {
+                        // CANCELLED: Do nothing, let the user continue typing manually
+                    }
                 );
-
-                if (confirmFill) {
-                    // We pass 'no' (the source of data) AND 'new_no' (the ID the user wants to use)
-                    const userInput = cmfInput.value;
-                    window.location.href = `/cmf/entry/?no=${data.latest_cm_no}&new_no=${userInput}`;
-                }
             }
         } catch (error) {
             console.error("Error fetching matching data:", error);

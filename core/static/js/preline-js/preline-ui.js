@@ -45,17 +45,19 @@ const Preline = {
         const iconContainer = document.getElementById('modalIconContainer');
         const icon = document.getElementById('modalIcon');
         
-        // 1. Normalize type (map 'error' to 'danger')
+        // 1. Normalize type
         const cleanType = (type === 'error') ? 'danger' : (type || 'success');
         
-        // 2. Set Circle Color Class
+        // 2. Set Circle Color Class (Ensure .icon-info exists in your CSS)
         iconContainer.className = 'modal-icon-circle icon-' + cleanType;
         
-        // 3. Set the specific Icon
+        // 3. Set the specific Icon (ADDED 'info' HERE)
         if (cleanType === 'danger') {
             icon.className = 'bi bi-exclamation-triangle'; // Error Triangle
         } else if (cleanType === 'warning') {
             icon.className = 'bi bi-exclamation-circle';   // Warning Circle
+        } else if (cleanType === 'info') {
+            icon.className = 'bi bi-info-circle';          // Info Circle <--- ADDED
         } else {
             icon.className = 'bi bi-check-lg';              // Success Check
         }
@@ -68,12 +70,9 @@ const Preline = {
 
         newConfirmBtn.onclick = () => {
             confirmed = true;
-            
-            // FIX: Only call onConfirm if it is actually a function
             if (typeof onConfirm === 'function') {
                 onConfirm();
             }
-            
             modal.hide();
         };
 
