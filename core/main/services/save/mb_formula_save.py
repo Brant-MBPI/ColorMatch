@@ -64,6 +64,7 @@ def save_mb_complete_formula(request):
                 'code': prod_code_obj,
                 'lot_no': post_data.get('lot_number'),
                 'mixing_time': post_data.get('mixing_time'),
+                'notes': request.POST.get('note'),
                 'matched_by': post_data.get('matched_by'),
                 'weighted_by': post_data.get('weighed_by'),
                 'encoded_by': post_data.get('encoded_by'),

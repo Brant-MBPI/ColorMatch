@@ -42,9 +42,11 @@
             </div>
 
             <!-- Formulation Details -->
+            <!-- Formulation Details -->
             <div class="card mb-card shadow-sm mb-3">
                 <div class="card-body p-3">
                     <h6 class="mb-section-title mb-3 ">Formulation Details</h6>
+                    <!-- ... (Existing fields: Product Code, Resin, Customer, etc.) ... -->
                     <div class="row g-2 align-items-center mb-2">
                         <div class="col-5"><label class="extra-small fw-bold required-label">Product Code:</label></div>
                         <div class="col-7">
@@ -53,6 +55,7 @@
                                    class="form-control form-control-sm uniform-input" required>
                         </div>
                     </div>
+                    <!-- ... (Resin Used) ... -->
                     <div class="row g-2 align-items-center mb-2">
                         <div class="col-5"><label class="extra-small fw-bold">Resin Used:</label></div>
                         <div class="col-7">
@@ -61,6 +64,7 @@
                                    class="form-control form-control-sm uniform-input readonly-gray" readonly required>
                         </div>
                     </div>
+                    <!-- ... (Customer) ... -->
                     <div class="row g-2 align-items-center mb-2">
                         <div class="col-5"><label class="extra-small fw-bold">Customer:</label></div>
                         <div class="col-7">
@@ -69,6 +73,7 @@
                                    class="form-control form-control-sm uniform-input readonly-gray" readonly required>
                         </div>
                     </div>
+                    <!-- ... (Dosage) ... -->
                     <div class="row g-2 align-items-center mb-2">
                         <div class="col-5"><label class="extra-small fw-bold required-label">Dosage:</label></div>
                         <div class="col-7">
@@ -77,6 +82,7 @@
                                    class="form-control form-control-sm uniform-input {% if form_data.dosage %} readonly-gray" readonly {% else %}" {% endif %} required>
                         </div>
                     </div>
+                    <!-- ... (Lot Number) ... -->
                     <div class="row g-2 align-items-center mb-2">
                         <div class="col-5"><label class="extra-small fw-bold required-label">Lot Number:</label></div>
                         <div class="col-7">
@@ -85,6 +91,7 @@
                                    class="form-control form-control-sm uniform-input" required>
                         </div>
                     </div>
+                    <!-- ... (Mixing Time) ... -->
                     <div class="row g-2 align-items-center mb-2">
                         <div class="col-5"><label class="extra-small fw-bold required-label">Mixing Time:</label></div>
                         <div class="col-7">
@@ -93,6 +100,7 @@
                                    class="form-control form-control-sm uniform-input" required>
                         </div>
                     </div>
+                    <!-- ... (Color) ... -->
                     <div class="row g-2 align-items-center mb-2">
                         <div class="col-5"><label class="extra-small fw-bold">Color:</label></div>
                         <div class="col-7">
@@ -101,6 +109,7 @@
                                    class="form-control form-control-sm uniform-input readonly-gray" readonly required>
                         </div>
                     </div>
+                    <!-- ... (Application) ... -->
                     <div class="row g-2 align-items-center mb-2">
                         <div class="col-5"><label class="extra-small fw-bold">Application:</label></div>
                         <div class="col-7">
@@ -109,12 +118,24 @@
                                    class="form-control form-control-sm uniform-input readonly-gray" readonly required>
                         </div>
                     </div>
-                    <div class="row g-2 align-items-center">
+                    <!-- ... (Finished Product) ... -->
+                    <div class="row g-2 align-items-center mb-2">
                         <div class="col-5"><label class="extra-small fw-bold">Finished Product:</label></div>
                         <div class="col-7">
                             <input type="text" name="finished_product" id="id_finished_product" 
                                    value="{{ form_data.finished_product|default:'' }}" 
                                    class="form-control form-control-sm uniform-input readonly-gray" readonly required>
+                        </div>
+                    </div>
+
+                    <!-- NEW: Note Field -->
+                    <div class="row g-2 align-items-start">
+                        <div class="col-5"><label class="extra-small fw-bold">Note:</label></div>
+                        <div class="col-7">
+                            <textarea name="note" id="id_note" rows="2" 
+                                      class="form-control form-control-sm uniform-input" 
+                                      style="resize: none;"
+                                      placeholder="Add remarks here...">{{ form_data.note|default:'' }}</textarea>
                         </div>
                     </div>
                 </div>
