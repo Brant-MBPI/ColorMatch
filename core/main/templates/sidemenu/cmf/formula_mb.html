@@ -5,7 +5,7 @@
 
 {% block content %}
 
-<form id="formulaForm" method="POST">
+<form id="formulaForm" class="js-mb-formula" method="POST">
     {% csrf_token %}
     <input type="hidden" name="formula_id" value="{{ form_data.formula_id|default:'' }}">
     <input type="hidden" name="record_id" value="{{ form_data.record_id|default:'' }}">
@@ -334,3 +334,6 @@
 {% endif %}
 
 {% endblock content %}
+{% block scripts %}
+<script src="{% static 'js/cmf/formula_mb.js' %}"></script>
+{% endblock %}

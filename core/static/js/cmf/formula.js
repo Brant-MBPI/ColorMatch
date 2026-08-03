@@ -44,6 +44,13 @@
     function calculateFormulaTotals(table) {
         if (!table) return;
 
+        // IF we are on the MB page, the MB script handles calculations. 
+        // We stop the shared script from overwriting values.
+        if (document.querySelector('input[name="record_type"][value="mb"]') || 
+            window.location.pathname.includes('formula-mb')) { 
+            return; 
+        }
+
         let totalPercent = 0;
         let totalWeight = 0;
 
@@ -71,10 +78,7 @@
             totalWeightDisplay.value = totalWeight.toFixed(4);
         }
 
-        // Sync with your original external "Total Weight" input
-        if (externalWeightDisplay) {
-            externalWeightDisplay.value = totalWeight.toFixed(4);
-        }
+        
     }
 
     // Listen for all typing inside formula tables
@@ -115,26 +119,52 @@
     // --- 5. Save / New / Print button confirmations ---
     const saveBtn = document.querySelector('.btn-save');
     const newBtn = document.querySelector('.btn-new');
-    const printBtn = document.querySelector('.btn-print');
     const form = saveBtn ? saveBtn.closest('form') : null;
 
     if (saveBtn && form) {
         saveBtn.addEventListener('click', function () {
-            if (form.reportValidity()) {
-                const formulaIdInput = form.querySelector('[name="formula_id"]');
-                const isUpdate = formulaIdInput && formulaIdInput.value.trim() !== '';
+            // 1. Check basic HTML5 validation first
+            if (!form.reportValidity()) return;
 
-                Preline.confirm(
-                    isUpdate ? 'Update Formula?' : 'Save Formula?',
-                    isUpdate
-                        ? 'Are you sure you want to update this formula? Please verify all technical specs before confirming.'
-                        : 'Are you sure you want to save this formula? Please verify all technical specs before confirming.',
-                    'success',
-                    () => {
-                        form.submit();
-                    }
-                );
+            // --- MASTERBATCH (MB) SPECIFIC VALIDATION ---
+            // We check if the form has the class we added in the template
+            const isMB = form.classList.contains('js-mb-formula');
+
+            if (isMB) {
+                // Get values from the summary row and the supposed weight input
+                const totalPct = parseFloat(document.querySelector('.js-total-percent-summary')?.value) || 0;
+                const totalWgt = parseFloat(document.querySelector('.js-total-weight-summary')?.value) || 0;
+                const masterWgt = parseFloat(document.querySelector('.total-weight-display')?.value) || 0;
+
+                // Validation A: Total percentage must be exactly 100
+                // Using .toFixed(2) to handle tiny floating point math errors
+                if (totalPct.toFixed(2) !== "100.00") {
+                    Preline.toast(`Cannot Save: Total percentage must be 100.00%. Currently: ${totalPct.toFixed(4)}%`, 'error');
+                    return; // Stop the save
+                }
+
+                // Validation B: Summary weight must match the supposed total weight input
+                if (totalWgt.toFixed(2) !== masterWgt.toFixed(2)) {
+                    Preline.toast(`Cannot Save: Summary weight (${totalWgt.toFixed(2)}) does not match Supposed Total Weight (${masterWgt.toFixed(2)}).`, 'error');
+                    return; // Stop the save
+                }
             }
+            // --------------------------------------------
+
+            // 2. If it's DC or MB validation passed, proceed to confirmation
+            const formulaIdInput = form.querySelector('[name="formula_id"]');
+            const isUpdate = formulaIdInput && formulaIdInput.value.trim() !== '';
+
+            Preline.confirm(
+                isUpdate ? 'Update Formula?' : 'Save Formula?',
+                isUpdate
+                    ? 'Are you sure you want to update this formula? Please verify all technical specs before confirming.'
+                    : 'Are you sure you want to save this formula? Please verify all technical specs before confirming.',
+                'success',
+                () => {
+                    form.submit();
+                }
+            );
         });
     }
 
