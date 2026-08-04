@@ -1,16 +1,22 @@
 /* ==============================================
    feedback.css
+   Shared by: Feedback page AND Master Formula page
+   (Master Formula reuses these rules via its own
+   class names added alongside each .feedback-* selector
+   below, so neither page's HTML needed to change.)
    ============================================== */
 
 /* Tab Container Adjustment */
-.feedback-nav-tabs {
+.feedback-nav-tabs,
+.master-formula-nav-tabs {
     margin-bottom: -1px; /* Overlaps the card border below it */
     z-index: 1;
     gap: 5px;
 }
 
 /* --- Keep tabs in one row on mobile --- */
-.feedback-nav-tabs {
+.feedback-nav-tabs,
+.master-formula-nav-tabs {
     flex-wrap: nowrap !important;
     overflow-x: auto;
     overflow-y: hidden;
@@ -18,28 +24,33 @@
     scrollbar-width: none; /* Firefox */
 }
 
-.feedback-nav-tabs::-webkit-scrollbar {
+.feedback-nav-tabs::-webkit-scrollbar,
+.master-formula-nav-tabs::-webkit-scrollbar {
     display: none; /* Chrome/Safari */
 }
 
-.feedback-nav-tabs .nav-item {
+.feedback-nav-tabs .nav-item,
+.master-formula-nav-tabs .nav-item {
     flex: 0 0 auto; /* prevent items from shrinking/wrapping */
 }
 
 @media (max-width: 575.98px) {
-    .feedback-nav-tabs .nav-link {
+    .feedback-nav-tabs .nav-link,
+    .master-formula-nav-tabs .nav-link {
         padding: 10px 14px;
         font-size: 0.72rem;
         white-space: nowrap;
     }
 
-    .feedback-nav-tabs .nav-link i {
+    .feedback-nav-tabs .nav-link i,
+    .master-formula-nav-tabs .nav-link i {
         margin-right: 6px !important;
     }
 }
 
 /* Individual Tab Button */
-.feedback-nav-tabs .nav-link {
+.feedback-nav-tabs .nav-link,
+.master-formula-nav-tabs .nav-link {
     color: var(--text-muted);
     background-color: rgba(0, 0, 0, 0.04);
     border: 1px solid var(--sidebar-border) !important;
@@ -52,13 +63,15 @@
     opacity: 0.8;
 }
 
-.feedback-nav-tabs .nav-link:hover {
+.feedback-nav-tabs .nav-link:hover,
+.master-formula-nav-tabs .nav-link:hover {
     color: var(--sidebar-header-bg);
     opacity: 1;
 }
 
 /* Active Tab Connector Logic */
-.feedback-nav-tabs .nav-link.active {
+.feedback-nav-tabs .nav-link.active,
+.master-formula-nav-tabs .nav-link.active {
     background-color: var(--card-bg) !important;
     color: var(--sidebar-header-bg) !important;
     border-top: 3px solid var(--sidebar-header-bg) !important; /* Top accent */
@@ -70,7 +83,8 @@
 }
 
 /* The Main Container Card */
-.feedback-container-card {
+.feedback-container-card,
+.master-formula-container-card {
     background-color: var(--card-bg);
     border: 1px solid var(--sidebar-border) !important;
     border-radius: 0 10px 10px 10px !important; /* Top-left is sharp where tabs are */
@@ -78,18 +92,24 @@
 }
 
 /* Table Wrapper for specific tab context */
-.feedback-table-wrapper {
+.feedback-table-wrapper,
+.mf-table-wrapper,
+.mf-detail-card {
     background-color: var(--card-bg);
     overflow: hidden;
     border-color: var(--sidebar-border) !important;
 }
 
-.feedback-scroll-body {
+.feedback-scroll-body,
+.mf-scroll-body,
+.mf-detail-scroll-body {
     max-height: clamp(300px, 60vh, 650px);
     overflow: auto;
 }
 
-.feedback-scroll-body thead th {
+.feedback-scroll-body thead th,
+.mf-scroll-body thead th,
+.mf-detail-scroll-body thead th {
     position: sticky;
     top: 0;
     z-index: 2;
@@ -98,12 +118,14 @@
 /* ==============================================
    DARK MODE COMPATIBILITY
    ============================================== */
-body.dark-mode .feedback-nav-tabs .nav-link {
+body.dark-mode .feedback-nav-tabs .nav-link,
+body.dark-mode .master-formula-nav-tabs .nav-link {
     background-color: rgba(255, 255, 255, 0.03);
     color: #94a3b8;
 }
 
-body.dark-mode .feedback-nav-tabs .nav-link.active {
+body.dark-mode .feedback-nav-tabs .nav-link.active,
+body.dark-mode .master-formula-nav-tabs .nav-link.active {
     background-color: var(--card-bg) !important;
     border-color: var(--sidebar-border) !important;
     border-top-color: #2dd4bf !important;
@@ -111,11 +133,13 @@ body.dark-mode .feedback-nav-tabs .nav-link.active {
     border-bottom-color: var(--card-bg) !important; /* Melting effect in dark mode */
 }
 
-body.dark-mode .feedback-container-card {
+body.dark-mode .feedback-container-card,
+body.dark-mode .master-formula-container-card {
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4) !important;
 }
 
-.feedback-section-title {
+.feedback-section-title,
+.mf-section-title {
     color: #0d9488 !important; /* Fixed Teal color */
     font-size: 0.8rem;
     font-weight: 700;
@@ -137,7 +161,8 @@ body.dark-mode .readonly-input {
 }
 
 /* Ensure headings in entry tab match design */
-.feedback-entry-form-container h6 {
+.feedback-entry-form-container h6,
+.master-formula-entry-form-container h6 {
     color: var(--text-main);
     letter-spacing: 0.02rem;
 }
