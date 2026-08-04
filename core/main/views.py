@@ -811,6 +811,10 @@ def cmf_pending_completed(request):
     }
     return render(request, "sidemenu/cmf/pending_completed.html", context)
 
+def master_formula(request):
+    return render(request, "sidemenu/formula/master_formula.html")
+
+
 def feedback(request):
     form_data = {}
     feedback_no = request.GET.get('feedback_no')
