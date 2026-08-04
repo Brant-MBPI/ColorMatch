@@ -31,4 +31,5 @@ urlpatterns = [
     path('cmf/rs-records/<int:rs_id>/', views.rs_record_detail, name='rs_record_detail'),
     # ajax
     path('check-previous-matching/', previous_cmf_record.check_previous_matching, name='check_previous_matching'),
+    path('master-formula/<int:form_id>/materials/', views.master_formula_materials_json, name='master_formula_materials_json'),
 ]
