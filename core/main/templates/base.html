@@ -24,6 +24,9 @@
     <link rel="stylesheet" href="{% static 'css/dropzone.min.css' %}">
     <link rel="stylesheet" href="{% static 'css/modal/uploadfile-handler.css' %}">
     <link rel="stylesheet" href="{% static 'css/modal/cmf-record/cmf_record_detail.css' %}">
+    
+    
+    <link rel="stylesheet" href="{% static 'css/loader/global_loader.css' %}">
 </head>
 <body>
     
@@ -46,6 +49,7 @@
                 {% block content %}{% endblock %}
             </div>
             {% include "partials/alert-modal.html" %}
+            {% include "partials/global_loader.html" %}
             {% include 'footer.html' %}
         </div>
     </div>
@@ -68,7 +72,8 @@
     <script src="{% static 'js/cmf/cmf-entry.js' %}"></script>
     <script src="{% static 'js/cmf/formula.js' %}"></script>
     <script src="{% static 'js/util/debounce.js' %}"></script>
-
+    
+    <script src="{% static 'js/loader/global_loader.js' %}"></script>
     {% block scripts %}{% endblock %}
 </body>
 </html>

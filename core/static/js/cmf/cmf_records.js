@@ -83,7 +83,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const linkMbFormula = document.getElementById('linkMbFormula');
             const linkDcFormula = document.getElementById('linkDcFormula');
             const linkPendingCompleted = document.getElementById('linkPendingCompleted');
-
+            
             if (mode === 'rs') {
                 linkCmfEntry.classList.add('d-none');
                 linkRsEntry.classList.remove('d-none');
@@ -115,6 +115,28 @@ document.addEventListener('DOMContentLoaded', function() {
 
     applyFilters();
 
+    const syncLegacyBtn = document.getElementById('syncLegacyBtn');
+
+    if (syncLegacyBtn) {
+        syncLegacyBtn.addEventListener('click', function() {
+            Preline.confirm(
+                'Sync Legacy Data?',
+                'This will mirror the latest formulas and production records from the legacy server. This process may take a minute.',
+                'info',
+                () => {
+                    // 1. Show the global loading cubes (from our previous step)
+                    if (typeof showLoader === 'function') {
+                        showLoader();
+                    }
+                    
+                    // 2. Redirect to the sync action URL
+                    // Note: Ensure this URL matches your urls.py path
+                    window.location.href = "/legacy/sync/"; 
+                }
+            );
+        });
+    }
+
     // --- EXPORT FILTER PANEL ---
     const exportFilterBtn = document.getElementById('exportFilterBtn');
     const exportFilterPanel = document.getElementById('exportFilterPanel');
@@ -122,7 +144,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const exportDateTo = document.getElementById('exportDateTo');
     const exportIncludeRs = document.getElementById('exportIncludeRs');
     const exportExcelBtn = document.getElementById('exportExcelBtn');
-
+    
     function formatDateMMDDYYYY(date) {
         const mm = String(date.getMonth() + 1).padStart(2, '0');
         const dd = String(date.getDate()).padStart(2, '0');
@@ -193,4 +215,6 @@ document.addEventListener('DOMContentLoaded', function() {
             );
         });
     }
+
+
 });
