@@ -50,7 +50,10 @@
                         <!-- ... list items stay exactly as they are ... -->
                         <li>
                             <a href="{% url 'cmf_records' %}"
-                                class="nav-link {% if request.resolver_match.url_name == 'cmf_records' %}active-sub{% endif %}">
+                                class="nav-link {% if request.resolver_match.url_name == 'cmf_records' or 
+                                        request.resolver_match.url_name == 'cmf_records_export_preview' %}
+                                            active-sub
+                                        {% endif %}">
                                 CMF Records
                             </a>
                         </li>

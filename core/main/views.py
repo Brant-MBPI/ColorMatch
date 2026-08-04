@@ -869,7 +869,7 @@ def feedback(request):
                     'sales_person': fb.rs_no.sm_no.name if fb.rs_no.sm_no else '',
                     'current_status': 'Completed' if (pending and pending.is_completed) else 'Pending',
                     'pending_reason': pending.reason if pending else '',
-                    'product_code': pending_info.code.product_code if pending_info.code else "",
+                    'product_code': pending_info.code.product_code if pending_info.code  else "",
                     'code_description': pending.code_details if pending else '',
                     'date_submitted': pending.date_submitted.strftime('%m/%d/%Y') if pending and pending.date_submitted else '',
                     'ar_number': pending.ar_no if pending else '',
