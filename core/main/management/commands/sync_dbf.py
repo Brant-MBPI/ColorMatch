@@ -2,6 +2,7 @@ from django.core.management.base import BaseCommand
 
 from main.services.legacy.formula_sync import sync_formula
 from main.services.legacy.production_sync import sync_production
+from main.services.legacy.master_formula_sync import sync_master_formula
 from main.services.legacy.rm_sync import sync_rm_list, sync_rm_incoming
 
 
@@ -24,6 +25,7 @@ class Command(BaseCommand):
         try:
             if only in (None, 'formula'):
                 sync_formula(progress)
+                sync_master_formula(progress)
             if only in (None, 'production'):
                 sync_production(progress)
             if only in (None, 'rm'):

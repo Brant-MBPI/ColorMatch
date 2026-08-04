@@ -90,6 +90,8 @@ DBF_BASE_PATH = r'\\system-server\SYSTEM-NEW-OLD'
 DBF_PATHS = {
     'formula_primary': 'tbl_formula01.dbf',
     'formula_items': 'tbl_formula02.dbf',
+    'master_formula_primary': 'tbl_formula03.dbf',
+    'master_formula_items': 'tbl_formula04.dbf', 
     'production_primary': 'tbl_prod01.dbf',
     'production_items': 'tbl_prod02.dbf',
     'rm_wh': 'tbl_rm_wh.dbf',
