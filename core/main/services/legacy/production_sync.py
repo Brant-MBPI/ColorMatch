@@ -1,26 +1,26 @@
 import collections
 import dbfread
 from django.db import connection
-
 from .dbf_utils import to_bool, to_float, to_int, to_str, dbf_path
 
-
 def sync_production(progress_callback=None):
-    """
-    Mirrors production primary + item records from DBF into PostgreSQL.
-    progress_callback(str) is optional, called with status updates.
-    Returns the number of primary records synced.
-    """
     def emit(msg):
-        if progress_callback:
-            progress_callback(msg)
+        if progress_callback: progress_callback(msg)
 
-    emit("Production: reading production items...")
+    # 1. Get High-Water Mark
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT MAX(prod_id) FROM tbl_production01")
+        res = cursor.fetchone()
+        max_id = res[0] if res and res[0] is not None else 0
+
+    emit(f"Production: Syncing records newer than ID {max_id}...")
+
+    # 2. Read Items (Skip PID 0 and Old)
     items_by_prod_id = collections.defaultdict(list)
     dbf_p_items = dbfread.DBF(dbf_path('production_items'), encoding='latin1', char_decode_errors='ignore')
     for item in dbf_p_items:
         pid = to_int(item.get('T_PRODID'))
-        if pid is None:
+        if pid is None or pid <= 0 or pid <= max_id:
             continue
         items_by_prod_id[pid].append({
             "prod_id": pid, "seq": to_int(item.get('T_SEQ')),
@@ -33,13 +33,14 @@ def sync_production(progress_callback=None):
             "is_deleted": to_bool(item.get('T_DELETED')),
         })
 
-    emit("Production: reading primary records...")
+    # 3. Read Primary (Skip PID 0 and Old)
     prod_recs = []
     dbf_prod = dbfread.DBF(dbf_path('production_primary'), encoding='latin1', char_decode_errors='ignore')
     for r in dbf_prod:
         pid = to_int(r.get('T_PRODID'))
-        if pid is None:
+        if pid is None or pid <= 0 or pid <= max_id:
             continue
+
         rem = to_str(r.get('T_REMARKS'))
         note_raw = to_str(r.get('T_NOTE'))
         note = f"{note_raw}\n{rem}".strip() if rem else note_raw
@@ -64,38 +65,36 @@ def sync_production(progress_callback=None):
         })
 
     if not prod_recs:
-        emit("Production: no records found.")
+        emit("Production: Already up to date.")
         return 0
 
-    emit("Production: writing to PostgreSQL...")
+    # 4. Write to Postgres
     with connection.cursor() as cursor:
         cursor.executemany("""
             INSERT INTO tbl_production01 (prod_id, prod_date, customer, form_id, index_no, prod_code, prod_color, dosage, ld, lot_no, order_no, colormatch_no, colormatch_date, mix_time, machine_no, note, user_id, is_deleted, is_printed, inventory_c_date, form_type)
             VALUES (%(prod_id)s, %(prod_date)s, %(customer)s, %(form_id)s, %(index_no)s, %(prod_code)s, %(prod_color)s, %(dosage)s, %(ld)s, %(lot_no)s, %(order_no)s, %(colormatch_no)s, %(colormatch_date)s, %(mix_time)s, %(machine_no)s, %(note)s, %(user_id)s, %(is_deleted)s, %(is_printed)s, %(inventory_c_date)s, %(form_type)s)
-            ON CONFLICT (prod_id) DO UPDATE SET customer=EXCLUDED.customer, lot_no=EXCLUDED.lot_no, is_deleted=EXCLUDED.is_deleted, is_printed=EXCLUDED.is_printed, note=EXCLUDED.note;
+            ON CONFLICT (prod_id) DO NOTHING;
         """, prod_recs)
 
-        pids = tuple(r['prod_id'] for r in prod_recs)
+        cursor.executemany("""
+            INSERT INTO tbl_production_encode (prod_id, prepared_by, encoded_by, encoded_on, confirmation_encoded_on) 
+            VALUES (%(prod_id)s, %(prepared_by)s, %(encoded_by)s, %(encoded_on)s, %(conf_encoded_on)s)
+            ON CONFLICT DO NOTHING;
+        """, prod_recs)
 
-        cursor.execute("DELETE FROM tbl_production_encode WHERE prod_id IN %s", [pids])
-        cursor.executemany(
-            "INSERT INTO tbl_production_encode (prod_id, prepared_by, encoded_by, encoded_on, confirmation_encoded_on) VALUES (%(prod_id)s, %(prepared_by)s, %(encoded_by)s, %(encoded_on)s, %(conf_encoded_on)s)",
-            prod_recs
-        )
+        cursor.executemany("""
+            INSERT INTO tbl_production_quantity (prod_id, quantity_req, quantity_batch, quantity_prod) 
+            VALUES (%(prod_id)s, %(qty_req)s, %(qty_batch)s, %(qty_prod)s)
+            ON CONFLICT DO NOTHING;
+        """, prod_recs)
 
-        cursor.execute("DELETE FROM tbl_production_quantity WHERE prod_id IN %s", [pids])
-        cursor.executemany(
-            "INSERT INTO tbl_production_quantity (prod_id, quantity_req, quantity_batch, quantity_prod) VALUES (%(prod_id)s, %(qty_req)s, %(qty_batch)s, %(qty_prod)s)",
-            prod_recs
-        )
-
-        cursor.execute("DELETE FROM tbl_production02 WHERE prod_id IN %s", [pids])
-        all_p_items = [i for r in prod_recs for i in items_by_prod_id.get(r['prod_id'], [])]
-        if all_p_items:
+        all_items = [i for r in prod_recs for i in items_by_prod_id.get(r['prod_id'], [])]
+        if all_items:
             cursor.executemany("""
                 INSERT INTO tbl_production02 (prod_id, sequence_no, material_code, large_scale, small_scale, total_weight, is_deleted, total_loss, total_consumption)
                 VALUES (%(prod_id)s, %(seq)s, %(material_code)s, %(large_scale)s, %(small_scale)s, %(total_weight)s, %(is_deleted)s, %(total_loss)s, %(total_consumption)s)
-            """, all_p_items)
+                ON CONFLICT DO NOTHING;
+            """, all_items)
 
-    emit(f"Production: synced {len(prod_recs)} primary records.")
+    emit(f"Production: synced {len(prod_recs)} new records.")
     return len(prod_recs)

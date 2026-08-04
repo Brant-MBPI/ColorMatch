@@ -5,20 +5,31 @@ from .dbf_utils import to_bool, to_float, to_int, to_str, is_valid_date, dbf_pat
 
 def sync_master_formula(progress_callback=None):
     """
-    Mirrors master formula records from DBF into PostgreSQL.
+    Mirrors master formula records from DBF into PostgreSQL using incremental logic.
     """
     def emit(msg):
         if progress_callback:
             progress_callback(msg)
 
-    emit("Master Formula: reading items (tbl_formula04)...")
+    # --- STEP 1: GET LATEST ID FROM POSTGRES ---
+    with connection.cursor() as cursor:
+        cursor.execute("SELECT MAX(form_id) FROM tbl_master_formula")
+        res = cursor.fetchone()
+        max_id = res[0] if res and res[0] is not None else 0
+
+    emit(f"Master Formula: Checking for records newer than ID {max_id}...")
+
+    # --- STEP 2: READ ITEMS (tbl_formula04) ---
+    emit("Master Formula: Reading new items...")
     items_by_uid = collections.defaultdict(list)
     dbf_f_items = dbfread.DBF(dbf_path('master_formula_items'), encoding='latin1', char_decode_errors='ignore')
     
     for item in dbf_f_items:
         uid = to_int(item.get('T_UID'))
-        if uid is None:
+        # Skip existing or invalid records
+        if uid is None or uid <= max_id:
             continue
+            
         items_by_uid[uid].append({
             "uid": uid, 
             "seq": to_int(item.get('T_SEQ')),
@@ -27,13 +38,15 @@ def sync_master_formula(progress_callback=None):
             "is_deleted": to_bool(item.get('T_DELETED')),
         })
 
-    emit("Master Formula: reading primary records (tbl_formula03)...")
+    # --- STEP 3: READ PRIMARY (tbl_formula03) ---
+    emit("Master Formula: Reading new primary records...")
     primary_recs = []
     dbf_primary = dbfread.DBF(dbf_path('master_formula_primary'), encoding='latin1', char_decode_errors='ignore')
     
     for r in dbf_primary:
         uid = to_int(r.get('T_UID'))
-        if uid is None:
+        # Skip existing or invalid records
+        if uid is None or uid <= max_id:
             continue
             
         primary_recs.append({
@@ -55,7 +68,7 @@ def sync_master_formula(progress_callback=None):
             "date_time": to_str(r.get('T_UDATE')),
             "is_deleted": to_bool(r.get('T_DELETED')), 
             "is_used": to_bool(r.get('T_USED')),
-            "html": to_str(r.get('T_HTML')), # Hex code
+            "html": to_str(r.get('T_HTML')), 
             "cyan": to_float(r.get('T_C')),
             "magenta": to_float(r.get('T_M')),
             "yellow": to_float(r.get('T_Y')),
@@ -66,12 +79,13 @@ def sync_master_formula(progress_callback=None):
         })
 
     if not primary_recs:
-        emit("Master Formula: no records found.")
+        emit("Master Formula: Already up to date.")
         return 0
 
-    emit("Master Formula: writing to PostgreSQL...")
+    # --- STEP 4: WRITE TO POSTGRESQL ---
+    emit(f"Master Formula: Inserting {len(primary_recs)} new records...")
     with connection.cursor() as cursor:
-        # 1. Update Primary Table
+        # 1. Insert Primary
         cursor.executemany("""
             INSERT INTO tbl_master_formula (
                 form_id, index_no, date, customer, product_code, prod_color, 
@@ -85,35 +99,24 @@ def sync_master_formula(progress_callback=None):
                 %(cm_no)s, %(cm_date)s, %(notes)s, %(date_time)s, %(is_deleted)s, %(is_used)s,
                 %(html)s, %(cyan)s, %(magenta)s, %(yellow)s, %(black)s
             )
-            ON CONFLICT (form_id) DO UPDATE SET 
-                customer=EXCLUDED.customer, 
-                is_deleted=EXCLUDED.is_deleted, 
-                is_used=EXCLUDED.is_used, 
-                notes=EXCLUDED.notes,
-                html_code_hex=EXCLUDED.html_code_hex,
-                cyan=EXCLUDED.cyan,
-                magenta=EXCLUDED.magenta,
-                yellow=EXCLUDED.yellow,
-                black=EXCLUDED.black;
+            ON CONFLICT (form_id) DO NOTHING;
         """, primary_recs)
 
-        uids = tuple(r['uid'] for r in primary_recs)
-
-        # 2. Update Encode Table
-        cursor.execute("DELETE FROM tbl_master_formula_encode WHERE form_id IN %s", [uids])
+        # 2. Insert Encode info
         cursor.executemany("""
             INSERT INTO tbl_master_formula_encode (form_id, match_by, encoded_by, updated_by) 
             VALUES (%(uid)s, %(matched_by)s, %(encoded_by)s, %(updated_by)s)
+            ON CONFLICT DO NOTHING;
         """, primary_recs)
 
-        # 3. Update Items Table
-        cursor.execute("DELETE FROM tbl_master_formula_info WHERE form_id IN %s", [uids])
+        # 3. Insert Formula Items
         all_items = [i for r in primary_recs for i in items_by_uid.get(r['uid'], [])]
         if all_items:
             cursor.executemany("""
                 INSERT INTO tbl_master_formula_info (form_id, sequence_no, material_code, concentration, is_deleted) 
                 VALUES (%(uid)s, %(seq)s, %(material_code)s, %(concentration)s, %(is_deleted)s)
+                ON CONFLICT DO NOTHING;
             """, all_items)
 
-    emit(f"Master Formula: synced {len(primary_recs)} primary records.")
+    emit(f"Master Formula: Successfully added {len(primary_recs)} new records.")
     return len(primary_recs)
