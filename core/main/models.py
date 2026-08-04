@@ -470,30 +470,29 @@ class tbl_dc_extruder_formula02(models.Model):
 
 class tbl_master_formula(models.Model):
     form_id = models.AutoField(primary_key=True)
-    index_no = models.CharField(max_length=100, blank=True, null=True)
+    index_no = models.CharField(max_length=22, blank=True, null=True) # Matched to 22
     date = models.DateField(blank=True, null=True)
-    customer = models.CharField(max_length=150, blank=True, null=True)
-    product_code = models.ForeignKey(
-        tbl_generated_prod_code,
-        to_field="product_code",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        db_column="product_code"
-    )
-    prod_color = models.CharField(max_length=150, blank=True, null=True)
+    customer = models.CharField(max_length=62, blank=True, null=True) # Matched to 62
+    
+    # Matching prod_code CharField(22) instead of ForeignKey for sync consistency
+    product_code = models.CharField(max_length=22, blank=True, null=True) 
+    
+    prod_color = models.CharField(max_length=62, blank=True, null=True) # Matched to 62
     dosage = models.DecimalField(max_digits=12, decimal_places=6, null=True, blank=True)
     total_concentration = models.DecimalField(max_digits=12, decimal_places=6, null=True, blank=True)
     ld = models.DecimalField(max_digits=12, decimal_places=6, null=True, blank=True)
-    mix_time = models.CharField(max_length=100, blank=True, null=True)
-    resin = models.CharField(max_length=150, blank=True, null=True)
-    application = models.CharField(max_length=150, blank=True, null=True)
-    cm_no = models.CharField(max_length=50, blank=True, null=True)
+    mix_time = models.CharField(max_length=22, blank=True, null=True) # Matched to 22
+    resin = models.CharField(max_length=36, blank=True, null=True) # Matched to 36
+    application = models.CharField(max_length=36, blank=True, null=True) # Matched to 36
+    cm_no = models.CharField(max_length=8, blank=True, null=True) 
     colormatch_date = models.DateField(blank=True, null=True)
-    notes = models.TextField(blank=True, null=True)
-    date_time = models.DateTimeField(blank=True, null=True)
+    notes = models.CharField(max_length=256, blank=True, null=True) 
+    date_time = models.CharField(max_length=32, blank=True, null=True) 
+    
     is_deleted = models.BooleanField(default=False)
     is_used = models.BooleanField(default=False)
+    
+    # Specific to Master Formula
     html_code_hex = models.CharField(max_length=10, blank=True, null=True)
     cyan = models.DecimalField(max_digits=12, decimal_places=6, null=True, blank=True)
     magenta = models.DecimalField(max_digits=12, decimal_places=6, null=True, blank=True)
@@ -509,11 +508,11 @@ class tbl_master_formula(models.Model):
 
 class tbl_master_formula_info(models.Model):
     id = models.AutoField(primary_key=True)
+    form = models.ForeignKey(tbl_master_formula, on_delete=models.CASCADE, db_column="form_id")
     sequence_no = models.IntegerField(blank=True, null=True)
-    material_code = models.CharField(max_length=100, blank=True, null=True)
+    material_code = models.CharField(max_length=32, blank=True, null=True) # Matched to 32
     concentration = models.DecimalField(max_digits=12, decimal_places=6, null=True, blank=True)
     is_deleted = models.BooleanField(default=False)
-    form = models.ForeignKey(tbl_master_formula, on_delete=models.CASCADE, db_column="form_id")
 
     class Meta:
         db_table = "tbl_master_formula_info"
@@ -522,9 +521,9 @@ class tbl_master_formula_info(models.Model):
 class tbl_master_formula_encode(models.Model):
     encode_id = models.AutoField(primary_key=True)
     form = models.ForeignKey(tbl_master_formula, on_delete=models.CASCADE, db_column="form_id")
-    match_by = models.CharField(max_length=100, blank=True, null=True)
-    encoded_by = models.CharField(max_length=100, blank=True, null=True)
-    updated_by = models.CharField(max_length=100, blank=True, null=True)
+    match_by = models.CharField(max_length=128, blank=True, null=True) # Matched to 128
+    encoded_by = models.CharField(max_length=128, blank=True, null=True) # Matched to 128
+    updated_by = models.CharField(max_length=128, blank=True, null=True) # Matched to 128
 
     class Meta:
         db_table = "tbl_master_formula_encode"

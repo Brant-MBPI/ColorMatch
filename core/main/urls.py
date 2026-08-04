@@ -21,6 +21,7 @@ urlpatterns = [
     path('master-formula/', views.master_formula, name='master_formula'),
     path('feedback/', views.feedback, name='feedback'),
     path('audit-trail/', views.audit_trail, name='audit_trail'),
+    path('legacy/sync/', views.trigger_legacy_sync, name='trigger_legacy_sync'),
 
     # export
     path('cmf/records/export/', views.cmf_records_export_preview, name='cmf_records_export_preview'),

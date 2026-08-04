@@ -2,6 +2,7 @@ from urllib import request
 
 import base64
 from django.core.cache import cache
+from django.core.management import call_command
 from django.contrib.auth import authenticate, login, logout, get_user_model 
 from django.contrib.auth.models import User
 from django.http import HttpResponse
@@ -1007,3 +1008,26 @@ def cmf_records_export_preview(request):
 def cmf_records_export_download(request):
     # Placeholder — real Excel generation still needs to be built.
     return HttpResponse("Export download not yet implemented.")
+
+
+
+
+# legacy sync
+def trigger_legacy_sync(request):
+    # Get the 'only' parameter from the URL if provided (optional)
+    sync_type = request.GET.get('type') 
+    
+    try:
+        if sync_type:
+            # Equivalent to: python manage.py sync_dbf --only <sync_type>
+            call_command('sync_dbf', only=sync_type)
+        else:
+            # Equivalent to: python manage.py sync_dbf
+            call_command('sync_dbf')
+            
+        messages.success(request, f"Legacy {sync_type or 'all'} data synced successfully!")
+    except Exception as e:
+        messages.error(request, f"Sync failed: {str(e)}")
+        
+    # Redirect back to the page you came from
+    return redirect(request.META.get('HTTP_REFERER', 'cmf_records'))
