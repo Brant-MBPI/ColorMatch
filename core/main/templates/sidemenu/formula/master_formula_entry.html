@@ -90,16 +90,11 @@
                             <div class="col-md-8"><input type="text" name="application" value="{{ form_data.application|default:'' }}" class="form-control form-control-sm uniform-input"></div>
                         </div>
 
-                        <!-- Matching No Row with Clickable Button -->
+                        <!-- Matching No Row (Cleaned) -->
                         <div class="row g-2 align-items-center mb-2">
                             <div class="col-md-4"><label class="extra-small fw-bold">Matching No.:</label></div>
                             <div class="col-md-8">
-                                <div class="input-group input-group-sm">
-                                    <input type="text" name="cm_no" id="id_mf_cm_no" value="{{ form_data.cm_no|default:'' }}" class="form-control uniform-input" placeholder="Enter CM#/RS#">
-                                    <button class="btn btn-dark-teal disabled" type="button" id="id_cm_no_lookup_btn" title="Lookup Formula">
-                                        <i class="bi bi-search text-white"></i>
-                                    </button>
-                                </div>
+                                <input type="text" name="cm_no" id="id_mf_cm_no" value="{{ form_data.cm_no|default:'' }}" class="form-control form-control-sm uniform-input" placeholder="Enter CM#/RS#">
                             </div>
                         </div>
 
@@ -146,7 +141,7 @@
                 </div>
             </div>
 
-            <!-- RIGHT COLUMN: Materials (Remains identical in structure) -->
+            <!-- RIGHT COLUMN: Materials -->
             <div class="col-lg-6">
                 <div class="card mf-entry-card mb-3 shadow-sm">
                     <div class="card-body p-3">
@@ -230,48 +225,8 @@
     </form>
 </div>
 
-<!-- MATCHING NO. FORMULA LOOKUP MODAL -->
-<div class="modal fade" id="masterFormulaSearchModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg">
-            <div class="modal-header bg-dark-teal text-white py-2">
-                <h6 class="modal-title extra-small fw-bold text-uppercase">Formula Lookup: <span id="modalCmNoTitle"></span></h6>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body p-0">
-                <div class="p-3 bg-light border-bottom">
-                    <div class="input-group input-group-sm">
-                        <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
-                        <input type="text" id="id_modal_formula_search" class="form-control" placeholder="Search formula by code or color...">
-                    </div>
-                </div>
-                <div style="max-height: 400px; overflow-y: auto;">
-                    <table class="table table-hover align-middle mb-0 extra-small" id="id_modal_formula_table">
-                        <thead class="bg-light sticky-top">
-                            <tr class="text-uppercase">
-                                <th class="ps-3">Code</th>
-                                <th>Color</th>
-                                <th>Customer</th>
-                                <th class="text-end pe-3">Date</th>
-                            </tr>
-                        </thead>
-                        <tbody id="id_modal_formula_results">
-                            <!-- Results populated via JS -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            <div class="modal-footer py-2">
-                <button type="button" class="btn btn-sm btn-secondary px-3" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-sm btn-success px-4" id="id_modal_select_btn">OK</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 <script>
     (function () {
-        // --- START ORIGINAL SCRIPT ---
         const materialCodeSelect = document.getElementById('id_mf_material_code');
         const concentrationInput = document.getElementById('id_mf_concentration');
         const materialTableBody = document.getElementById('mfMaterialTableBody');
@@ -335,94 +290,5 @@
         });
 
         recalcTotal();
-        // --- END ORIGINAL SCRIPT ---
-
-        // --- NEW LOGIC: MATCHING NO LOOKUP & MODAL ---
-        const cmNoInput = document.getElementById('id_mf_cm_no');
-        const lookupBtn = document.getElementById('id_cm_no_lookup_btn');
-        const modalEl = new bootstrap.Modal(document.getElementById('masterFormulaSearchModal'));
-        const modalTableBody = document.getElementById('id_modal_formula_results');
-        const modalSearchInput = document.getElementById('id_modal_formula_search');
-        const selectBtn = document.getElementById('id_modal_select_btn');
-        let modalSelectedRow = null;
-
-        // 1. Handle Button Enable/Disable
-        cmNoInput.addEventListener('input', function() {
-            if (this.value.trim().length > 0) {
-                lookupBtn.classList.remove('disabled');
-            } else {
-                lookupBtn.classList.add('disabled');
-            }
-        });
-
-        // 2. Click Button -> Fetch/Show Modal
-        lookupBtn.addEventListener('click', async function() {
-            if (this.classList.contains('disabled')) return;
-            
-            const cmNo = cmNoInput.value.trim();
-            document.getElementById('modalCmNoTitle').innerText = cmNo;
-            
-            modalTableBody.innerHTML = '<tr><td colspan="4" class="text-center py-4"><div class="spinner-border spinner-border-sm text-teal"></div></td></tr>';
-            modalEl.show();
-
-            try {
-                // Adjust this URL to your real endpoint that returns formulas for a specific CM No
-                const response = await fetch(`/master-formula/lookup-cm-formulas/?cm_no=${encodeURIComponent(cmNo)}`);
-                const data = await response.json();
-
-                if (data.results && data.results.length > 0) {
-                    modalTableBody.innerHTML = data.results.map(item => `
-                        <tr class="modal-record-row" data-id="${item.form_id}" style="cursor:pointer;">
-                            <td class="ps-3 fw-bold">${item.prod_code}</td>
-                            <td>${item.prod_color}</td>
-                            <td>${item.customer}</td>
-                            <td class="text-end pe-3">${item.date}</td>
-                        </tr>
-                    `).join('');
-
-                    // Re-attach listeners to rows
-                    modalTableBody.querySelectorAll('.modal-record-row').forEach(row => {
-                        row.addEventListener('click', () => {
-                            modalTableBody.querySelectorAll('tr').forEach(r => r.classList.remove('table-active'));
-                            row.classList.add('table-active');
-                            modalSelectedRow = row;
-                        });
-                        row.addEventListener('dblclick', () => {
-                            modalSelectedRow = row;
-                            confirmModalSelection();
-                        });
-                    });
-                } else {
-                    modalTableBody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-muted">No formulas found for this ID.</td></tr>';
-                }
-            } catch (err) {
-                modalTableBody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-danger">Error loading data.</td></tr>';
-            }
-        });
-
-        // 3. Search filter inside Modal
-        modalSearchInput.addEventListener('input', function() {
-            const term = this.value.toLowerCase();
-            modalTableBody.querySelectorAll('tr.modal-record-row').forEach(row => {
-                row.style.display = row.innerText.toLowerCase().includes(term) ? '' : 'none';
-            });
-        });
-
-        // 4. Confirmation Logic
-        function confirmModalSelection() {
-            if (!modalSelectedRow) {
-                Preline.toast('Please select a record first.', 'warning');
-                return;
-            }
-            const formId = modalSelectedRow.dataset.id;
-            // Redirect or load details for the selected formula
-            window.location.href = `${window.location.pathname}?form_id=${formId}`;
-        }
-
-        selectBtn.addEventListener('click', confirmModalSelection);
-        
-        // Initial check for button if cm_no has data on load
-        if (cmNoInput.value.trim().length > 0) lookupBtn.classList.remove('disabled');
-
     })();
 </script>
