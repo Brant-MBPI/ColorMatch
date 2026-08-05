@@ -10,8 +10,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib import messages
 from datetime import datetime
 
-from main.services.save import rs_entry_save
-from main.services.save import mb_formula_save, dc_formula_save
+from main.services.master_formula import master_formula_services
+from main.services.save import mb_formula_save, dc_formula_save, rs_entry_save
 from main.decorators import role_required
 from main.models import (
     tbl_audit_trail, tbl_cmf, tbl_cmf_dates, tbl_cmf_formula, tbl_cmf_pending_completed, 
@@ -813,83 +813,14 @@ def cmf_pending_completed(request):
     return render(request, "sidemenu/cmf/pending_completed.html", context)
 
 def master_formula(request):
-    form_data = {}
     form_id = request.GET.get('form_id')
+    
+    # Check if we need to show error if ID was provided but not found
+    if form_id and not master_formula_services.get_master_formula_details(form_id):
+        messages.error(request, f"Master Formula #{form_id} not found.")
 
-    if form_id:
-        formula = tbl_master_formula.objects.filter(pk=form_id, is_deleted=False).first()
-        if formula:
-            encode = tbl_master_formula_encode.objects.filter(form=formula).first()
-            materials = list(
-                tbl_master_formula_info.objects.filter(form=formula, is_deleted=False)
-                .order_by('sequence_no')
-                .values('material_code', 'concentration')
-            )
-
-            form_data = {
-                'form_id': formula.form_id,
-                'index_no': formula.index_no or '',
-                'customer': formula.customer or '',
-                'product_code': formula.product_code or '',
-                'prod_color': formula.prod_color or '',
-                'total_concentration': formula.dosage if formula.dosage is not None else '0.000000',
-                'dosage': formula.ld if formula.ld is not None else '',
-                'mix_time': formula.mix_time or '',
-                'resin': formula.resin or '',
-                'application': formula.application or '',
-                'cm_no': formula.cm_no or '',
-                'colormatch_date': formula.colormatch_date.strftime('%m/%d/%Y') if formula.colormatch_date else '',
-                'notes': formula.notes or '',
-                'html_code_hex': formula.html_code_hex or '',
-                'cyan': formula.cyan if formula.cyan is not None else '',
-                'magenta': formula.magenta if formula.magenta is not None else '',
-                'yellow': formula.yellow if formula.yellow is not None else '',
-                'black': formula.black if formula.black is not None else '',
-                'updated_by': encode.updated_by if encode else '',
-                'date_time': formula.date_time or '',
-                'matched_by': encode.match_by if encode else '',
-                'encoded_by': encode.encoded_by if encode else '',
-                'materials': materials,
-            }
-        else:
-            messages.error(request, f"Master Formula #{form_id} not found.")
-
-    # --- Records list for the Records tab ---
-    master_formula_qs = tbl_master_formula.objects.filter(is_deleted=False).order_by('-form_id').values(
-        'form_id', 'index_no', 'customer', 'product_code', 'prod_color', 'total_concentration', 'ld'
-    )
-
-    master_formula_records = []
-    for row in master_formula_qs:
-        master_formula_records.append({
-            'form_id': row['form_id'],
-            'index_no': row['index_no'],
-            'customer': row['customer'],
-            'product_code': row['product_code'],
-            'prod_color': row['prod_color'],
-            'total_concentration': row['total_concentration'],
-            'dosage': row['ld'],
-        })
-
-    user_names = User.objects.filter(is_active=True).exclude(first_name="").values_list('first_name', flat=True).distinct().order_by('first_name')
-
-    context = {
-        'master_formula_records': master_formula_records,
-        'form_data': form_data,
-        'customers': ["Masterbatch PH", "Generic Co."],  # placeholder — swap for a real customer source if one exists
-        'users': list(user_names),
-        'materials': cmf_records_services.get_raw_material_codes(),
-    }
+    context = master_formula_services.get_master_formula_context(form_id)
     return render(request, "sidemenu/formula/master_formula.html", context)
-
-
-def master_formula_materials_json(request, form_id):
-    materials = list(
-        tbl_master_formula_info.objects.filter(form_id=form_id, is_deleted=False)
-        .order_by('sequence_no')
-        .values('material_code', 'concentration')
-    )
-    return JsonResponse(materials, safe=False)
 
 def feedback(request):
     form_data = {}

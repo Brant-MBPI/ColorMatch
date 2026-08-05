@@ -170,6 +170,4 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }, 800);
 
-    // Attach to the input event
-    cmfInput.addEventListener('input', handleCmfLookup);
 });

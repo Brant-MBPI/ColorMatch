@@ -1,5 +1,7 @@
 from django.urls import path
 
+from .services.master_formula import master_formula_services
+
 from . import views
 from .services.cmf_records import cmf_records_services, previous_cmf_record
 from .services.export import cmf_record_export
@@ -31,5 +33,5 @@ urlpatterns = [
     path('cmf/rs-records/<int:rs_id>/', views.rs_record_detail, name='rs_record_detail'),
     # ajax
     path('check-previous-matching/', previous_cmf_record.check_previous_matching, name='check_previous_matching'),
-    path('master-formula/<int:form_id>/materials/', views.master_formula_materials_json, name='master_formula_materials_json'),
+    path('master-formula/<int:form_id>/materials/', master_formula_services.master_formula_materials_json, name='master_formula_materials_json'),
 ]

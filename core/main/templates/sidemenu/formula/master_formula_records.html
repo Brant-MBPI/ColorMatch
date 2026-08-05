@@ -2,6 +2,7 @@
     <div class="row g-2 mb-4 align-items-center">
         <div class="col">
             <h5 class="fw-bold m-0 mf-title text-uppercase">Formulation Records</h5>
+            <small id="mfSelectedRecordLabel" class="text-muted"></small>
         </div>
         <div class="col-md-4">
             <div class="input-group input-group-sm">
@@ -63,7 +64,6 @@
                 <div class="p-3 border-bottom d-flex align-items-center justify-content-between">
                     <h6 class="extra-small fw-bold text-uppercase text-teal m-0">
                         Material Breakdown
-                        <span id="mfDetailFormId" class="text-muted fw-normal"></span>
                     </h6>
                 </div>
                 <div class="mf-detail-scroll-body" style="max-height: 60vh; overflow-y: auto;">
@@ -136,7 +136,7 @@
         const searchInput = document.getElementById('mfRecordSearch');
         const rows = document.querySelectorAll('#mfRecordsTable tbody tr.record-row');
         const detailBody = document.getElementById('mfDetailTableBody');
-        const detailFormId = document.getElementById('mfDetailFormId');
+        const selectedRecordLabel = document.getElementById('mfSelectedRecordLabel');
 
         // Simple search filter
         if (searchInput) {
@@ -155,19 +155,29 @@
                 row.classList.add('table-active');
 
                 const formId = row.dataset.formId;
-                detailFormId.innerText = `#${formId}`;
                 detailBody.innerHTML = '<tr><td colspan="2" class="text-center py-4"><div class="spinner-border spinner-border-sm text-teal"></div></td></tr>';
 
                 try {
                     const response = await fetch(`/master-formula/${encodeURIComponent(formId)}/materials/`);
-                    const data = await response.json();
 
-                    if (!data.length) {
+                    if (!response.ok) {
+                        detailBody.innerHTML = '<tr><td colspan="2" class="text-center py-4 text-danger">Record not found.</td></tr>';
+                        selectedRecordLabel.innerText = '';
+                        return;
+                    }
+
+                    const data = await response.json();
+                    const materials = data.materials;
+
+                    // Small subtitle under the main title — index/form no + customer
+                    selectedRecordLabel.innerText = `# ${data.form_id} | Index: ${data.index_no} : ${data.customer}`;
+
+                    if (!materials.length) {
                         detailBody.innerHTML = '<tr><td colspan="2" class="text-center py-4 text-muted">No materials found.</td></tr>';
                         return;
                     }
 
-                    detailBody.innerHTML = data.map(m => `
+                    detailBody.innerHTML = materials.map(m => `
                         <tr>
                             <td class="ps-3">${m.material_code}</td>
                             <td class="pe-3 text-end">${m.concentration}</td>

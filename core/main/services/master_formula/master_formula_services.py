@@ -1,0 +1,101 @@
+from django.core.cache import cache
+from django.http import JsonResponse
+from main.services.cmf_records import cmf_records_services
+from main.models import (
+    tbl_master_formula, tbl_master_formula_info, 
+    tbl_master_formula_encode
+)
+from django.contrib.auth import get_user_model 
+User = get_user_model()
+
+CACHE_KEY_RECORDS = 'master_formula_records_list'
+CACHE_TIMEOUT = 3600  # 1 hour (adjust as needed)
+
+def get_master_formula_details(form_id):
+    """Fetches full details for a single master formula."""
+    formula = tbl_master_formula.objects.filter(pk=form_id, is_deleted=False).first()
+    if not formula:
+        return None
+
+    encode = tbl_master_formula_encode.objects.filter(form=formula).first()
+    materials = list(
+                tbl_master_formula_info.objects.filter(form=formula, is_deleted=False)
+                .order_by('sequence_no')
+                .values('material_code', 'concentration')
+            )
+
+    return {
+        'form_id': formula.form_id,
+        'index_no': formula.index_no or '',
+        'customer': formula.customer or '',
+        'product_code': formula.product_code or '',
+        'prod_color': formula.prod_color or '',
+        'total_concentration': formula.dosage if formula.dosage is not None else '0.000000',
+        'dosage': formula.ld if formula.ld is not None else '',
+        'mix_time': formula.mix_time or '',
+        'resin': formula.resin or '',
+        'application': formula.application or '',
+        'cm_no': formula.cm_no or '',
+        'colormatch_date': formula.colormatch_date.strftime('%m/%d/%Y') if formula.colormatch_date else '',
+        'notes': formula.notes or '',
+        'html_code_hex': formula.html_code_hex or '',
+        'cyan': formula.cyan if formula.cyan is not None else '',
+        'magenta': formula.magenta if formula.magenta is not None else '',
+        'yellow': formula.yellow if formula.yellow is not None else '',
+        'black': formula.black if formula.black is not None else '',
+        'updated_by': encode.updated_by if encode else '',
+        'date_time': formula.date_time or '',
+        'matched_by': encode.match_by if encode else '',
+        'encoded_by': encode.encoded_by if encode else '',
+        'materials': materials,
+    }
+
+def get_master_formula_list():
+    """Fetches all records list with Caching."""
+    records = cache.get(CACHE_KEY_RECORDS)
+    
+    if not records:
+        # Fetch from DB if cache is empty
+        qs = tbl_master_formula.objects.filter(is_deleted=False).order_by('-form_id').values(
+            'form_id', 'index_no', 'customer', 'product_code', 'prod_color', 'total_concentration', 'ld'
+        )
+        records = list(qs)
+        # Store in cache
+        cache.set(CACHE_KEY_RECORDS, records, CACHE_TIMEOUT)
+        
+    return records
+
+
+def master_formula_materials_json(request, form_id):
+    formula = tbl_master_formula.objects.filter(pk=form_id).first()
+    
+    if not formula:
+        return JsonResponse({'error': 'Record not found'}, status=404)
+    
+    materials = list(
+        tbl_master_formula_info.objects.filter(form_id=form_id, is_deleted=False)
+        .order_by('sequence_no')
+        .values('material_code', 'concentration')
+    )
+    response_data = {
+        'form_id': formula.form_id,
+        'index_no': formula.index_no or '-',
+        'customer': formula.customer or '',
+        'materials': materials
+    }
+    return JsonResponse(response_data, safe=False)
+
+
+def get_master_formula_context(form_id=None):
+    """Combines all data needed for the Master Formula page context."""
+    form_data = get_master_formula_details(form_id) if form_id else {}
+    
+    return {
+        'form_data': form_data,
+        'master_formula_records': get_master_formula_list(),
+        'users': list(User.objects.filter(is_active=True).exclude(first_name="").values_list('first_name', flat=True).distinct().order_by('first_name')),
+        'materials': cmf_records_services.get_raw_material_codes(),
+        'customers': ["Masterbatch PH", "Generic Co."],
+    }
+
+    # cache.delete(CACHE_KEY_RECORDS)
