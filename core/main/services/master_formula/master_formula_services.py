@@ -1,5 +1,6 @@
 from django.core.cache import cache
 from django.http import JsonResponse
+from django.db.models import Max  # Add this import
 from main.services.cmf_records import cmf_records_services
 from main.models import (
     tbl_master_formula, tbl_master_formula_info, 
@@ -9,7 +10,7 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 CACHE_KEY_RECORDS = 'master_formula_records_list'
-CACHE_TIMEOUT = 3600  # 1 hour (adjust as needed)
+CACHE_TIMEOUT = 3600  # 1 hour
 
 def get_master_formula_details(form_id):
     """Fetches full details for a single master formula."""
@@ -55,12 +56,10 @@ def get_master_formula_list():
     records = cache.get(CACHE_KEY_RECORDS)
     
     if not records:
-        # Fetch from DB if cache is empty
         qs = tbl_master_formula.objects.filter(is_deleted=False).order_by('-form_id').values(
             'form_id', 'index_no', 'customer', 'product_code', 'prod_color', 'total_concentration', 'ld'
         )
         records = list(qs)
-        # Store in cache
         cache.set(CACHE_KEY_RECORDS, records, CACHE_TIMEOUT)
         
     return records
@@ -88,7 +87,16 @@ def master_formula_materials_json(request, form_id):
 
 def get_master_formula_context(form_id=None):
     """Combines all data needed for the Master Formula page context."""
-    form_data = get_master_formula_details(form_id) if form_id else {}
+    
+    if form_id:
+        form_data = get_master_formula_details(form_id)
+    else:
+        # --- CALCULATE NEXT ID FOR NEW RECORDS ---
+        max_id = tbl_master_formula.objects.aggregate(Max('form_id'))['form_id__max'] or 0
+        form_data = {
+            'form_id': max_id + 1,  # This passes the next ID to the "New" form
+            'is_new': True          # Optional: helpful for conditional template logic
+        }
     
     return {
         'form_data': form_data,
