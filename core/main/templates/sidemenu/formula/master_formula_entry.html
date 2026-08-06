@@ -1,8 +1,10 @@
 <div class="master-formula-entry-form-container">
     <form id="masterFormulaEntryForm" method="POST">
+        {% csrf_token %}
         <input type="hidden" name="form_id" value="{{ form_data.form_id|default:'' }}">
+        
         <div class="row g-4">
-            <!-- LEFT COLUMN: Formulation Details -->
+            <!-- LEFT COLUMN: Formulation Info -->
             <div class="col-lg-6">
                 <!-- Card 1: ID & Customer -->
                 <div class="card mf-entry-card mb-3 shadow-sm">
@@ -29,7 +31,7 @@
                 </div>
 
                 <!-- Card 2: Technical Info -->
-                <div class="card mf-entry-card mb-3 shadow-sm">
+                <div class="card mf-entry-card shadow-sm mb-3">
                     <div class="card-body p-3">
                         <h6 class="mf-section-title mb-3">Formulation Details</h6>
                         
@@ -40,15 +42,14 @@
 
                         <div class="row g-2 align-items-center mb-2">
                             <div class="col-md-4"><label class="extra-small fw-bold">Product Code:</label></div>
-                            <div class="col-md-8"><input type="text" name="product_code" value="{{ form_data.product_code|default:'' }}" class="form-control form-control-sm uniform-input"></div>
+                            <div class="col-md-8"><input type="text" name="product_code" id="id_mf_product_code" value="{{ form_data.product_code|default:'' }}" class="form-control form-control-sm uniform-input"></div>
                         </div>
 
                         <div class="row g-2 align-items-center mb-2">
                             <div class="col-md-4"><label class="extra-small fw-bold">Product Color:</label></div>
-                            <div class="col-md-8"><input type="text" name="prod_color" value="{{ form_data.prod_color|default:'' }}" class="form-control form-control-sm uniform-input"></div>
+                            <div class="col-md-8"><input type="text" name="prod_color" id="id_mf_prod_color" value="{{ form_data.prod_color|default:'' }}" class="form-control form-control-sm uniform-input"></div>
                         </div>
 
-                        <!-- Colorant Type Radio -->
                         <div class="row g-2 align-items-center mb-2">
                             <div class="col-md-4"><label class="extra-small fw-bold">Colorant Type:</label></div>
                             <div class="col-md-8">
@@ -77,7 +78,7 @@
 
                         <div class="row g-2 align-items-center mb-2">
                             <div class="col-md-4"><label class="extra-small fw-bold">Mixing Time:</label></div>
-                            <div class="col-md-8"><input type="text" name="mix_time" value="{{ form_data.mix_time|default:'5 MIN' }}" class="form-control form-control-sm uniform-input"></div>
+                            <div class="col-md-8"><input type="text" name="mix_time" id="id_mf_mix_time" value="{{ form_data.mix_time|default:'5 MIN' }}" class="form-control form-control-sm uniform-input"></div>
                         </div>
 
                         <div class="row g-2 align-items-center mb-2">
@@ -90,11 +91,16 @@
                             <div class="col-md-8"><input type="text" name="application" value="{{ form_data.application|default:'' }}" class="form-control form-control-sm uniform-input"></div>
                         </div>
 
-                        <!-- Matching No Row (Cleaned) -->
+                        <!-- Matching No Row with Clickable Search -->
                         <div class="row g-2 align-items-center mb-2">
                             <div class="col-md-4"><label class="extra-small fw-bold">Matching No.:</label></div>
                             <div class="col-md-8">
-                                <input type="text" name="cm_no" id="id_mf_cm_no" value="{{ form_data.cm_no|default:'' }}" class="form-control form-control-sm uniform-input" placeholder="Enter CM#/RS#">
+                                <div class="input-group input-group-sm">
+                                    <input type="text" name="cm_no" id="id_mf_cm_no" value="{{ form_data.cm_no|default:'' }}" class="form-control form-control-sm uniform-input" placeholder="Enter CM#/RS#">
+                                    <button type="button" id="mfBrowseFormulasBtn" class="btn btn-sm btn-dark-teal" disabled>
+                                        <i class="bi bi-search text-white"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
@@ -102,7 +108,7 @@
                             <div class="col-md-4"><label class="extra-small fw-bold">Date Matched:</label></div>
                             <div class="col-md-8">
                                 <div class="input-group input-group-sm flatpickr-container" data-wrap="true">
-                                    <input type="text" name="colormatch_date" value="{{ form_data.colormatch_date|default:'' }}" class="form-control uniform-input date-picker-single" placeholder="MM/DD/YYYY" data-input>
+                                    <input type="text" name="colormatch_date" id="id_mf_colormatch_date" value="{{ form_data.colormatch_date|default:'' }}" class="form-control uniform-input date-picker-single" placeholder="MM/DD/YYYY" data-input>
                                     <span class="input-group-text uniform-input border-start-0" data-toggle><i class="bi bi-calendar3"></i></span>
                                 </div>
                             </div>
@@ -141,7 +147,7 @@
                 </div>
             </div>
 
-            <!-- RIGHT COLUMN: Materials -->
+            <!-- RIGHT COLUMN: Material Entry -->
             <div class="col-lg-6">
                 <div class="card mf-entry-card mb-3 shadow-sm">
                     <div class="card-body p-3">
@@ -183,6 +189,7 @@
                         </div>
                     </div>
                 </div>
+                
                 <div class="card mf-entry-card shadow-sm">
                     <div class="card-body p-3 d-flex flex-column">
                         <h6 class="mf-section-title mb-2">Material Breakdown</h6>
@@ -213,7 +220,7 @@
             </div>
         </div>
 
-        <!-- ACTION BUTTONS -->
+        <!-- FORM ACTION BUTTONS -->
         <div class="d-flex justify-content-end gap-2 mt-4 mb-2">
             <button type="button" class="btn btn-sm btn-primary px-4 shadow-sm btn-new">
                 <i class="bi bi-file-earmark-plus me-1"></i> New
@@ -225,14 +232,35 @@
     </form>
 </div>
 
+<!-- THE FLOATING MODAL OVERLAY (Custom built to avoid bootstrap.js dependency) -->
+<div id="mfFormulaLookupModal" class="d-none" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2050; display: flex; align-items: center; justify-content: center;">
+    <div class="modal-dialog modal-xl w-100" style="max-width: 1100px;">
+        <div class="modal-content shadow-lg border-0">
+            <div class="modal-header bg-dark text-white py-2">
+                <h5 class="modal-title fs-6 fw-bold">
+                    <i class="bi bi-search me-2"></i>Formula lookup: <span id="mfLookupMatchingNo"></span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" id="id_close_modal_top"></button>
+            </div>
+            <div class="modal-body p-0 bg-white" id="mfLookupModalBody" style="max-height: 70vh; overflow-y: auto;">
+                <!-- HTML from partial injected here -->
+            </div>
+            <div class="modal-footer py-2 bg-light">
+                <small class="text-muted me-auto ps-2">Double-click a row to load. Click to view materials.</small>
+                <button type="button" class="btn btn-secondary btn-sm px-3" id="id_close_modal_bottom">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     (function () {
+        // --- 1. MATERIAL LOGIC (KEPT AS IS) ---
         const materialCodeSelect = document.getElementById('id_mf_material_code');
         const concentrationInput = document.getElementById('id_mf_concentration');
         const materialTableBody = document.getElementById('mfMaterialTableBody');
         const totalDisplay = document.getElementById('mfTotalConcentration');
         const sumOfConInput = document.getElementById('id_mf_sum_of_con');
-
         let selectedRow = null;
 
         function recalcTotal() {
@@ -284,11 +312,91 @@
         });
 
         document.getElementById('mfClearMaterialsBtn').addEventListener('click', function () {
-            Preline.confirm('Clear All Materials?', 'This will remove every material row from this formulation. Continue?', 'warning', () => {
+            Preline.confirm('Clear All Materials?', 'This will remove every material row. Continue?', 'warning', () => {
                 materialTableBody.innerHTML = ''; selectedRow = null; recalcTotal();
             });
         });
 
         recalcTotal();
+
+        // --- 2. MODAL LOOKUP LOGIC (ADDED) ---
+        const cmNoInput = document.getElementById('id_mf_cm_no');
+        const browseBtn = document.getElementById('mfBrowseFormulasBtn');
+        const lookupModal = document.getElementById('mfFormulaLookupModal');
+        const lookupModalBody = document.getElementById('mfLookupModalBody');
+        const lookupMatchingNoLabel = document.getElementById('mfLookupMatchingNo');
+
+        function toggleBrowseBtn() {
+            browseBtn.disabled = cmNoInput.value.trim() === '';
+        }
+        cmNoInput.addEventListener('input', toggleBrowseBtn);
+        toggleBrowseBtn();
+
+        const closeModal = () => {
+            lookupModal.classList.add('d-none');
+            lookupModal.style.display = 'none';
+        };
+
+        document.getElementById('id_close_modal_top').addEventListener('click', closeModal);
+        document.getElementById('id_close_modal_bottom').addEventListener('click', closeModal);
+
+        browseBtn.addEventListener('click', async function () {
+            const matchingNo = cmNoInput.value.trim();
+            if (!matchingNo) return;
+
+            lookupMatchingNoLabel.innerText = matchingNo;
+            lookupModalBody.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-teal"></div></div>';
+            
+            lookupModal.classList.remove('d-none');
+            lookupModal.style.display = 'flex';
+
+            try {
+                const response = await fetch(`/master-formula/lookup/?matching_no=${encodeURIComponent(matchingNo)}`);
+                const html = await response.text();
+                lookupModalBody.innerHTML = html;
+
+                // ATTACH LISTENERS TO INJECTED HTML
+                lookupModalBody.querySelectorAll('.mf-lookup-header-row').forEach(row => {
+                    // Expansion click
+                    row.addEventListener('click', function() {
+                        const nextRow = row.nextElementSibling;
+                        if (nextRow && nextRow.classList.contains('ingredient-sub-row')) {
+                            const isHidden = nextRow.classList.toggle('d-none');
+                            row.classList.toggle('bg-light-subtle');
+                            const icon = row.querySelector('.toggle-icon');
+                            if(icon) icon.className = isHidden ? 'bi bi-plus-square' : 'bi bi-dash-square text-danger';
+                        }
+                    });
+
+                    // Load double-click
+                    row.addEventListener('dblclick', function () {
+                        document.getElementById('id_mf_product_code').value = row.dataset.productCode || '';
+                        document.getElementById('id_mf_prod_color').value = row.dataset.color || '';
+                        document.getElementById('id_mf_mix_time').value = row.dataset.mixingTime || '';
+                        const radioId = row.dataset.formulaType === 'dc' ? 'typeDC' : 'typeMB';
+                        const radio = document.getElementById(radioId);
+                        if (radio) radio.checked = true;
+
+                        const matchedBySelect = document.getElementById('id_mf_matched_by');
+                        if (matchedBySelect && row.dataset.matchedBy) {
+                            matchedBySelect.value = row.dataset.matchedBy;
+                            if(matchedBySelect.tomselect) matchedBySelect.tomselect.sync();
+                        }
+
+                        const scriptTag = document.getElementById(row.dataset.scriptId);
+                        if (scriptTag) {
+                            const ingredients = JSON.parse(scriptTag.textContent);
+                            materialTableBody.innerHTML = '';
+                            ingredients.forEach(ing => addMaterialRow(ing.material, ing.value));
+                            recalcTotal();
+                        }
+                        closeModal();
+                        Preline.toast('Formula loaded.', 'success');
+                    });
+                });
+            } catch (err) {
+                lookupModalBody.innerHTML = '<div class="text-center py-5 text-danger">Error fetching data.</div>';
+            }
+        });
     })();
 </script>

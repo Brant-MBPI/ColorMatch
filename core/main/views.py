@@ -822,6 +822,56 @@ def master_formula(request):
     context = master_formula_services.get_master_formula_context(form_id)
     return render(request, "sidemenu/formula/master_formula.html", context)
 
+def master_formula_lookup(request):
+    matching_no = request.GET.get('matching_no', '').strip()
+    error = None
+    mb_list = []
+    dc_list = []
+    color = ''
+
+    if not matching_no:
+        error = "No matching number provided."
+    else:
+        cmf = tbl_cmf.objects.filter(cm_no=matching_no).first()
+        rs = None
+        if not cmf:
+            rs = tbl_rs.objects.filter(rs_no=matching_no).first()
+
+        if not cmf and not rs:
+            error = f'No CMF or RS record found for "{matching_no}".'
+        else:
+            if cmf:
+                mb_qs = tbl_mb_extruder_formula.objects.filter(cm_no=cmf).select_related('code')
+                dc_qs = tbl_dc_extruder_formula.objects.filter(cm_no=cmf).select_related('code')
+                color = cmf.in_code_no.color if cmf.in_code_no else (cmf.color_desc or '---')
+            else:
+                mb_qs = tbl_mb_extruder_formula.objects.filter(rs_no=rs).select_related('code')
+                dc_qs = tbl_dc_extruder_formula.objects.filter(rs_no=rs).select_related('code')
+                color = rs.primary_color or rs.color_desc or '---'
+
+            for f in mb_qs:
+                ingredients = [
+                    {'material': ing.material, 'value': float(ing.value) if ing.value is not None else 0}
+                    for ing in tbl_mb_extruder_formula02.objects.filter(mb=f)
+                ]
+                mb_list.append({'header': f, 'ingredients': ingredients, 'script_id': f'mf-ing-mb-{f.pk}'})
+
+            for f in dc_qs:
+                ingredients = [
+                    {'material': ing.material, 'value': float(ing.value) if ing.value is not None else 0}
+                    for ing in tbl_dc_extruder_formula02.objects.filter(dc=f)
+                ]
+                dc_list.append({'header': f, 'ingredients': ingredients, 'script_id': f'mf-ing-dc-{f.pk}'})
+
+    context = {
+        'matching_no': matching_no,
+        'error': error,
+        'color': color,
+        'mb_formulas': mb_list,
+        'dc_formulas': dc_list,
+    }
+    return render(request, "modal/master-formula/master_formula_lookup.html", context)
+
 def feedback(request):
     form_data = {}
     feedback_no = request.GET.get('feedback_no')
