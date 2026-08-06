@@ -1,153 +1,148 @@
 {% if error %}
 <div class="text-center py-5 text-danger fw-bold">{{ error }}</div>
 {% else %}
-    <!-- THE TOP BLUE-GREY HEADER ROW (Alignment guide) -->
-    <table class="table mb-0">
-        <thead class="main-table-header">
-            <tr>
-                <th style="width: 60px;"></th>
-                <th>Date</th>
-                <th>Product Code</th>
-                <th>Lot Number / Sample</th>
-                <th class="pe-4">Matched By</th>
-            </tr>
-        </thead>
-    </table>
+    <!-- THE TOP BLUE-GREY HEADER ROW -->
+    <div class="table-responsive">
+        <table class="table mb-0 align-middle">
+            <thead class="main-table-header">
+                <tr>
+                    <th style="width: 60px;"></th>
+                    <th>Date</th>
+                    <th>Product Code</th>
+                    <th>Lot Number / Sample</th>
+                    <th class="pe-4">Matched By</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
 
+    <!-- WRAPPER FOR THE NESTED CARD LOOK -->
     <div class="mf-lookup-wrapper">
         
-        <!-- MB FORMULAS SECTION -->
         {% if mb_formulas %}
-        <div class="mf-formula-card mb-4">
+        <!-- MB CONTAINER -->
+        <div class="mf-formula-card mb-4 shadow-sm">
             <h6 class="extra-small fw-bold text-teal text-uppercase mb-3">
                 <i class="bi bi-gear-fill me-2"></i>MB Extruder Formulas
             </h6>
-            <table class="table table-sm mb-0">
-                <tbody class="small">
-                    {% for item in mb_formulas %}
-                    <tr class="fw-bold mf-lookup-header-row formula-row-hover" 
-                        style="cursor:pointer;"
-                        data-script-id="{{ item.script_id }}"
+            <div class="table-responsive">
+                <table class="table table-sm mb-0">
+                    <tbody class="small">
+                        {% for item in mb_formulas %}
+                        <tr class="fw-bold mf-lookup-header-row formula-row-hover" 
+                            style="cursor:pointer;"
+                            data-script-id="{{ item.script_id }}"
+                            data-formula-type="MB"
+                            data-customer="{{ parent.customer|default:'' }}"
+                            data-resin="{{ parent.resin_used|default:'' }}"
+                            data-application="{{ parent.process|default:'' }}"
+                            data-product-code="{{ item.header.code.product_code|default:'' }}"
+                            data-color="{{ color|default:'' }}"
+                            data-sum-con="{{ item.sum_con }}"
+                            data-dosage="{{ item.header.ld|default:'' }}"
+                            data-mixing-time="{{ item.header.mixing_time|default:'5 MIN' }}"
+                            data-date-matched="{{ item.header.date|date:'m/d/Y' }}"
+                            data-html="{{ item.header.html|default:'' }}"
+                            data-cyan="{{ item.header.c|default:'' }}"
+                            data-magenta="{{ item.header.m|default:'' }}"
+                            data-yellow="{{ item.header.y|default:'' }}"
+                            data-black="{{ item.header.k|default:'' }}"
+                            data-matched-by="{{ item.header.matched_by|default:'' }}">
+                            
+                            <td class="text-center" style="width: 40px;">
+                                <i class="bi bi-plus-circle-fill toggle-main-icon text-teal"></i>
+                            </td>
+                            <td>{{ item.header.date|date:"m/d/Y" }}</td>
+                            <td>{{ item.header.code.product_code|default:"---" }}</td>
+                            <td>{{ item.header.lot_no|default:"---" }}</td>
+                            <td>{{ item.header.matched_by|default:"---" }}</td>
+                        </tr>
                         
-                        /* DATA FOR ENTRY FORM */
-                        data-formula-type="MB"
-                        data-customer="{{ parent.customer|default:'' }}"
-                        data-resin="{{ parent.resin_used|default:'' }}"
-                        data-application="{{ parent.process|default:'' }}"
-                        data-colorant-type="MB"
-                        
-                        data-product-code="{{ item.header.code.product_code|default:'' }}"
-                        data-color="{{ color|default:'' }}"
-                        data-sum-con="{{ item.sum_con }}"
-                        data-dosage="{{ item.header.ld|default:'' }}"
-                        data-mixing-time="{{ item.header.mixing_time|default:'5 MIN' }}"
-                        data-date-matched="{{ item.header.date|date:'m/d/Y' }}"
-                        data-html="{{ item.header.html|default:'' }}"
-                        data-cyan="{{ item.header.c|default:'' }}"
-                        data-magenta="{{ item.header.m|default:'' }}"
-                        data-yellow="{{ item.header.y|default:'' }}"
-                        data-black="{{ item.header.k|default:'' }}"
-                        data-matched-by="{{ item.header.matched_by|default:'' }}">
-                        
-                        <td class="text-center" style="width: 40px;">
-                            <i class="bi bi-plus-circle-fill toggle-main-icon text-teal"></i>
-                        </td>
-                        <td>{{ item.header.date|date:"m/d/Y" }}</td>
-                        <td>{{ item.header.code.product_code|default:"---" }}</td>
-                        <td>{{ item.header.lot_no|default:"---" }}</td>
-                        <td>{{ item.header.matched_by|default:"---" }}</td>
-                    </tr>
-                    
-                    <!-- INGREDIENT SUB-ROW (Expanded via JS) -->
-                    <tr class="ingredient-sub-row d-none">
-                        <td colspan="5" class="p-0 border-0">
-                            <table class="table table-sm mb-2 table-borderless table-nested">
-                                <tbody class="text-muted extra-small">
-                                    {% for ing in item.ingredients %}
-                                    <tr>
-                                        <td class="ps-3">{{ ing.material }}</td>
-                                        <td class="text-end pe-5">{{ ing.value|floatformat:6 }}%</td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </td>
-                    </tr>
-                    <!-- Hidden JSON for Ingredients -->
-                    {{ item.ingredients|json_script:item.script_id }}
-                    {% endfor %}
-                </tbody>
-            </table>
+                        <!-- INGREDIENT NESTED TABLE -->
+                        <tr class="ingredient-sub-row d-none">
+                            <td colspan="5" class="p-0 border-0">
+                                <table class="table table-sm mb-2 table-borderless table-nested">
+                                    <tbody class="text-muted extra-small">
+                                        {% for ing in item.ingredients %}
+                                        <tr>
+                                            <td class="ps-3">{{ ing.material }}</td>
+                                            <td class="text-end pe-5">{{ ing.value|floatformat:6 }}%</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+                        {{ item.ingredients|json_script:item.script_id }}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
         {% endif %}
 
-        <!-- DC FORMULAS SECTION -->
         {% if dc_formulas %}
-        <div class="mf-formula-card">
+        <!-- DC CONTAINER (Same Card Structure) -->
+        <div class="mf-formula-card shadow-sm">
             <h6 class="extra-small fw-bold text-teal text-uppercase mb-3">
                 <i class="bi bi-box-seam-fill me-2"></i>DC Extruder Formulas
             </h6>
-            <table class="table table-sm mb-0">
-                <tbody class="small">
-                    {% for item in dc_formulas %}
-                    <tr class="fw-bold mf-lookup-header-row formula-row-hover" 
-                        style="cursor:pointer;"
-                        data-script-id="{{ item.script_id }}"
-                        
-                        data-formula-type="DC"
-                        data-customer="{{ parent.customer|default:'' }}"
-                        data-resin="{{ parent.resin_used|default:'' }}"
-                        data-application="{{ parent.process|default:'' }}"
-                        data-colorant-type="DC"
-                        
-                        data-product-code="{{ item.header.code.product_code|default:'' }}"
-                        data-color="{{ color|default:'' }}"
-                        data-sum-con="{{ item.sum_con }}"
-                        data-dosage="{{ item.header.ld|default:'' }}"
-                        data-mixing-time="{{ item.header.mixing_time|default:'5 MIN' }}"
-                        data-date-matched="{{ item.header.date|date:'m/d/Y' }}"
-                        data-html="{{ item.header.html|default:'' }}"
-                        data-cyan="{{ item.header.c|default:'' }}"
-                        data-magenta="{{ item.header.m|default:'' }}"
-                        data-yellow="{{ item.header.y|default:'' }}"
-                        data-black="{{ item.header.k|default:'' }}"
-                        data-matched-by="{{ item.header.matched_by|default:'' }}">
-                        
-                        <td class="text-center" style="width: 40px;">
-                            <i class="bi bi-plus-circle-fill toggle-main-icon text-teal"></i>
-                        </td>
-                        <td>{{ item.header.date|date:"m/d/Y" }}</td>
-                        <td>{{ item.header.code.product_code|default:"---" }}</td>
-                        <td>{{ item.header.sample_size|default:"---" }}</td>
-                        <td>{{ item.header.matched_by|default:"---" }}</td>
-                    </tr>
-                    
-                    <!-- INGREDIENT SUB-ROW (Expanded via JS) -->
-                    <tr class="ingredient-sub-row d-none">
-                        <td colspan="5" class="p-0 border-0">
-                            <table class="table table-sm mb-2 table-borderless table-nested">
-                                <tbody class="text-muted extra-small">
-                                    {% for ing in item.ingredients %}
-                                    <tr>
-                                        <td class="ps-3">{{ ing.material }}</td>
-                                        <td class="text-end pe-5">{{ ing.value|floatformat:6 }}%</td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </td>
-                    </tr>
-                    <!-- Hidden JSON for Ingredients -->
-                    {{ item.ingredients|json_script:item.script_id }}
-                    {% endfor %}
-                </tbody>
-            </table>
+            <div class="table-responsive">
+                <table class="table table-sm mb-0">
+                    <tbody class="small">
+                        {% for item in dc_formulas %}
+                        <tr class="fw-bold mf-lookup-header-row formula-row-hover" 
+                            style="cursor:pointer;"
+                            data-script-id="{{ item.script_id }}"
+                            data-formula-type="DC"
+                            data-customer="{{ parent.customer|default:'' }}"
+                            data-resin="{{ parent.resin_used|default:'' }}"
+                            data-application="{{ parent.process|default:'' }}"
+                            data-product-code="{{ item.header.code.product_code|default:'' }}"
+                            data-color="{{ color|default:'' }}"
+                            data-sum-con="{{ item.sum_con }}"
+                            data-dosage="{{ item.header.ld|default:'' }}"
+                            data-mixing-time="{{ item.header.mixing_time|default:'5 MIN' }}"
+                            data-date-matched="{{ item.header.date|date:'m/d/Y' }}"
+                            data-html="{{ item.header.html|default:'' }}"
+                            data-cyan="{{ item.header.c|default:'' }}"
+                            data-magenta="{{ item.header.m|default:'' }}"
+                            data-yellow="{{ item.header.y|default:'' }}"
+                            data-black="{{ item.header.k|default:'' }}"
+                            data-matched-by="{{ item.header.matched_by|default:'' }}">
+                            
+                            <td class="text-center" style="width: 40px;">
+                                <i class="bi bi-plus-circle-fill toggle-main-icon text-teal"></i>
+                            </td>
+                            <td>{{ item.header.date|date:"m/d/Y" }}</td>
+                            <td>{{ item.header.code.product_code|default:"---" }}</td>
+                            <td>{{ item.header.sample_size|default:"---" }}</td>
+                            <td>{{ item.header.matched_by|default:"---" }}</td>
+                        </tr>
+                        <tr class="ingredient-sub-row d-none">
+                            <td colspan="5" class="p-0 border-0">
+                                <table class="table table-sm mb-2 table-borderless table-nested">
+                                    <tbody class="text-muted extra-small">
+                                        {% for ing in item.ingredients %}
+                                        <tr>
+                                            <td class="ps-3">{{ ing.material }}</td>
+                                            <td class="text-end pe-5">{{ ing.value|floatformat:6 }}%</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+                        {{ item.ingredients|json_script:item.script_id }}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
         {% endif %}
 
         {% if not mb_formulas and not dc_formulas %}
         <div class="text-center py-4 text-muted small fw-bold">No formula records found for {{ matching_no }}</div>
         {% endif %}
-
     </div>
 {% endif %}
