@@ -1,0 +1,67 @@
+/* --- Master Formula Lookup Modal Design Match --- */
+
+/* 1. Modal Header - Dark Sleek Style */
+#mfFormulaLookupModal .modal-header {
+    background-color: #334155 !important; /* Specific dark slate from screenshot */
+    border-bottom: none;
+    padding: 10px 16px;
+}
+
+/* 2. Top-level Table Header (The blue-grey row) */
+#mfFormulaLookupModal .main-table-header {
+    background-color: #94a3b8 !important; /* Blue-grey background */
+    color: white !important;
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+/* 3. The Formula Container (The nested white box) */
+.mf-lookup-wrapper {
+    padding: 20px 30px; /* Provides the spacing around the nested box */
+    background-color: #f8fafc;
+}
+
+.mf-formula-card {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 20px;
+    border-left: 5px solid var(--sidebar-header-bg) !important; /* Thick teal line */
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+}
+
+/* 4. Row Styling */
+.mf-lookup-header-row {
+    font-size: 0.8rem;
+    border-bottom: 1px solid #f1f5f9 !important;
+}
+
+.mf-lookup-header-row:hover {
+    background-color: #f1f5f9 !important;
+}
+
+.mf-lookup-header-row.table-active {
+    background-color: var(--sidebar-active-bg) !important;
+    color: var(--sidebar-active-text) !important;
+}
+
+/* 5. Ingredient Sub-Row Indentation */
+.ingredient-sub-row .table-nested {
+    margin-left: 45px;
+    border-left: 3px solid var(--sidebar-header-bg);
+    background-color: #ffffff;
+}
+
+/* 6. Icons */
+.toggle-main-icon {
+    font-size: 1.1rem;
+    cursor: pointer;
+}
+
+/* 7. Scrollbar */
+#mfLookupModalBody::-webkit-scrollbar { width: 8px; }
+#mfLookupModalBody::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+}

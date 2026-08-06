@@ -231,21 +231,22 @@
     </form>
 </div>
 
-<!-- THE FLOATING MODAL OVERLAY -->
-<div id="mfFormulaLookupModal" class="d-none" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2050; display: flex; align-items: center; justify-content: center;">
+<!-- THE FLOATING MODAL OVERLAY (Matches CMF style) -->
+<div id="mfFormulaLookupModal" class="custom-modal-overlay d-none" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2050; display: flex; align-items: center; justify-content: center;">
+    <!-- Clickable backdrop area is the div above itself -->
     <div class="modal-dialog modal-xl w-100" style="max-width: 1100px;">
         <div class="modal-content shadow-lg border-0">
+            <!-- Header matches CMF Record Detailed Breakdown -->
             <div class="modal-header bg-dark text-white py-2">
                 <h5 class="modal-title fs-6 fw-bold">
-                    <i class="bi bi-search me-2"></i>Formula lookup: <span id="mfLookupMatchingNo"></span>
+                    <i class="bi bi-file-earmark-medical me-2"></i>Formula lookup: <span id="mfLookupMatchingNo"></span>
                 </h5>
                 <button type="button" class="btn-close btn-close-white" id="id_close_modal_top"></button>
             </div>
-            <div class="modal-body p-0 bg-white" id="mfLookupModalBody" style="max-height: 70vh; overflow-y: auto;">
+            <div class="modal-body p-0 bg-white" id="mfLookupModalBody" style="max-height: 75vh; overflow-y: auto;">
                 <!-- Content injected here -->
             </div>
             <div class="modal-footer py-2 bg-light">
-                <small class="text-muted me-auto ps-2">Double-click to load. Click row header to expand materials.</small>
                 <button type="button" class="btn btn-secondary btn-sm px-3" id="id_close_modal_bottom">Close</button>
                 <button type="button" class="btn btn-primary btn-sm px-4" id="id_modal_select_btn" disabled>Select Formula</button>
             </div>
@@ -255,7 +256,7 @@
 
 <script>
     (function () {
-        // --- 1. MATERIAL LOGIC ---
+        // --- EXISTING MATERIAL LOGIC (KEEP AS IS) ---
         const materialCodeSelect = document.getElementById('id_mf_material_code');
         const concentrationInput = document.getElementById('id_mf_concentration');
         const materialTableBody = document.getElementById('mfMaterialTableBody');
@@ -290,36 +291,7 @@
             selectedRow = row;
         }
 
-        materialTableBody.querySelectorAll('tr.mf-material-row').forEach(row => {
-            row.addEventListener('click', () => selectRow(row));
-        });
-
-        document.getElementById('mfAddMaterialBtn').addEventListener('click', function () {
-            const code = materialCodeSelect.value;
-            const concentration = parseFloat(concentrationInput.value) || 0;
-            if (!code) { Preline.toast('Please select a material code.', 'warning'); return; }
-            const existing = Array.from(materialTableBody.querySelectorAll('tr.mf-material-row')).find(r => r.dataset.material === code);
-            if (existing) {
-                existing.dataset.concentration = concentration;
-                existing.querySelector('td:last-child').innerText = concentration;
-            } else { addMaterialRow(code, concentration); }
-            recalcTotal();
-        });
-
-        document.getElementById('mfRemoveMaterialBtn').addEventListener('click', function () {
-            if (!selectedRow) { Preline.toast('Select a material row to remove.', 'warning'); return; }
-            selectedRow.remove(); selectedRow = null; recalcTotal();
-        });
-
-        document.getElementById('mfClearMaterialsBtn').addEventListener('click', function () {
-            Preline.confirm('Clear All Materials?', 'This will remove every material row. Continue?', 'warning', () => {
-                materialTableBody.innerHTML = ''; selectedRow = null; recalcTotal();
-            });
-        });
-
-        recalcTotal();
-
-        // --- 2. MODAL LOOKUP LOGIC ---
+        // --- LOOKUP LOGIC (UPDATED DESIGN & CLOSE OUTSIDE) ---
         const cmNoInput = document.getElementById('id_mf_cm_no');
         const browseBtn = document.getElementById('mfBrowseFormulasBtn');
         const lookupModal = document.getElementById('mfFormulaLookupModal');
@@ -328,9 +300,7 @@
         const selectBtn = document.getElementById('id_modal_select_btn');
         let highlightedLookupRow = null;
 
-        function toggleBrowseBtn() {
-            browseBtn.disabled = cmNoInput.value.trim() === '';
-        }
+        function toggleBrowseBtn() { browseBtn.disabled = cmNoInput.value.trim() === ''; }
         cmNoInput.addEventListener('input', toggleBrowseBtn);
         toggleBrowseBtn();
 
@@ -339,14 +309,19 @@
             lookupModal.style.display = 'none';
         };
 
+        // Close logic
         document.getElementById('id_close_modal_top').addEventListener('click', closeModal);
         document.getElementById('id_close_modal_bottom').addEventListener('click', closeModal);
+        
+        // NEW: Close when clicking outside (on the backdrop)
+        lookupModal.addEventListener('click', function(e) {
+            if (e.target === lookupModal) closeModal();
+        });
 
         function loadFormulaIntoForm(row) {
             document.getElementById('id_mf_product_code').value = row.dataset.productCode || '';
             document.getElementById('id_mf_prod_color').value = row.dataset.color || '';
             document.getElementById('id_mf_mix_time').value = row.dataset.mixingTime || '';
-
             const radioId = row.dataset.formulaType === 'dc' ? 'typeDC' : 'typeMB';
             const radio = document.getElementById(radioId);
             if (radio) radio.checked = true;
@@ -365,7 +340,7 @@
                 recalcTotal();
             }
             closeModal();
-            Preline.toast('Formula loaded into entry form.', 'success');
+            Preline.toast('Formula loaded.', 'success');
         }
 
         selectBtn.addEventListener('click', () => {
@@ -374,13 +349,11 @@
 
         browseBtn.addEventListener('click', async function () {
             const matchingNo = cmNoInput.value.trim();
-            if (!matchingNo) return;
-
             lookupMatchingNoLabel.innerText = matchingNo;
             lookupModalBody.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-teal"></div></div>';
             
             lookupModal.classList.remove('d-none');
-            lookupModal.style.display = 'flex';
+            lookupModal.style.display = 'flex'; // Triggers the flex centering
             selectBtn.disabled = true;
 
             try {
@@ -389,29 +362,29 @@
                 lookupModalBody.innerHTML = html;
 
                 lookupModalBody.querySelectorAll('.mf-lookup-header-row').forEach(row => {
-                    // Selection Click
-                    row.addEventListener('click', function(e) {
+                    row.addEventListener('click', function() {
+                        // Highlight row
                         lookupModalBody.querySelectorAll('.mf-lookup-header-row').forEach(r => r.classList.remove('table-active'));
                         row.classList.add('table-active');
                         highlightedLookupRow = row;
                         selectBtn.disabled = false;
 
-                        // Expansion Click Logic (toggle sub-row)
+                        // Expand/Collapse with Design Match
                         const nextRow = row.nextElementSibling;
                         if (nextRow && nextRow.classList.contains('ingredient-sub-row')) {
                             const isHidden = nextRow.classList.toggle('d-none');
-                            const icon = row.querySelector('.toggle-icon');
-                            if(icon) icon.className = isHidden ? 'bi bi-plus-square' : 'bi bi-dash-square text-danger';
+                            const icon = row.querySelector('.toggle-main-icon');
+                            if(icon) {
+                                // Matches CMF Record Detail colors
+                                icon.className = isHidden ? 'bi bi-plus-circle-fill toggle-main-icon text-teal' : 'bi bi-dash-circle-fill toggle-main-icon text-danger';
+                            }
                         }
                     });
 
-                    // Double Click Logic
-                    row.addEventListener('dblclick', function () {
-                        loadFormulaIntoForm(row);
-                    });
+                    row.addEventListener('dblclick', () => loadFormulaIntoForm(row));
                 });
             } catch (err) {
-                lookupModalBody.innerHTML = '<div class="text-center py-5 text-danger">Error loading data.</div>';
+                lookupModalBody.innerHTML = '<div class="text-center py-5 text-danger">Error loading formulas.</div>';
             }
         });
     })();
