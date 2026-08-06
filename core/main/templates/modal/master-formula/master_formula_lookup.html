@@ -5,10 +5,10 @@
     <div class="text-center py-5 text-muted small fw-bold">No records found for {{ matching_no }}</div>
     {% endif %}
 
-    <!-- MB FORMULAS -->
+    <!-- MB TABLES -->
     {% if mb_formulas %}
     <div class="p-3">
-        <div class="p-2 mb-2 border-bottom d-flex align-items-center">
+        <div class="p-2 mb-2 border-bottom d-flex align-items-center bg-light">
             <i class="bi bi-gear-fill text-teal me-2"></i>
             <h6 class="extra-small fw-bold mb-0 text-teal text-uppercase">MB Extruder Formulas</h6>
         </div>
@@ -19,13 +19,12 @@
                     <th>Date</th>
                     <th>Product Code</th>
                     <th>Lot Number</th>
-                    <th>Mixing Time</th>
                     <th class="pe-3">Matched By</th>
                 </tr>
             </thead>
             <tbody>
                 {% for item in mb_formulas %}
-                <tr class="fw-bold bg-light-subtle mf-lookup-header-row" 
+                <tr class="mf-lookup-header-row fw-bold" 
                     style="cursor:pointer;"
                     data-formula-type="mb"
                     data-script-id="{{ item.script_id }}"
@@ -37,12 +36,11 @@
                     <td>{{ item.header.date|date:"m/d/Y" }}</td>
                     <td>{{ item.header.code.product_code|default:"---" }}</td>
                     <td>{{ item.header.lot_no|default:"---" }}</td>
-                    <td>{{ item.header.mixing_time|default:"---" }}</td>
                     <td class="pe-3">{{ item.header.matched_by|default:"---" }}</td>
                 </tr>
-                <tr class="ingredient-sub-row d-none">
-                    <td colspan="6" class="p-0 border-0">
-                        <table class="table table-sm mb-0 table-borderless bg-white border-start border-4 border-teal ms-4">
+                <tr class="ingredient-sub-row d-none bg-white">
+                    <td colspan="5" class="p-0 border-0">
+                        <table class="table table-sm mb-0 table-borderless ms-4 border-start border-4 border-teal">
                             <tbody class="text-muted extra-small">
                                 {% for ing in item.ingredients %}
                                 <tr>
@@ -61,10 +59,10 @@
     </div>
     {% endif %}
 
-    <!-- DC FORMULAS -->
+    <!-- DC TABLES -->
     {% if dc_formulas %}
     <div class="p-3 pt-0">
-        <div class="p-2 mb-2 border-bottom d-flex align-items-center">
+        <div class="p-2 mb-2 border-bottom d-flex align-items-center bg-light">
             <i class="bi bi-box-seam-fill text-teal me-2"></i>
             <h6 class="extra-small fw-bold mb-0 text-teal text-uppercase">DC Extruder Formulas</h6>
         </div>
@@ -75,13 +73,12 @@
                     <th>Date</th>
                     <th>Product Code</th>
                     <th>Sample Size</th>
-                    <th>Mixing Time</th>
                     <th class="pe-3">Matched By</th>
                 </tr>
             </thead>
             <tbody>
                 {% for item in dc_formulas %}
-                <tr class="fw-bold bg-light-subtle mf-lookup-header-row" 
+                <tr class="mf-lookup-header-row fw-bold" 
                     style="cursor:pointer;"
                     data-formula-type="dc"
                     data-script-id="{{ item.script_id }}"
@@ -93,12 +90,11 @@
                     <td>{{ item.header.date|date:"m/d/Y" }}</td>
                     <td>{{ item.header.code.product_code|default:"---" }}</td>
                     <td>{{ item.header.sample_size|default:"---" }}</td>
-                    <td>{{ item.header.mixing_time|default:"---" }}</td>
                     <td class="pe-3">{{ item.header.matched_by|default:"---" }}</td>
                 </tr>
-                <tr class="ingredient-sub-row d-none">
-                    <td colspan="6" class="p-0 border-0">
-                        <table class="table table-sm mb-0 table-borderless bg-white border-start border-4 border-teal ms-4">
+                <tr class="ingredient-sub-row d-none bg-white">
+                    <td colspan="5" class="p-0 border-0">
+                        <table class="table table-sm mb-0 table-borderless ms-4 border-start border-4 border-teal">
                             <tbody class="text-muted extra-small">
                                 {% for ing in item.ingredients %}
                                 <tr>
