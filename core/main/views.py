@@ -827,8 +827,15 @@ def master_formula_lookup(request):
     error = None
     mb_list = []
     dc_list = []
+    
+    # Parent Details object to be used by all formulas under this Matching No.
+    parent = {
+        'customer': '',
+        'resin_used': '',
+        'colorant_type': '',
+        'process': '',
+    }
     color = ''
-
     if not matching_no:
         error = "No matching number provided."
     else:
@@ -840,33 +847,77 @@ def master_formula_lookup(request):
         if not cmf and not rs:
             error = f'No CMF or RS record found for "{matching_no}".'
         else:
+            # 1. GET PARENT DETAILS (CMF or RS)
             if cmf:
+                formula_info = tbl_cmf_formula.objects.filter(cm_no=cmf).first()
+                parent['customer'] = formula_info.customer if formula_info else ""
+                parent['colorant_type'] = cmf.colorant_type or ""
+                
+                # Resins (Concatenated)
+                resins = tbl_resins_selected.objects.filter(cm_no=cmf).values_list('resin_no__abbreviation', flat=True)
+                parent['resin_used'] = ", ".join(filter(None, resins))
+                
+                # Process/Application (Concatenated)
+                processes = tbl_cmf_process02.objects.filter(cmf_formula_no=formula_info).values_list('process_no__name', flat=True)
+                parent['process'] = ", ".join(filter(None, processes))
+                
                 mb_qs = tbl_mb_extruder_formula.objects.filter(cm_no=cmf).select_related('code')
                 dc_qs = tbl_dc_extruder_formula.objects.filter(cm_no=cmf).select_related('code')
                 color = cmf.in_code_no.color if cmf.in_code_no else (cmf.color_desc or '---')
             else:
+                parent['customer'] = rs.customer or ""
+                parent['colorant_type'] = rs.colorant_type or ""
+                
+                # Resins
+                resins = tbl_resins_selected.objects.filter(rs_no=rs).values_list('resin_no__abbreviation', flat=True)
+                parent['resin_used'] = ", ".join(filter(None, resins))
+                
+                # Process
+                processes = tbl_cmf_process02.objects.filter(rs_no=rs).values_list('process_no__name', flat=True)
+                parent['process'] = ", ".join(filter(None, processes))
+
                 mb_qs = tbl_mb_extruder_formula.objects.filter(rs_no=rs).select_related('code')
                 dc_qs = tbl_dc_extruder_formula.objects.filter(rs_no=rs).select_related('code')
                 color = rs.primary_color or rs.color_desc or '---'
 
+            # 2. PROCESS MB FORMULAS
             for f in mb_qs:
+                ingredients_objs = tbl_mb_extruder_formula02.objects.filter(mb=f)
                 ingredients = [
                     {'material': ing.material, 'value': float(ing.value) if ing.value is not None else 0}
-                    for ing in tbl_mb_extruder_formula02.objects.filter(mb=f)
+                    for ing in ingredients_objs
                 ]
-                mb_list.append({'header': f, 'ingredients': ingredients, 'script_id': f'mf-ing-mb-{f.pk}'})
+                # Calculate Sum of Concentration
+                sum_con = sum(item['value'] for item in ingredients)
 
+                mb_list.append({
+                    'header': f,
+                    'ingredients': ingredients,
+                    'sum_con': format(sum_con, ".6f"),
+                    'script_id': f'mf-ing-mb-{f.pk}'
+                })
+
+            # 3. PROCESS DC FORMULAS
             for f in dc_qs:
+                ingredients_objs = tbl_dc_extruder_formula02.objects.filter(dc=f)
                 ingredients = [
                     {'material': ing.material, 'value': float(ing.value) if ing.value is not None else 0}
-                    for ing in tbl_dc_extruder_formula02.objects.filter(dc=f)
+                    for ing in ingredients_objs
                 ]
-                dc_list.append({'header': f, 'ingredients': ingredients, 'script_id': f'mf-ing-dc-{f.pk}'})
+                sum_con = sum(item['value'] for item in ingredients)
+
+                dc_list.append({
+                    'header': f,
+                    'ingredients': ingredients,
+                    'sum_con': format(sum_con, ".6f"),
+                    'script_id': f'mf-ing-dc-{f.pk}'
+                })
 
     context = {
         'matching_no': matching_no,
         'error': error,
         'color': color,
+        'parent': parent, # New: Parent details
         'mb_formulas': mb_list,
         'dc_formulas': dc_list,
     }

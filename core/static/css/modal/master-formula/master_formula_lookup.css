@@ -1,24 +1,22 @@
 /* --- Master Formula Lookup Modal Design Match --- */
+#id_close_modal_bottom { border-radius: 0.4rem; }
 
-/* 1. Modal Header - Dark Sleek Style */
 #mfFormulaLookupModal .modal-header {
-    background-color: #334155 !important; /* Specific dark slate from screenshot */
+    background-color: #334155 !important;
     border-bottom: none;
     padding: 10px 16px;
 }
 
-/* 2. Top-level Table Header (The blue-grey row) */
 #mfFormulaLookupModal .main-table-header {
-    background-color: #94a3b8 !important; /* Blue-grey background */
+    background-color: #94a3b8 !important;
     color: white !important;
     text-transform: uppercase;
     font-size: 0.7rem;
     font-weight: 700;
 }
 
-/* 3. The Formula Container (The nested white box) */
 .mf-lookup-wrapper {
-    padding: 20px 30px; /* Provides the spacing around the nested box */
+    padding: 20px 30px;
     background-color: #f8fafc;
 }
 
@@ -27,41 +25,46 @@
     border: 1px solid #e2e8f0;
     border-radius: 8px;
     padding: 20px;
-    border-left: 5px solid var(--sidebar-header-bg) !important; /* Thick teal line */
+    border-left: 5px solid var(--sidebar-header-bg) !important;
     box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
 }
 
-/* 4. Row Styling */
 .mf-lookup-header-row {
     font-size: 0.8rem;
     border-bottom: 1px solid #f1f5f9 !important;
+    color: #334155;
 }
 
-.mf-lookup-header-row:hover {
-    background-color: #f1f5f9 !important;
-}
+.mf-lookup-header-row:hover { background-color: #f1f5f9 !important; }
 
 .mf-lookup-header-row.table-active {
     background-color: var(--sidebar-active-bg) !important;
     color: var(--sidebar-active-text) !important;
 }
 
-/* 5. Ingredient Sub-Row Indentation */
+/* Sub-row Styling */
 .ingredient-sub-row .table-nested {
     margin-left: 45px;
     border-left: 3px solid var(--sidebar-header-bg);
     background-color: #ffffff;
+    width: calc(100% - 45px);
 }
 
-/* 6. Icons */
-.toggle-main-icon {
-    font-size: 1.1rem;
-    cursor: pointer;
+.ingredient-sub-row .table-nested td:last-child {
+    padding-right: 2.5rem !important;
 }
 
-/* 7. Scrollbar */
-#mfLookupModalBody::-webkit-scrollbar { width: 8px; }
-#mfLookupModalBody::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 10px;
+/* --- DARK MODE FIXES --- */
+body.dark-mode #mfFormulaLookupModal .modal-content { background-color: #1e293b; color: #f1f5f9; }
+body.dark-mode .mf-lookup-wrapper { background-color: #0f172a; }
+body.dark-mode .mf-formula-card { background-color: #1e293b; border: 1px solid #334155; color: #f1f5f9; }
+body.dark-mode .mf-lookup-header-row { color: #f1f5f9; border-bottom: 1px solid #334155 !important; }
+body.dark-mode .mf-lookup-header-row:hover { background-color: rgba(255,255,255,0.05) !important; }
+
+body.dark-mode .ingredient-sub-row .table-nested {
+    background-color: transparent !important;
+    color: #cbd5e1 !important;
+    border-left: 3px solid var(--sidebar-header-bg) !important;
 }
+body.dark-mode .ingredient-sub-row .text-muted { color: #94a3b8 !important; }
+body.dark-mode #mfFormulaLookupModal .modal-footer { background-color: #1e293b; border-top: 1px solid #334155; }
