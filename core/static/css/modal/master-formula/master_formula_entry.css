@@ -1,0 +1,70 @@
+/* --- Master Formula Style Match --- */
+
+/* Base Card Styling */
+.mf-entry-card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--sidebar-border);
+    border-radius: 0.6rem; 
+}
+
+/* Section Title - Matches CMF Teal Style */
+.mf-section-title {
+    color: #0d9488;
+    font-size: 0.8rem;
+    font-weight: 700;
+    border-left: 3px solid #0d9488;
+    padding-left: 10px;
+    text-transform: uppercase;
+}
+
+/* Required Label Asterisk */
+.required-label::after {
+    content: " *";
+    color: #dc3545;
+    font-weight: bold;
+}
+
+/* Fix for Search Button Icon Visibility */
+#mfBrowseFormulasBtn {
+    transition: all 0.2s ease;
+}
+
+/* Light Mode: icon is teal when disabled, white when enabled */
+#mfBrowseFormulasBtn:disabled {
+    background-color: #f1f5f9 !important;
+    border-color: #cbd5e1 !important;
+    color: #94a3b8 !important; /* Grey icon in light mode */
+}
+
+#mfBrowseFormulasBtn:not(:disabled) {
+    background-color: #0d9488 !important;
+    border-color: #0d9488 !important;
+    color: #ffffff !important; /* White icon when active */
+}
+
+/* Dark Mode Overrides */
+body.dark-mode .mf-entry-card {
+    border-color: var(--sidebar-border);
+}
+
+body.dark-mode #mfBrowseFormulasBtn:disabled {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    border-color: #334155 !important;
+    color: #475569 !important;
+}
+
+/* Form input consistency */
+.uniform-input {
+    border-radius: 0.375rem;
+}
+
+.readonly-gray {
+    background-color: #e9ecef !important;
+    cursor: not-allowed;
+    border-color: #dee2e6;
+}
+
+body.dark-mode .readonly-gray {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    border-color: #334155 !important;
+}

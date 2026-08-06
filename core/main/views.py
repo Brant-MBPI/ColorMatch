@@ -912,7 +912,7 @@ def master_formula_lookup(request):
                     'sum_con': format(sum_con, ".6f"),
                     'script_id': f'mf-ing-dc-{f.pk}'
                 })
-
+    
     context = {
         'matching_no': matching_no,
         'error': error,
