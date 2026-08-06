@@ -82,6 +82,17 @@ body.dark-mode .teal-toggle-slider {
 .custom-context-menu .dropdown-item i {
     font-size: 1rem;
 }
+#cmfDetailModal .modal-header {
+    background-color: #0d9488 !important; /* Specific Teal Color */
+    border-bottom: none;
+    padding: 10px 16px;
+}
+
+/* Even in dark mode, usually brand headers like Teal stay Teal */
+body.dark-mode #cmfDetailModal .modal-header {
+    background-color: #0d9488 !important;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
 
 body.dark-mode .custom-context-menu .bg-light {
     background-color: var(--sidebar-hover-bg) !important;
