@@ -9,9 +9,9 @@ from main.models import (
 from django.contrib.auth import get_user_model 
 User = get_user_model()
 
-# Cache Keys
-CACHE_KEY_RECORDS = 'master_formula_records_list'
-CACHE_KEY_MATCHING_NOS = 'matching_numbers_list'
+# Cache list
+# 'master_formula_records_list' 
+# 'matching_numbers_list' 
 CACHE_TIMEOUT = 3600  # 1 hour
 
 def get_master_formula_details(form_id):
@@ -55,7 +55,7 @@ def get_master_formula_details(form_id):
 
 def get_master_formula_list():
     """Fetches all records list with Caching."""
-    records = cache.get(CACHE_KEY_RECORDS)
+    records = cache.get('master_formula_records_list')
     
     if not records:
         # Fetch from DB if cache is empty
@@ -63,7 +63,7 @@ def get_master_formula_list():
             'form_id', 'index_no', 'customer', 'product_code', 'prod_color', 'total_concentration', 'ld'
         )
         records = list(qs)
-        cache.set(CACHE_KEY_RECORDS, records, CACHE_TIMEOUT)
+        cache.set('master_formula_records_list', records, CACHE_TIMEOUT)
         
     return records
 
@@ -72,7 +72,7 @@ def get_all_matching_numbers():
     Fetches all unique CM and RS numbers from the database with Caching.
     Used for the Matching No. TomSelect.
     """
-    nos = cache.get(CACHE_KEY_MATCHING_NOS)
+    nos = cache.get('matching_numbers_list')
     
     if not nos:
         # Get CMF numbers (exclude nulls/empties)
@@ -82,7 +82,7 @@ def get_all_matching_numbers():
         
         # Combine, unique-ify, and sort
         nos = sorted(list(set(cmf_nos + rs_nos)))
-        cache.set(CACHE_KEY_MATCHING_NOS, nos, CACHE_TIMEOUT)
+        cache.set('matching_numbers_list', nos, CACHE_TIMEOUT)
         
     return nos
 
@@ -131,5 +131,5 @@ def get_master_formula_context(form_id=None):
     # Clears all caches related to Master Formula.
     # Call this when syncing legacy data or saving new formulas.
     # """
-    # cache.delete(CACHE_KEY_RECORDS)
-    # cache.delete(CACHE_KEY_MATCHING_NOS)
+    # cache.delete('master_formula_records_list')
+    # cache.delete('matching_numbers_list')

@@ -1,4 +1,5 @@
 import dbfread
+from django.core.cache import cache
 from django.db import connection
 from .dbf_utils import to_bool, to_str, to_int, is_valid_date, dbf_path
 
@@ -100,4 +101,5 @@ def sync_rm_incoming(progress_callback=None):
         """, data)
 
     emit(f"RM Incoming: Successfully synced.")
+    cache.delete('raw_material_codes')
     return len(data)

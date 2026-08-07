@@ -1,6 +1,8 @@
 import collections
 import dbfread
 from django.db import connection
+from django.core.cache import cache
+
 from .dbf_utils import to_bool, to_float, to_int, to_str, is_valid_date, dbf_path
 
 def sync_master_formula(progress_callback=None):
@@ -119,4 +121,6 @@ def sync_master_formula(progress_callback=None):
             """, all_items)
 
     emit(f"Master Formula: Successfully added {len(primary_recs)} new records.")
+    cache.delete('master_formula_records_list')
+    cache.delete('matching_numbers_list')
     return len(primary_recs)
