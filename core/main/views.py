@@ -830,6 +830,9 @@ def master_formula(request):
     context = master_formula_services.get_master_formula_context(form_id)
     return render(request, "sidemenu/formula/master_formula.html", context)
 
+def formulation(request):
+    return render(request, "sidemenu/formula/formulation.html", {})
+
 def feedback(request):
     form_data = {}
     feedback_no = request.GET.get('feedback_no')

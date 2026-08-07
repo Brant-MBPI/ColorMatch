@@ -21,6 +21,7 @@ urlpatterns = [
     path('cmf/dc-formula/', views.cmf_dc_formula, name='dc_formula'),
     path('cmf/pending-completed/', views.cmf_pending_completed, name='pending_completed'),
     path('master-formula/', views.master_formula, name='master_formula'),
+    path('formulation/', views.formulation, name='formulation'),
     path('feedback/', views.feedback, name='feedback'),
     path('audit-trail/', views.audit_trail, name='audit_trail'),
     path('legacy/sync/', views.trigger_legacy_sync, name='trigger_legacy_sync'),
