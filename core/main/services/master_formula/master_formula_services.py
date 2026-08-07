@@ -1,10 +1,11 @@
 from django.core.cache import cache
+from django.db.models.functions import Concat
 from django.utils import timezone
 import json
 from datetime import datetime
 from django.db import transaction
 from django.http import JsonResponse
-from django.db.models import Max
+from django.db.models import Max, Value
 from django.shortcuts import render
 from main.utils.log_audit_trail import log_audit
 from main.services.cmf_records import cmf_records_services
@@ -124,12 +125,20 @@ def get_master_formula_context(form_id=None):
             'form_id': max_id + 1,
             'is_new': True
         }
+    user_list = list(
+        User.objects.filter(is_active=True)
+        .exclude(first_name="")
+        .annotate(full_name=Concat('first_name', Value(' '), 'last_name'))
+        .values_list('full_name', flat=True)
+        .distinct()
+        .order_by('full_name')
+    )
     
     return {
         'form_data': form_data,
         'master_formula_records': get_master_formula_list(),
         'matching_numbers': get_all_matching_numbers(), # Added cached matching numbers
-        'users': list(User.objects.filter(is_active=True).exclude(first_name="").values_list('first_name', flat=True).distinct().order_by('first_name')),
+        'users': user_list,
         'materials': cmf_records_services.get_raw_material_codes(),
         'customers': ["Masterbatch PH", "Generic Co."],
     }
