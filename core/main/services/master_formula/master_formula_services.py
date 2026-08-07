@@ -6,6 +6,7 @@ from django.db import transaction
 from django.http import JsonResponse
 from django.db.models import Max
 from django.shortcuts import render
+from main.utils.log_audit_trail import log_audit
 from main.services.cmf_records import cmf_records_services
 from main.models import (
     tbl_cmf_formula, tbl_cmf_process02, tbl_dc_extruder_formula, tbl_dc_extruder_formula02, tbl_master_formula, tbl_master_formula_info, 
@@ -151,18 +152,25 @@ def save_master_formula(request):
             # 1. Get or Create Master Formula
             if not is_new and form_id:
                 mf = tbl_master_formula.objects.get(pk=form_id)
+                action_type = "Updated"
+                log_message = f"Updated Master Formula Entry: {form_id}"
             else:
                 mf = tbl_master_formula()
+                action_type = "Saved"
+                # We will update the message with the new ID after save()
+                log_message = "New Master Formula Entry"
 
             # 2. Map Fields
             mf.customer = data.get('customer')
             mf.index_no = data.get('index_no')
             mf.product_code = data.get('product_code')
             mf.prod_color = data.get('prod_color')
-            # Mapping based on your specific requirements:
+            
+            # Mapping per your requirement:
             mf.total_concentration = data.get('total_concentration') or 0
             mf.dosage = data.get('sum_of_concentration') or 0
             mf.ld = data.get('dosage') or 0
+            
             mf.mix_time = data.get('mix_time')
             mf.resin = data.get('resin')
             mf.application = data.get('application')
@@ -183,6 +191,10 @@ def save_master_formula(request):
             
             mf.date_time = timezone.now().strftime('%m/%d/%Y %I:%M %p')
             mf.save()
+
+            # Update log message if it was new to include the generated ID
+            if is_new:
+                log_message = f"New Master Formula Entry: {mf.form_id}"
 
             # 3. Handle Materials
             tbl_master_formula_info.objects.filter(form=mf).delete()
@@ -213,8 +225,14 @@ def save_master_formula(request):
                 elif source_type == 'DC':
                     tbl_dc_extruder_formula.objects.filter(pk=source_pk).update(in_master_formula=True)
 
+            # --- AUDIT TRAIL LOGGING ---
+            # Action: "Saved" or "Updated"
+            # Message: "New Master Formula Entry: 123" or "Updated Master Formula Entry: 123"
+            log_audit(request, action_type, log_message)
+
             cache.delete('master_formula_records_list')
             return True, mf.form_id
+            
     except Exception as e:
         return False, str(e)
 
