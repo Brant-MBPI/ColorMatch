@@ -149,6 +149,15 @@ body.dark-mode .readonly-gray {
     color: #ffffff !important;
 }
 
+.row-already-in-mf {
+    background-color: #fff9db !important; /* Light yellow tint */
+    border-left: 4px solid #fcc419; /* Amber border accent */
+}
+.text-in-mf {
+    color: #856404;
+    font-size: 0.7rem;
+}
+
 /* Even in dark mode, usually brand headers like Teal stay Teal */
 body.dark-mode #mfFormulaLookupModal .modal-header {
     background-color: #0d9488 !important;

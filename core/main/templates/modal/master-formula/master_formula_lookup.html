@@ -16,7 +16,6 @@
         </table>
     </div>
 
-    <!-- WRAPPER FOR THE NESTED CARD LOOK -->
     <div class="mf-lookup-wrapper">
         
         {% if mb_formulas %}
@@ -29,12 +28,11 @@
                 <table class="table table-sm mb-0">
                     <tbody class="small">
                         {% for item in mb_formulas %}
-                        <tr class="fw-bold mf-lookup-header-row formula-row-hover" 
+                        <tr class="fw-bold mf-lookup-header-row formula-row-hover {% if item.header.in_master_formula %}row-already-in-mf{% endif %}" 
                             style="cursor:pointer;"
                             data-pk="{{ item.pk }}" 
                             data-formula-type="MB"
                             data-script-id="{{ item.script_id }}"
-                            data-formula-type="MB"
                             data-customer="{{ parent.customer|default:'' }}"
                             data-resin="{{ parent.resin_used|default:'' }}"
                             data-application="{{ parent.process|default:'' }}"
@@ -54,20 +52,25 @@
                             <td class="text-center" style="width: 40px;">
                                 <i class="bi bi-plus-circle-fill toggle-main-icon text-teal"></i>
                             </td>
-                            <td>{{ item.header.date|date:"m/d/Y" }}</td>
+                            <td>
+                                {{ item.header.date|date:"m/d/Y" }}
+                                {% if item.header.in_master_formula %}
+                                    <div class="text-in-mf"><i class="bi bi-check-circle-fill"></i> In Master Formula</div>
+                                {% endif %}
+                            </td>
                             <td>{{ item.header.code.product_code|default:"---" }}</td>
                             <td>{{ item.header.lot_no|default:"---" }}</td>
                             <td>{{ item.header.matched_by|default:"---" }}</td>
                         </tr>
                         
                         <!-- INGREDIENT NESTED TABLE -->
-                        <tr class="ingredient-sub-row d-none">
+                        <tr class="ingredient-sub-row d-none {% if item.header.in_master_formula %}row-already-in-mf{% endif %}">
                             <td colspan="5" class="p-0 border-0">
                                 <table class="table table-sm mb-2 table-borderless table-nested">
                                     <tbody class="text-muted extra-small">
                                         {% for ing in item.ingredients %}
                                         <tr>
-                                            <td class="ps-3">{{ ing.material }}</td>
+                                            <td class="ps-5">{{ ing.material }}</td>
                                             <td class="text-end pe-5">{{ ing.value|floatformat:6 }}%</td>
                                         </tr>
                                         {% endfor %}
@@ -84,7 +87,7 @@
         {% endif %}
 
         {% if dc_formulas %}
-        <!-- DC CONTAINER (Same Card Structure) -->
+        <!-- DC CONTAINER -->
         <div class="mf-formula-card shadow-sm">
             <h6 class="extra-small fw-bold text-teal text-uppercase mb-3">
                 <i class="bi bi-box-seam-fill me-2"></i>DC Extruder Formulas
@@ -93,12 +96,11 @@
                 <table class="table table-sm mb-0">
                     <tbody class="small">
                         {% for item in dc_formulas %}
-                        <tr class="fw-bold mf-lookup-header-row formula-row-hover" 
+                        <tr class="fw-bold mf-lookup-header-row formula-row-hover {% if item.header.in_master_formula %}row-already-in-mf{% endif %}" 
                             style="cursor:pointer;"
                             data-pk="{{ item.pk }}"
                             data-formula-type="DC"
                             data-script-id="{{ item.script_id }}"
-                            data-formula-type="DC"
                             data-customer="{{ parent.customer|default:'' }}"
                             data-resin="{{ parent.resin_used|default:'' }}"
                             data-application="{{ parent.process|default:'' }}"
@@ -118,18 +120,23 @@
                             <td class="text-center" style="width: 40px;">
                                 <i class="bi bi-plus-circle-fill toggle-main-icon text-teal"></i>
                             </td>
-                            <td>{{ item.header.date|date:"m/d/Y" }}</td>
+                            <td>
+                                {{ item.header.date|date:"m/d/Y" }}
+                                {% if item.header.in_master_formula %}
+                                    <div class="text-in-mf"><i class="bi bi-check-circle-fill"></i> In Master Formula</div>
+                                {% endif %}
+                            </td>
                             <td>{{ item.header.code.product_code|default:"---" }}</td>
                             <td>{{ item.header.sample_size|default:"---" }}</td>
                             <td>{{ item.header.matched_by|default:"---" }}</td>
                         </tr>
-                        <tr class="ingredient-sub-row d-none">
+                        <tr class="ingredient-sub-row d-none {% if item.header.in_master_formula %}row-already-in-mf{% endif %}">
                             <td colspan="5" class="p-0 border-0">
                                 <table class="table table-sm mb-2 table-borderless table-nested">
                                     <tbody class="text-muted extra-small">
                                         {% for ing in item.ingredients %}
                                         <tr>
-                                            <td class="ps-3">{{ ing.material }}</td>
+                                            <td class="ps-5">{{ ing.material }}</td>
                                             <td class="text-end pe-5">{{ ing.value|floatformat:6 }}%</td>
                                         </tr>
                                         {% endfor %}

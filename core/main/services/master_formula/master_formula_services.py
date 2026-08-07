@@ -167,6 +167,8 @@ def save_master_formula(request):
                 mf.date_modified = current_time_str
             else:
                 mf = tbl_master_formula()
+                if form_id:
+                    mf.form_id = form_id 
                 action_type = "Saved"
                 # We will update the message with the new ID after save()
                 log_message = "New Master Formula Entry"
