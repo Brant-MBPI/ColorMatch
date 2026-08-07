@@ -92,7 +92,7 @@ def sync_master_formula(progress_callback=None):
             INSERT INTO tbl_master_formula (
                 form_id, index_no, date, customer, product_code, prod_color, 
                 dosage, total_concentration, ld, mix_time, resin, application, 
-                cm_no, colormatch_date, notes, date_time, is_deleted, is_used,
+                cm_no, colormatch_date, notes, date_modified, is_deleted, is_used,
                 html_code_hex, cyan, magenta, yellow, black
             )
             VALUES (

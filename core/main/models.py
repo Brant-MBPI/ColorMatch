@@ -486,7 +486,7 @@ class tbl_master_formula(models.Model):
     cm_no = models.CharField(max_length=8, blank=True, null=True) 
     colormatch_date = models.DateField(blank=True, null=True)
     notes = models.CharField(max_length=256, blank=True, null=True) 
-    date_time = models.CharField(max_length=32, blank=True, null=True) 
+    date_modified = models.CharField(max_length=32, blank=True, null=True) 
     is_deleted = models.BooleanField(default=False)
     is_used = models.BooleanField(default=False)
     

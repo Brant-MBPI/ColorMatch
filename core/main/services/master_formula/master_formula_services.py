@@ -54,7 +54,7 @@ def get_master_formula_details(form_id):
         'yellow': formula.yellow if formula.yellow is not None else '',
         'black': formula.black if formula.black is not None else '',
         'updated_by': encode.updated_by if encode else '',
-        'date_time': formula.date_time or '',
+        'updated_time': formula.date_modified or '',
         'matched_by': encode.match_by if encode else '',
         'encoded_by': encode.encoded_by if encode else '',
         'materials': materials,
@@ -148,17 +148,20 @@ def save_master_formula(request):
             data = request.POST
             form_id = data.get('form_id')
             is_new = data.get('is_new_flag') == 'true'
+            current_time_str = timezone.now().strftime('%m/%d/%Y %I:%M %p')
             
             # 1. Get or Create Master Formula
             if not is_new and form_id:
                 mf = tbl_master_formula.objects.get(pk=form_id)
                 action_type = "Updated"
                 log_message = f"Updated Master Formula Entry: {form_id}"
+                mf.date_modified = current_time_str
             else:
                 mf = tbl_master_formula()
                 action_type = "Saved"
                 # We will update the message with the new ID after save()
                 log_message = "New Master Formula Entry"
+                mf.date_modified = None  
 
             # 2. Map Fields
             mf.customer = data.get('customer')
@@ -189,7 +192,6 @@ def save_master_formula(request):
                 except ValueError:
                     pass
             
-            mf.date_time = timezone.now().strftime('%m/%d/%Y %I:%M %p')
             mf.save()
 
             # Update log message if it was new to include the generated ID
@@ -212,8 +214,14 @@ def save_master_formula(request):
             # 4. Handle Metadata
             encode, _ = tbl_master_formula_encode.objects.get_or_create(form=mf)
             encode.match_by = data.get('matched_by')
-            encode.encoded_by = data.get('encoded_by')
-            encode.updated_by = request.user.first_name if request.user.is_authenticated else "System"
+            if is_new:
+                # Set encoded_by only when new
+                encode.encoded_by = data.get('encoded_by') or request.user.first_name
+                encode.updated_by = None # Blank for new records
+            else:
+                # Set updated_by only when updating
+                encode.updated_by = request.user.first_name if request.user.is_authenticated else "System"
+
             encode.save()
 
             # 5. Update Source Formula (MB or DC)
