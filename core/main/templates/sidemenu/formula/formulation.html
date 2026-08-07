@@ -5,7 +5,7 @@
 <link rel="stylesheet" href="{% static 'css/modal/master-formula/master_formula_entry.css' %}">
 {% endblock %}
 {% block navigation %} 
-Master Formula
+Formulation
 {% endblock navigation %}
 
 {% block content %}
@@ -30,11 +30,11 @@ Master Formula
             <div class="tab-content" id="masterFormulaTabContent">
                 <!-- Records Tab -->
                 <div class="tab-pane fade {% if not form_data %}show active{% endif %}" id="mfRecords" role="tabpanel">
-                    {% include "sidemenu/formula/master_formula_records.html" %}
+                    {% include "sidemenu/formula/formulation_records.html" %}
                 </div>
                 <!-- Entry Tab -->
                 <div class="tab-pane fade {% if form_data %}show active{% endif %}" id="mfEntry" role="tabpanel">
-                    {% include "sidemenu/formula/master_formula_entry.html" %}
+                    {% include "sidemenu/formula/formulation_entry.html" %}
                 </div>
             </div>
         </div>

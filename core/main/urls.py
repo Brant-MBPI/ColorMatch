@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .services.master_formula import master_formula_services
+from .services.formula import master_formula_services
 
 from . import views
 from .services.cmf_records import cmf_records_services, previous_cmf_record

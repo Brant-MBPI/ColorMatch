@@ -10,7 +10,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib import messages
 from datetime import datetime
 
-from main.services.master_formula import master_formula_services
+from main.services.formula import master_formula_services
 from main.services.save import mb_formula_save, dc_formula_save, rs_entry_save
 from main.decorators import role_required
 from main.models import (
