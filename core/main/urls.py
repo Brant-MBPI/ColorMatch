@@ -28,7 +28,7 @@ urlpatterns = [
     # export
     path('cmf/records/export/', views.cmf_records_export_preview, name='cmf_records_export_preview'),
     # ajax
-    path('master-formula/lookup/', views.master_formula_lookup, name='master_formula_lookup'),
+    path('master-formula/lookup/', master_formula_services.master_formula_lookup, name='master_formula_lookup'),
     path('check-previous-matching/', previous_cmf_record.check_previous_matching, name='check_previous_matching'),
     path('master-formula/<int:form_id>/materials/', master_formula_services.master_formula_materials_json, name='master_formula_materials_json'),
     # with parameters

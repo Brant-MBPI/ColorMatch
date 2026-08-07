@@ -392,6 +392,7 @@ class tbl_mb_extruder_formula(models.Model):
     encoded_by = models.CharField(max_length=100, blank=True, null=True)
     total_weight = models.DecimalField(max_digits=12, decimal_places=4, null=True, blank=True)
     is_final = models.BooleanField(default=False)
+    in_mb = models.BooleanField(default=False)
     cm_no = models.ForeignKey(tbl_cmf, to_field="cm_no", on_delete=models.SET_NULL, null=True, blank=True, db_column="cm_no")
     rs_no = models.ForeignKey('tbl_rs', on_delete=models.SET_NULL, blank=True, null=True, db_column='rs_id')
     L = models.DecimalField(max_digits=10, decimal_places=3, blank=True, null=True)
@@ -435,6 +436,7 @@ class tbl_dc_extruder_formula(models.Model):
     total_weight = models.DecimalField(max_digits=12, decimal_places=4, null=True, blank=True)
     cm_no = models.ForeignKey(tbl_cmf, to_field="cm_no", on_delete=models.SET_NULL, null=True, blank=True, db_column="cm_no")
     is_final = models.BooleanField(default=False)
+    in_mb = models.BooleanField(default=False)
     rs_no = models.ForeignKey('tbl_rs', on_delete=models.SET_NULL, blank=True, null=True, db_column='rs_id')
     L = models.DecimalField(max_digits=10, decimal_places=3, blank=True, null=True)
     A = models.DecimalField(max_digits=10, decimal_places=3, blank=True, null=True)
@@ -473,10 +475,7 @@ class tbl_master_formula(models.Model):
     index_no = models.CharField(max_length=22, blank=True, null=True) # Matched to 22
     date = models.DateField(blank=True, null=True)
     customer = models.CharField(max_length=62, blank=True, null=True) # Matched to 62
-    
-    # Matching prod_code CharField(22) instead of ForeignKey for sync consistency
     product_code = models.CharField(max_length=22, blank=True, null=True) 
-    
     prod_color = models.CharField(max_length=62, blank=True, null=True) # Matched to 62
     dosage = models.DecimalField(max_digits=12, decimal_places=6, null=True, blank=True)
     total_concentration = models.DecimalField(max_digits=12, decimal_places=6, null=True, blank=True)
@@ -488,7 +487,6 @@ class tbl_master_formula(models.Model):
     colormatch_date = models.DateField(blank=True, null=True)
     notes = models.CharField(max_length=256, blank=True, null=True) 
     date_time = models.CharField(max_length=32, blank=True, null=True) 
-    
     is_deleted = models.BooleanField(default=False)
     is_used = models.BooleanField(default=False)
     
