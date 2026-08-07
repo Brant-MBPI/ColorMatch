@@ -252,7 +252,6 @@ def master_formula_lookup(request):
     mb_list = []
     dc_list = []
     
-    # Parent Details object to be used by all formulas under this Matching No.
     parent = {
         'customer': '',
         'resin_used': '',
@@ -260,28 +259,27 @@ def master_formula_lookup(request):
         'process': '',
     }
     color = ''
+
     if not matching_no:
         error = "No matching number provided."
     else:
+        # 1. Identify Source (CMF or RS)
         cmf = tbl_cmf.objects.filter(cm_no=matching_no).first()
-        rs = None
-        if not cmf:
-            rs = tbl_rs.objects.filter(rs_no=matching_no).first()
+        rs_records = tbl_rs.objects.filter(rs_no=matching_no) if not cmf else None
 
-        if not cmf and not rs:
+        if not cmf and not rs_records.exists():
             error = f'No CMF or RS record found for "{matching_no}".'
         else:
-            # 1. GET PARENT DETAILS (CMF or RS)
+            # 2. GATHER DATA BASED ON SOURCE
             if cmf:
+                # --- CMF LOGIC (Remains the same) ---
                 formula_info = tbl_cmf_formula.objects.filter(cm_no=cmf).first()
                 parent['customer'] = formula_info.customer if formula_info else ""
                 parent['colorant_type'] = cmf.colorant_type or ""
                 
-                # Resins (Concatenated)
                 resins = tbl_resins_selected.objects.filter(cm_no=cmf).values_list('resin_no__abbreviation', flat=True)
                 parent['resin_used'] = ", ".join(filter(None, resins))
                 
-                # Process/Application (Concatenated)
                 processes = tbl_cmf_process02.objects.filter(cmf_formula_no=formula_info).values_list('process_no__name', flat=True)
                 parent['process'] = ", ".join(filter(None, processes))
                 
@@ -289,29 +287,34 @@ def master_formula_lookup(request):
                 dc_qs = tbl_dc_extruder_formula.objects.filter(cm_no=cmf).select_related('code')
                 color = cmf.in_code_no.color if cmf.in_code_no else (cmf.color_desc or '---')
             else:
-                parent['customer'] = rs.customer or ""
-                parent['colorant_type'] = rs.colorant_type or ""
+                # --- RS LOGIC (Updated for multiple IDs) ---
+                # Get all unique IDs associated with this RS number
+                rs_ids = list(rs_records.values_list('id', flat=True))
                 
-                # Resins
-                resins = tbl_resins_selected.objects.filter(rs_no=rs).values_list('resin_no__abbreviation', flat=True)
+                # We take "Parent" details from the most recent/first record found
+                base_rs = rs_records.first()
+                parent['customer'] = base_rs.customer or ""
+                parent['colorant_type'] = base_rs.colorant_type or ""
+                color = base_rs.primary_color or base_rs.color_desc or '---'
+                
+                # Fetch Resins and Processes for ALL matching RS IDs
+                resins = tbl_resins_selected.objects.filter(rs_no_id__in=rs_ids).values_list('resin_no__abbreviation', flat=True).distinct()
                 parent['resin_used'] = ", ".join(filter(None, resins))
                 
-                # Process
-                processes = tbl_cmf_process02.objects.filter(rs_no=rs).values_list('process_no__name', flat=True)
+                processes = tbl_cmf_process02.objects.filter(rs_no_id__in=rs_ids).values_list('process_no__name', flat=True).distinct()
                 parent['process'] = ", ".join(filter(None, processes))
 
-                mb_qs = tbl_mb_extruder_formula.objects.filter(rs_no=rs).select_related('code')
-                dc_qs = tbl_dc_extruder_formula.objects.filter(rs_no=rs).select_related('code')
-                color = rs.primary_color or rs.color_desc or '---'
+                # Fetch formulas associated with ANY of the matching RS record IDs
+                mb_qs = tbl_mb_extruder_formula.objects.filter(rs_no_id__in=rs_ids).select_related('code')
+                dc_qs = tbl_dc_extruder_formula.objects.filter(rs_no_id__in=rs_ids).select_related('code')
 
-            # 2. PROCESS MB FORMULAS
+            # 3. PROCESS MB FORMULAS
             for f in mb_qs:
                 ingredients_objs = tbl_mb_extruder_formula02.objects.filter(mb=f)
                 ingredients = [
                     {'material': ing.material, 'value': float(ing.value) if ing.value is not None else 0}
                     for ing in ingredients_objs
                 ]
-                # Calculate Sum of Concentration
                 sum_con = sum(item['value'] for item in ingredients)
 
                 mb_list.append({
@@ -322,7 +325,7 @@ def master_formula_lookup(request):
                     'script_id': f'mf-ing-mb-{f.pk}'
                 })
 
-            # 3. PROCESS DC FORMULAS
+            # 4. PROCESS DC FORMULAS
             for f in dc_qs:
                 ingredients_objs = tbl_dc_extruder_formula02.objects.filter(dc=f)
                 ingredients = [
@@ -343,7 +346,7 @@ def master_formula_lookup(request):
         'matching_no': matching_no,
         'error': error,
         'color': color,
-        'parent': parent, # New: Parent details
+        'parent': parent,
         'mb_formulas': mb_list,
         'dc_formulas': dc_list,
     }
