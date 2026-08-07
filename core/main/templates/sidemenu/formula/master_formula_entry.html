@@ -343,7 +343,8 @@
 
             if (newBtn) {
                 newBtn.addEventListener('click', () => {
-                    window.location.href = "{% url 'master_formula' %}";
+                    localStorage.setItem("activeMasterFormulaTab", "mf-entry-tab"); // Stay on entry tab
+                    window.location.href = window.location.pathname; // Reload without ?form_id=
                 });
             }
 

@@ -13,12 +13,14 @@ Master Formula
     <!-- Tab Navigation -->
     <ul class="nav nav-tabs master-formula-nav-tabs border-0" id="masterFormulaTab" role="tablist">
         <li class="nav-item" role="presentation">
-            <button class="nav-link {% if not form_data %}active{% endif %}" id="mf-records-tab" data-bs-toggle="tab" data-bs-target="#mfRecords" type="button" role="tab">
+            <!-- If NO form_id in URL, this is active -->
+            <button class="nav-link {% if not request.GET.form_id %}active{% endif %}" id="mf-records-tab" data-bs-toggle="tab" data-bs-target="#mfRecords" type="button" role="tab">
                 <i class="bi bi-list-ul me-2"></i>Formulation Records
             </button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link {% if form_data %}active{% endif %}" id="mf-entry-tab" data-bs-toggle="tab" data-bs-target="#mfEntry" type="button" role="tab">
+            <!-- If form_id IS in URL, this is active -->
+            <button class="nav-link {% if request.GET.form_id %}active{% endif %}" id="mf-entry-tab" data-bs-toggle="tab" data-bs-target="#mfEntry" type="button" role="tab">
                 <i class="bi bi-plus-circle me-2"></i>Formulation Entry
             </button>
         </li>
@@ -29,15 +31,58 @@ Master Formula
         <div class="card-body p-4">
             <div class="tab-content" id="masterFormulaTabContent">
                 <!-- Records Tab -->
-                <div class="tab-pane fade {% if not form_data %}show active{% endif %}" id="mfRecords" role="tabpanel">
+                <div class="tab-pane fade {% if not request.GET.form_id %}show active{% endif %}" id="mfRecords" role="tabpanel">
                     {% include "sidemenu/formula/master_formula_records.html" %}
                 </div>
                 <!-- Entry Tab -->
-                <div class="tab-pane fade {% if form_data %}show active{% endif %}" id="mfEntry" role="tabpanel">
+                <div class="tab-pane fade {% if request.GET.form_id %}show active{% endif %}" id="mfEntry" role="tabpanel">
                     {% include "sidemenu/formula/master_formula_entry.html" %}
                 </div>
             </div>
         </div>
     </div>
 </div>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const hasFormId = urlParams.has('form_id');
+        const activeTabKey = "activeMasterFormulaTab";
+
+        // 1. Determine which tab to show
+        let tabToActivateId = localStorage.getItem(activeTabKey) || "mf-records-tab";
+        
+        // Force 'Entry' tab if we are editing a specific record
+        if (hasFormId) {
+            tabToActivateId = "mf-entry-tab";
+        }
+
+        // 2. Show the tab using Bootstrap's native API (No jQuery needed)
+        const tabTriggerEl = document.querySelector(`#${tabToActivateId}`);
+        if (tabTriggerEl) {
+            const tab = new bootstrap.Tab(tabTriggerEl);
+            tab.show();
+        }
+
+        // 3. Handle Tab Switches
+        const tabLinks = document.querySelectorAll('button[data-bs-toggle="tab"]');
+        tabLinks.forEach(link => {
+            link.addEventListener('shown.bs.tab', function (e) {
+                // Save the current tab ID to localStorage
+                localStorage.setItem(activeTabKey, e.target.id);
+                
+                // Clean URL if switching back to records manually
+                if (e.target.id === 'mf-records-tab' && hasFormId) {
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                }
+
+                // 4. Fix for DataTables (Safely check for jQuery and DataTables)
+                if (window.jQuery && jQuery.fn.DataTable) {
+                    jQuery(jQuery.fn.dataTable.tables(true)).DataTable()
+                        .columns.adjust()
+                        .responsive.recalc();
+                }
+            });
+        });
+    });
+</script>
 {% endblock %}
