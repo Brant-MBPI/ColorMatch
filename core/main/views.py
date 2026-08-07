@@ -815,7 +815,15 @@ def cmf_pending_completed(request):
 def master_formula(request):
     form_id = request.GET.get('form_id')
     
-    # Check if we need to show error if ID was provided but not found
+    if request.method == "POST":
+        success, result = master_formula_services.save_master_formula(request)
+        if success:
+            messages.success(request, f"Master Formula #{result} saved successfully.")
+            return redirect(f"/master-formula/?form_id={result}")
+        else:
+            messages.error(request, f"Error saving formula: {result}")
+
+    # GET logic
     if form_id and not master_formula_services.get_master_formula_details(form_id):
         messages.error(request, f"Master Formula #{form_id} not found.")
 

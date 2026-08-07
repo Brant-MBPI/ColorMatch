@@ -1,4 +1,8 @@
 from django.core.cache import cache
+from django.utils import timezone
+import json
+from datetime import datetime
+from django.db import transaction
 from django.http import JsonResponse
 from django.db.models import Max
 from django.shortcuts import render
@@ -34,7 +38,8 @@ def get_master_formula_details(form_id):
         'customer': formula.customer or '',
         'product_code': formula.product_code or '',
         'prod_color': formula.prod_color or '',
-        'total_concentration': formula.dosage if formula.dosage is not None else '0.000000',
+        'total_concentration': formula.total_concentration if formula.total_concentration is not None else '0.000000',
+        'sum_of_concentration': formula.dosage if formula.dosage is not None else '0.000000',
         'dosage': formula.ld if formula.ld is not None else '',
         'mix_time': formula.mix_time or '',
         'resin': formula.resin or '',
@@ -135,6 +140,85 @@ def get_master_formula_context(form_id=None):
     # cache.delete('master_formula_records_list')
     # cache.delete('matching_numbers_list')
 
+def save_master_formula(request):
+    """Handles creating or updating a Master Formula and updating source MB/DC."""
+    try:
+        with transaction.atomic():
+            data = request.POST
+            form_id = data.get('form_id')
+            is_new = data.get('is_new_flag') == 'true'
+            
+            # 1. Get or Create Master Formula
+            if not is_new and form_id:
+                mf = tbl_master_formula.objects.get(pk=form_id)
+            else:
+                mf = tbl_master_formula()
+
+            # 2. Map Fields
+            mf.customer = data.get('customer')
+            mf.index_no = data.get('index_no')
+            mf.product_code = data.get('product_code')
+            mf.prod_color = data.get('prod_color')
+            # Mapping based on your specific requirements:
+            mf.total_concentration = data.get('total_concentration') or 0
+            mf.dosage = data.get('sum_of_concentration') or 0
+            mf.ld = data.get('dosage') or 0
+            mf.mix_time = data.get('mix_time')
+            mf.resin = data.get('resin')
+            mf.application = data.get('application')
+            mf.cm_no = data.get('cm_no')
+            mf.notes = data.get('notes')
+            mf.html_code_hex = data.get('html_code_hex')
+            mf.cyan = data.get('cyan') or None
+            mf.magenta = data.get('magenta') or None
+            mf.yellow = data.get('yellow') or None
+            mf.black = data.get('black') or None
+            
+            dt_str = data.get('colormatch_date')
+            if dt_str:
+                try:
+                    mf.colormatch_date = datetime.strptime(dt_str, '%m/%d/%Y').date()
+                except ValueError:
+                    pass
+            
+            mf.date_time = timezone.now().strftime('%m/%d/%Y %I:%M %p')
+            mf.save()
+
+            # 3. Handle Materials
+            tbl_master_formula_info.objects.filter(form=mf).delete()
+            materials_json = data.get('materials_data')
+            if materials_json:
+                materials = json.loads(materials_json)
+                for i, mat in enumerate(materials):
+                    tbl_master_formula_info.objects.create(
+                        form=mf,
+                        sequence_no=i + 1,
+                        material_code=mat['material'],
+                        concentration=mat['concentration']
+                    )
+
+            # 4. Handle Metadata
+            encode, _ = tbl_master_formula_encode.objects.get_or_create(form=mf)
+            encode.match_by = data.get('matched_by')
+            encode.encoded_by = data.get('encoded_by')
+            encode.updated_by = request.user.first_name if request.user.is_authenticated else "System"
+            encode.save()
+
+            # 5. Update Source Formula (MB or DC)
+            source_pk = data.get('source_formula_pk')
+            source_type = data.get('source_formula_type')
+            if source_pk and source_type:
+                if source_type == 'MB':
+                    tbl_mb_extruder_formula.objects.filter(pk=source_pk).update(in_master_formula=True)
+                elif source_type == 'DC':
+                    tbl_dc_extruder_formula.objects.filter(pk=source_pk).update(in_master_formula=True)
+
+            cache.delete('master_formula_records_list')
+            return True, mf.form_id
+    except Exception as e:
+        return False, str(e)
+
+
 # For formula  lookup
 def master_formula_lookup(request):
     matching_no = request.GET.get('matching_no', '').strip()
@@ -206,6 +290,7 @@ def master_formula_lookup(request):
 
                 mb_list.append({
                     'header': f,
+                    'pk': f.mb_no,
                     'ingredients': ingredients,
                     'sum_con': format(sum_con, ".6f"),
                     'script_id': f'mf-ing-mb-{f.pk}'
@@ -222,6 +307,7 @@ def master_formula_lookup(request):
 
                 dc_list.append({
                     'header': f,
+                    'pk': f.dc_no,
                     'ingredients': ingredients,
                     'sum_con': format(sum_con, ".6f"),
                     'script_id': f'mf-ing-dc-{f.pk}'

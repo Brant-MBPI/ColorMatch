@@ -2,7 +2,10 @@
     <form id="masterFormulaEntryForm" method="POST">
         {% csrf_token %}
         <input type="hidden" name="form_id" value="{{ form_data.form_id|default:'' }}">
-        
+        <input type="hidden" name="is_new_flag" value="{% if form_data.is_new %}true{% else %}false{% endif %}">
+        <input type="hidden" name="source_formula_pk" id="id_source_formula_pk">
+        <input type="hidden" name="source_formula_type" id="id_source_formula_type">
+        <input type="hidden" name="materials_data" id="id_materials_data">
         <div class="row g-4">
             <!-- LEFT COLUMN: Formulation Details -->
             <div class="col-lg-6">
@@ -68,7 +71,11 @@
 
                         <div class="row g-2 align-items-center mb-2">
                             <div class="col-md-4"><label class="extra-small fw-bold">Sum of Con:</label></div>
-                            <div class="col-md-8"><input type="text" id="id_mf_sum_of_con" name="total_concentration" value="{{ form_data.total_concentration|default:'0.000000' }}" class="form-control form-control-sm uniform-input"></div>
+                            <div class="col-md-8">
+                                <input type="text" id="id_mf_sum_of_con" name="sum_of_concentration" 
+                                    value="{{ form_data.sum_of_concentration|default:'0.000000' }}" 
+                                    class="form-control form-control-sm uniform-input">
+                            </div>
                         </div>
 
                         <div class="row g-2 align-items-center mb-2">
@@ -218,7 +225,11 @@
                         </div>
                         <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
                             <span class="fw-bold small text-uppercase">Total Sum:</span>
-                            <span id="mfTotalConcentration" class="fw-bold text-teal">0.000000</span>
+                            <div>
+                                <span id="mfTotalConcentration" class="fw-bold text-teal">{{ form_data.total_concentration|default:'0.000000' }}</span>
+                                <!-- This hidden input passes the calculated total to the form -->
+                                <input type="hidden" name="total_concentration" id="id_hidden_total_concentration" value="{{ form_data.total_concentration|default:'0.000000' }}" >
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -255,11 +266,111 @@
 
 <script>
     (function () {
-        // --- 1. MATERIAL LOGIC ---
-        // (Assumed you have addMaterialRow and recalcTotal from previous context)
+        // --- 1. CORE MATERIAL UTILITIES ---
+        function recalcTotal() {
+            let total = 0;
+            document.querySelectorAll('.mf-material-row').forEach(row => {
+                total += parseFloat(row.dataset.concentration || 0);
+            });
+            
+            const formatted = total.toFixed(6);
 
-        // --- 2. MODAL & LOOKUP LOGIC ---
+            // 1. Update the UI Span (Material Breakdown card)
+            document.getElementById('mfTotalConcentration').innerText = formatted;
+
+            // 2. Update the Hidden Input (to be sent to the server as total_concentration)
+            document.getElementById('id_hidden_total_concentration').value = formatted;
+
+            // 3. Update the Visible Input (Formulation Details card - now sum_of_concentration)
+            document.getElementById('id_mf_sum_of_con').value = formatted;
+        }
+
+        function addMaterialRow(code, conc) {
+            if (!code) return;
+            const tbody = document.getElementById('mfMaterialTableBody');
+            const row = document.createElement('tr');
+            row.className = 'mf-material-row';
+            row.dataset.material = code;
+            row.dataset.concentration = conc;
+            row.style.cursor = 'pointer';
+            row.innerHTML = `<td>${code}</td><td class="text-end">${parseFloat(conc).toFixed(6)}</td>`;
+            
+            row.onclick = function() {
+                document.querySelectorAll('.mf-material-row').forEach(r => r.classList.remove('table-active'));
+                this.classList.add('table-active');
+            };
+            tbody.appendChild(row);
+        }
+
         window.addEventListener('load', function() {
+            const entryForm = document.getElementById('masterFormulaEntryForm');
+            const saveBtn = document.querySelector('.btn-save');
+            const newBtn = document.querySelector('.btn-new');
+
+            // --- 2. SAVE WITH PRELINE CONFIRMATION ---
+            if (saveBtn && entryForm) {
+                saveBtn.addEventListener('click', function() {
+                    // 1. Validate Form
+                    if (entryForm.reportValidity()) {
+                        // 2. Check if updating or saving new
+                        const isUpdate = document.querySelector('[name="is_new_flag"]').value !== 'true';
+
+                        // 3. Trigger Confirmation
+                        Preline.confirm(
+                            isUpdate ? 'Update Master Formula?' : 'Save Master Formula?',
+                            isUpdate
+                                ? 'Are you sure you want to update this formula? This will modify existing records.'
+                                : 'Are you sure you want to save this new Master Formula? Please verify all concentrations before confirming.',
+                            'success',
+                            () => {
+                                // GATHER MATERIALS JSON
+                                const materials = [];
+                                document.querySelectorAll('.mf-material-row').forEach(row => {
+                                    materials.push({
+                                        material: row.dataset.material,
+                                        concentration: row.dataset.concentration
+                                    });
+                                });
+                                document.getElementById('id_materials_data').value = JSON.stringify(materials);
+                                
+                                // Submit
+                                entryForm.submit();
+                            }
+                        );
+                    }
+                });
+            }
+
+            // New Button Logic
+            if (newBtn) {
+                newBtn.addEventListener('click', () => {
+                    window.location.href = "{% url 'master_formula' %}";
+                });
+            }
+
+            // Material Control Buttons
+            document.getElementById('mfAddMaterialBtn').addEventListener('click', () => {
+                const codeSelect = document.getElementById('id_mf_material_code').tomselect;
+                const code = codeSelect.getValue();
+                const conc = document.getElementById('id_mf_concentration').value;
+                if(!code) return;
+                addMaterialRow(code, conc);
+                recalcTotal();
+                codeSelect.clear();
+                document.getElementById('id_mf_concentration').value = "0.000000";
+            });
+
+            document.getElementById('mfRemoveMaterialBtn').addEventListener('click', () => {
+                const active = document.querySelector('.mf-material-row.table-active');
+                if (active) { active.remove(); recalcTotal(); }
+            });
+
+            document.getElementById('mfClearMaterialsBtn').addEventListener('click', () => {
+                document.getElementById('mfMaterialTableBody').innerHTML = '';
+                recalcTotal();
+            });
+
+            // --- 3. LOOKUP MODAL LOGIC ---
             const cmNoEl = document.getElementById('id_mf_cm_no');
             const browseBtn = document.getElementById('mfBrowseFormulasBtn');
             const lookupModal = document.getElementById('mfFormulaLookupModal');
@@ -267,41 +378,25 @@
             const selectBtn = document.getElementById('id_modal_select_btn');
             let highlightedLookupRow = null;
 
-            const cmNoSelect = cmNoEl.tomselect;
-            if (cmNoSelect) {
-                cmNoSelect.on('change', (value) => browseBtn.disabled = value.trim() === '');
+            if (cmNoEl.tomselect) {
+                cmNoEl.tomselect.on('change', (val) => browseBtn.disabled = val.trim() === '');
             }
 
-            const closeModal = () => { 
-                lookupModal.style.display = 'none'; 
-            };
-
-            // Close Listeners
-            document.getElementById('id_close_modal_top').addEventListener('click', closeModal);
-            document.getElementById('id_close_modal_bottom').addEventListener('click', closeModal);
-
-            // CLICK OUTSIDE TO CLOSE
-            lookupModal.addEventListener('click', function(e) {
-                // If the user clicks exactly on the background overlay (and not the dialog)
-                if (e.target === lookupModal) closeModal();
-            });
-
-            /**
-             * Form Population Logic
-             */
             function loadFormulaIntoForm(row) {
                 const ds = row.dataset;
-                if (document.getElementById('id_mf_customer').tomselect) {
-                    document.getElementById('id_mf_customer').tomselect.setValue(ds.customer || '');
-                }
-                if (document.getElementById('id_mf_matched_by').tomselect) {
-                    document.getElementById('id_mf_matched_by').tomselect.setValue(ds.matchedBy || '');
-                }
+                
+                // Set Source PK and Type for the backend
+                document.getElementById('id_source_formula_pk').value = ds.pk || '';
+                document.getElementById('id_source_formula_type').value = ds.formulaType || '';
+
+                // Populate Fields
+                if (document.getElementById('id_mf_customer').tomselect) document.getElementById('id_mf_customer').tomselect.setValue(ds.customer || '');
+                if (document.getElementById('id_mf_matched_by').tomselect) document.getElementById('id_mf_matched_by').tomselect.setValue(ds.matchedBy || '');
+                
                 document.getElementById('id_mf_resin').value = ds.resin || '';
                 document.getElementById('id_mf_application').value = ds.application || '';
                 document.getElementById('id_mf_product_code').value = ds.productCode || '';
                 document.getElementById('id_mf_prod_color').value = ds.color || '';
-                document.getElementById('id_mf_sum_of_con').value = ds.sumCon || '0.000000';
                 document.getElementById('id_mf_dosage').value = ds.dosage || '';
                 document.getElementById('id_mf_mix_time').value = ds.mixingTime || '5 MIN';
                 document.getElementById('id_mf_colormatch_date').value = ds.dateMatched || '';
@@ -311,7 +406,7 @@
                 document.getElementById('id_mf_yellow').value = ds.yellow || '';
                 document.getElementById('id_mf_black').value = ds.black || '';
                 
-                const radioId = (ds.colorantType === 'DC') ? 'typeDC' : 'typeMB';
+                const radioId = (ds.formulaType === 'DC') ? 'typeDC' : 'typeMB';
                 const radio = document.getElementById(radioId);
                 if (radio) radio.checked = true;
 
@@ -322,34 +417,30 @@
                     ingredients.forEach(ing => addMaterialRow(ing.material, ing.value));
                     recalcTotal();
                 }
-                closeModal();
+                lookupModal.style.display = 'none';
                 Preline.toast('Formula details loaded.', 'success');
             }
 
-            selectBtn.addEventListener('click', () => { if (highlightedLookupRow) loadFormulaIntoForm(highlightedLookupRow); });
-
             browseBtn.addEventListener('click', async function () {
-                const matchingNo = cmNoSelect.getValue();
+                const matchingNo = cmNoEl.tomselect.getValue();
                 if (!matchingNo) return;
-
                 document.getElementById('mfLookupMatchingNo').innerText = matchingNo;
                 lookupModalBody.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-teal"></div></div>';
-                
-                // Show modal manually
                 lookupModal.style.display = 'flex';
                 selectBtn.disabled = true;
 
                 try {
                     const response = await fetch(`/master-formula/lookup/?matching_no=${encodeURIComponent(matchingNo)}`);
                     lookupModalBody.innerHTML = await response.text();
-
+                    
                     lookupModalBody.querySelectorAll('.mf-lookup-header-row').forEach(row => {
                         row.addEventListener('click', function() {
                             lookupModalBody.querySelectorAll('.mf-lookup-header-row').forEach(r => r.classList.remove('table-active'));
                             row.classList.add('table-active');
                             highlightedLookupRow = row; 
                             selectBtn.disabled = false;
-
+                            
+                            // Toggle sub-row
                             const nextRow = row.nextElementSibling;
                             if (nextRow && nextRow.classList.contains('ingredient-sub-row')) {
                                 const isHidden = nextRow.classList.toggle('d-none');
@@ -359,8 +450,12 @@
                         });
                         row.addEventListener('dblclick', () => loadFormulaIntoForm(row));
                     });
-                } catch (err) { lookupModalBody.innerHTML = '<div class="text-center py-5 text-danger">Error fetching data.</div>'; }
+                } catch (err) { lookupModalBody.innerHTML = '<div class="text-center py-5 text-danger">Error fetching lookup data.</div>'; }
             });
+
+            selectBtn.addEventListener('click', () => { if (highlightedLookupRow) loadFormulaIntoForm(highlightedLookupRow); });
+            document.getElementById('id_close_modal_top').onclick = () => lookupModal.style.display='none';
+            document.getElementById('id_close_modal_bottom').onclick = () => lookupModal.style.display='none';
         });
     })();
 </script>

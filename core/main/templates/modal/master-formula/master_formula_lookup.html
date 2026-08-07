@@ -31,6 +31,8 @@
                         {% for item in mb_formulas %}
                         <tr class="fw-bold mf-lookup-header-row formula-row-hover" 
                             style="cursor:pointer;"
+                            data-pk="{{ item.pk }}" 
+                            data-formula-type="MB"
                             data-script-id="{{ item.script_id }}"
                             data-formula-type="MB"
                             data-customer="{{ parent.customer|default:'' }}"
@@ -93,6 +95,8 @@
                         {% for item in dc_formulas %}
                         <tr class="fw-bold mf-lookup-header-row formula-row-hover" 
                             style="cursor:pointer;"
+                            data-pk="{{ item.pk }}"
+                            data-formula-type="DC"
                             data-script-id="{{ item.script_id }}"
                             data-formula-type="DC"
                             data-customer="{{ parent.customer|default:'' }}"
