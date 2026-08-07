@@ -1,6 +1,7 @@
 from django.urls import path
 
-from .services.formula import master_formula_services
+
+from .services.formula import master_formula_services, formulation_services
 
 from . import views
 from .services.cmf_records import cmf_records_services, previous_cmf_record
@@ -32,6 +33,7 @@ urlpatterns = [
     path('master-formula/lookup/', master_formula_services.master_formula_lookup, name='master_formula_lookup'),
     path('check-previous-matching/', previous_cmf_record.check_previous_matching, name='check_previous_matching'),
     path('master-formula/<int:form_id>/materials/', master_formula_services.master_formula_materials_json, name='master_formula_materials_json'),
+    path('formulation/<int:form_id>/materials/', formulation_services.formulation_materials_json, name='formulation_materials_json'),
     # with parameters
     path('cmf/records/<str:cm_no>/', views.cmf_record_detail, name='cmf_record_detail'),
     path('cmf/formula/<str:formula_type>/<int:formula_id>/toggle-final/', cmf_records_services.toggle_final_formula, name='toggle_final_formula'),

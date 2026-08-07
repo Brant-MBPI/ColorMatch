@@ -10,7 +10,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib import messages
 from datetime import datetime
 
-from main.services.formula import master_formula_services
+from main.services.formula import master_formula_services, formulation_services
 from main.services.save import mb_formula_save, dc_formula_save, rs_entry_save
 from main.decorators import role_required
 from main.models import (
@@ -831,7 +831,22 @@ def master_formula(request):
     return render(request, "sidemenu/formula/master_formula.html", context)
 
 def formulation(request):
-    return render(request, "sidemenu/formula/formulation.html", {})
+    form_id = request.GET.get('form_id')
+    
+    if request.method == "POST":
+        success, result = formulation_services.save_formulation(request)
+        if success:
+            messages.success(request, f"Formulation #{result} saved successfully.")
+            return redirect(f"/formulation/?form_id={result}")
+        else:
+            messages.error(request, f"Error saving formulation: {result}")
+
+    # GET logic
+    if form_id and not formulation_services.get_formulation_details(form_id):
+        messages.error(request, f"Formulation #{form_id} not found.")
+
+    context = formulation_services.get_formulation_context(form_id)
+    return render(request, "sidemenu/formula/formulation.html", context)
 
 def feedback(request):
     form_data = {}

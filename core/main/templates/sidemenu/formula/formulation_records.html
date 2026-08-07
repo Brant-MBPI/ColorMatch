@@ -37,7 +37,7 @@
                             </tr>
                         </thead>
                         <tbody class="extra-small">
-                            {% for record in master_formula_records %}
+                            {% for record in formulation_records %}
                             <tr class="record-row" data-form-id="{{ record.form_id }}" style="cursor: pointer;" title="Click to view material breakdown &middot; double-click to edit">
                                 <td class="ps-3 fw-bold text-teal">{{ record.form_id }}</td>
                                 <td>{{ record.index_no|default:"-" }}</td>
@@ -88,7 +88,7 @@
     <!-- FOOTER: record count + export -->
     <div class="mt-3 py-3 px-2">
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-            <small class="text-muted total-master-formula">Showing {{ master_formula_records|length }} records</small>
+            <small class="text-muted total-formulation">Showing {{ formulation_records|length }} records</small>
 
             <div class="d-flex align-items-center gap-2 position-relative">
                 <!-- Export Filter Toggle -->
@@ -161,7 +161,7 @@
                 });
 
                 // Optional: Update the "Showing X records" label if it exists
-                const counterLabel = document.querySelector('.total-master-formula');
+                const counterLabel = document.querySelector('.total-formulation');
                 if (counterLabel) {
                     counterLabel.textContent = `Showing ${visibleCount} records`;
                 }
@@ -178,7 +178,7 @@
                 detailBody.innerHTML = '<tr><td colspan="2" class="text-center py-4"><div class="spinner-border spinner-border-sm text-teal"></div></td></tr>';
 
                 try {
-                    const response = await fetch(`/master-formula/${encodeURIComponent(formId)}/materials/`);
+                    const response = await fetch(`/formulation/${encodeURIComponent(formId)}/materials/`);
 
                     if (!response.ok) {
                         detailBody.innerHTML = '<tr><td colspan="2" class="text-center py-4 text-danger">Record not found.</td></tr>';
@@ -267,7 +267,7 @@
                         const params = new URLSearchParams();
                         params.set('date_from', dateFrom);
                         params.set('date_to', dateTo);
-                        window.location.href = `/master-formula/export/?${params.toString()}`;
+                        window.location.href = `/formulation/export/?${params.toString()}`;
                     }
                 );
             });
