@@ -5,7 +5,7 @@ import json
 from datetime import datetime
 from django.db import transaction
 from django.http import JsonResponse
-from django.db.models import Max, Value
+from django.db.models import Q, Max, Value
 from django.shortcuts import render
 from main.utils.log_audit_trail import log_audit
 from main.services.cmf_records import cmf_records_services
@@ -275,4 +275,83 @@ def formulation_lookup(request):
     return render(request, "modal/master-formula/master_formula_lookup.html", {
         'matching_no': matching_no, 'error': error, 'color': color,
         'parent': parent, 'mb_formulas': mb_list, 'dc_formulas': dc_list,
+    })
+
+
+
+
+
+
+    # For DATA TABLES
+
+def get_formulation_records_json(request):
+    """Server-side DataTables logic for 17,000+ records."""
+    # 1. Get Parameters
+    draw = int(request.GET.get('draw', 1))
+    start = int(request.GET.get('start', 0))
+    length = request.GET.get('length', 100) # Default to 100
+    
+    # Handle "All" records (-1)
+    if length == '-1':
+        length = tbl_formula01.objects.filter(is_deleted=False).count()
+    else:
+        length = int(length)
+
+    search_value = request.GET.get('search[value]', '').strip()
+    
+    # 2. Base Query
+    queryset = tbl_formula01.objects.filter(is_deleted=False)
+    total_records = queryset.count()
+
+    # 3. Fast Global Search
+    if search_value:
+        queryset = queryset.filter(
+            Q(form_id__icontains=search_value) |
+            Q(index_no__icontains=search_value) |
+            Q(customer__icontains=search_value) |
+            Q(prod_code__icontains=search_value) |
+            Q(prod_color__icontains=search_value)
+        )
+
+    # 4. Ordering
+    order_column_index = request.GET.get('order[0][column]')
+    order_dir = request.GET.get('order[0][dir]')
+    column_mapping = {
+        '0': 'form_id',
+        '1': 'index_no',
+        '2': 'customer',
+        '3': 'prod_code',
+        '4': 'prod_color',
+        '5': 'total_concentration',
+        '6': 'ld',
+    }
+    
+    order_field = column_mapping.get(order_column_index, '-form_id')
+    if order_dir == 'desc':
+        order_field = f"-{order_field}" if not order_field.startswith('-') else order_field.replace('-', '')
+    
+    queryset = queryset.order_by(order_field)
+
+    # 5. Pagination
+    filtered_records = queryset.count()
+    queryset = queryset[start:start + length]
+
+    # 6. Formatting for JSON
+    data = []
+    for row in queryset:
+        data.append({
+            "form_id": row.form_id,
+            "index_no": row.index_no or "-",
+            "customer": row.customer or "-",
+            "product_code": row.prod_code or "-",
+            "prod_color": row.prod_color or "-",
+            "total_concentration": format(row.total_concentration, ".6f") if row.total_concentration else "0.000000",
+            "ld": format(row.ld, ".6f") if row.ld else "0.000000",
+        })
+
+    return JsonResponse({
+        "draw": draw,
+        "recordsTotal": total_records,
+        "recordsFiltered": filtered_records,
+        "data": data,
     })

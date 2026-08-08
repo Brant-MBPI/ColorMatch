@@ -32,6 +32,7 @@ urlpatterns = [
     # ajax
     path('master-formula/lookup/', master_formula_services.master_formula_lookup, name='master_formula_lookup'),
     path('check-previous-matching/', previous_cmf_record.check_previous_matching, name='check_previous_matching'),
+    path('formulation/data/', formulation_services.get_formulation_records_json, name='formulation_data'),
     path('master-formula/<int:form_id>/materials/', master_formula_services.master_formula_materials_json, name='master_formula_materials_json'),
     path('formulation/<int:form_id>/materials/', formulation_services.formulation_materials_json, name='formulation_materials_json'),
     # with parameters
