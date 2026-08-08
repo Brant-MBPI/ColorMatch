@@ -1,31 +1,33 @@
-<div class="d-flex flex-column">
+<div class="d-flex flex-column h-100">
+    <!-- HEADER -->
     <div class="row g-2 mb-4 align-items-center">
         <div class="col">
-            <h5 class="fw-bold m-0 mf-title text-uppercase">Formulation Records</h5>
+            <h5 class="fw-bold m-0 mf-title text-uppercase">Master Formula Records</h5>
             <small id="mfSelectedRecordLabel" class="text-muted"></small>
         </div>
         <div class="col-md-4">
             <div class="input-group input-group-sm">
-                <input type="text" id="mfRecordSearch" class="form-control uniform-input ps-2 border-end-0" placeholder="Search records...">
+                <input type="text" id="mfRecordSearch" class="form-control uniform-input ps-2 border-end-0" placeholder="Search 17k+ records...">
                 <span class="input-group-text uniform-input border-start-0">
                     <i class="bi bi-search text-muted"></i>
                 </span>
             </div>
         </div>
         <div class="col-auto">
-            <button class="btn btn-sm btn-primary px-3 shadow-sm" onclick="window.location.reload()">
+            <button class="btn btn-sm btn-primary px-3 shadow-sm" id="btnRefreshTable">
                 <i class="bi bi-arrow-clockwise"></i> Refresh
             </button>
         </div>
     </div>
 
-    <div class="row g-3">
+    <div class="row g-3 flex-grow-1">
         <!-- MAIN RECORDS TABLE -->
         <div class="col-lg-8">
-            <div class="mf-table-wrapper rounded-3 border h-100">
-                <div class="mf-scroll-body" style="max-height: 70vh; overflow-y: auto;">
-                    <table class="table table-hover align-middle mb-0" id="mfRecordsTable">
-                        <thead class="sticky-top bg-white" style="z-index: 10;">
+            <div class="mf-table-wrapper rounded-3 border h-100 bg-white shadow-sm overflow-hidden d-flex flex-column">
+                <!-- DataTable container -->
+                <div class="flex-grow-1 overflow-hidden">
+                    <table class="table table-hover align-middle mb-0 w-100" id="mfRecordsTable">
+                        <thead class="sticky-top bg-white shadow-sm" style="z-index: 10;">
                             <tr class="small text-uppercase">
                                 <th class="ps-3">Form ID</th>
                                 <th>Index #</th>
@@ -37,38 +39,24 @@
                             </tr>
                         </thead>
                         <tbody class="extra-small">
-                            {% for record in master_formula_records %}
-                            <tr class="record-row" data-form-id="{{ record.form_id }}" style="cursor: pointer;" title="Click to view material breakdown &middot; double-click to edit">
-                                <td class="ps-3 fw-bold text-teal">{{ record.form_id }}</td>
-                                <td>{{ record.index_no|default:"-" }}</td>
-                                <td>{{ record.customer }}</td>
-                                <td>{{ record.product_code }}</td>
-                                <td>{{ record.prod_color }}</td>
-                                <td>{{ record.dosage|floatformat:6 }}</td>
-                                <td class="pe-3">{{ record.ld|floatformat:6 }}</td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="7" class="text-center py-5 text-muted">No formulation records found.</td>
-                            </tr>
-                            {% endfor %}
+                            <!-- DataTables Ajax Load -->
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
 
-        <!-- MATERIAL BREAKDOWN OF SELECTED RECORD -->
+        <!-- MATERIAL BREAKDOWN -->
         <div class="col-lg-4">
-            <div class="mf-detail-card rounded-3 border h-100">
+            <div class="mf-detail-card rounded-3 border h-100 bg-white shadow-sm d-flex flex-column">
                 <div class="p-3 border-bottom d-flex align-items-center justify-content-between">
                     <h6 class="extra-small fw-bold text-uppercase text-teal m-0">
                         Material Breakdown
                     </h6>
                 </div>
-                <div class="mf-detail-scroll-body" style="max-height: 60vh; overflow-y: auto;">
+                <div class="mf-detail-scroll-body flex-grow-1 overflow-auto" style="max-height: 64vh;">
                     <table class="table table-sm align-middle mb-0" id="mfDetailTable">
-                        <thead class="bg-light">
+                        <thead class="bg-light sticky-top">
                             <tr class="extra-small text-uppercase">
                                 <th class="ps-3">Material Code</th>
                                 <th class="pe-3 text-end">Concentration</th>
@@ -85,42 +73,43 @@
         </div>
     </div>
 
-    <!-- FOOTER: record count + export -->
-    <div class="mt-3 py-3 px-2">
+    <!-- FOOTER -->
+    <div class="mt-3 py-2 px-2 border-top bg-light rounded-bottom">
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-            <small class="text-muted total-master-formula">Showing {{ master_formula_records|length }} records</small>
+            
+            <div class="d-flex align-items-center gap-3">
+                <!-- ROW LENGTH SELECTOR -->
+                <div class="d-flex align-items-center gap-2">
+                    <label class="extra-small fw-bold text-muted text-uppercase">Show:</label>
+                    <select id="mfTableLength" class="form-select form-select-sm uniform-input py-0" style="width: 110px; height: 28px; font-size: 0.75rem;">
+                        <option value="100">100 rows</option>
+                        <option value="500">500 rows</option>
+                        <option value="1000" selected>1000 rows</option>
+                        <option value="5000">5000 rows</option>
+                        <option value="-1">Show All</option>
+                    </select>
+                </div>
+                <!-- RECORD COUNT INFO -->
+                <small id="mfTableInfo" class="text-muted extra-small mt-1"></small>
+            </div>
 
             <div class="d-flex align-items-center gap-2 position-relative">
-                <!-- Export Filter Toggle -->
-                <button class="btn btn-sm btn-outline-secondary px-2" id="mfExportFilterBtn" type="button" title="Export filters">
-                    <i class="bi bi-sliders"></i>
-                </button>
-
-                <!-- Export Filter Popover Panel -->
-                <div id="mfExportFilterPanel" class="mf-export-filter-panel shadow-sm border rounded-3 bg-white p-3 d-none">
+                <button class="btn btn-sm btn-outline-secondary px-2" id="mfExportFilterBtn" type="button"><i class="bi bi-sliders"></i></button>
+                <div id="mfExportFilterPanel" class="mf-export-filter-panel shadow-lg border rounded-3 bg-white p-3 d-none">
                     <label class="extra-small fw-bold d-block mb-1">Date Range</label>
                     <div class="d-flex align-items-center gap-2">
-                        <div class="input-group input-group-sm flatpickr-container" data-wrap="true">
-                            <input type="text" id="mfExportDateFrom" class="form-control uniform-input date-picker-single" placeholder="MM/DD/YYYY" data-input>
-                            <span class="input-group-text uniform-input border-start-0" data-toggle><i class="bi bi-calendar3"></i></span>
-                        </div>
-                        <span class="extra-small text-muted">to</span>
-                        <div class="input-group input-group-sm flatpickr-container" data-wrap="true">
-                            <input type="text" id="mfExportDateTo" class="form-control uniform-input date-picker-single" placeholder="MM/DD/YYYY" data-input>
-                            <span class="input-group-text uniform-input border-start-0" data-toggle><i class="bi bi-calendar3"></i></span>
-                        </div>
+                        <input type="text" id="mfExportDateFrom" class="form-control form-control-sm date-picker-single">
+                        <span class="extra-small">to</span>
+                        <input type="text" id="mfExportDateTo" class="form-control form-control-sm date-picker-single">
                     </div>
                 </div>
-
                 <button class="btn btn-success btn-sm px-4" id="mfExportExcelBtn" type="button">
-                    <i class="bi bi-file-earmark-excel"></i>
-                    Export to Excel
+                    <i class="bi bi-file-earmark-excel"></i> Export Excel
                 </button>
             </div>
         </div>
     </div>
 </div>
-
 <style>
     .mf-export-filter-panel {
         position: absolute;
@@ -130,147 +119,114 @@
         z-index: 1000;
     }
 </style>
-
 <script>
-    (function () {
-        const rows = document.querySelectorAll('#mfRecordsTable tbody tr.record-row');
-        const selectedRecordLabel = document.getElementById('mfSelectedRecordLabel');
-        const detailBody = document.getElementById('mfDetailTableBody');
-        const searchInput = document.getElementById('mfRecordSearch');
-        const tableBody = document.querySelector('#mfRecordsTable tbody');
-        const recordCounter = document.querySelector('.text-muted'); // To update "Showing X records"
-
-        if (searchInput && tableBody) {
-            searchInput.addEventListener('input', function (e) {
-                const term = e.target.value.toLowerCase().trim();
-                
-                // Selecting rows inside the event handles dynamic/tabbed content better
-                const rows = tableBody.querySelectorAll('tr.record-row');
-                let visibleCount = 0;
-
-                rows.forEach(row => {
-                    // Search across all text content in the row
-                    const text = row.textContent.toLowerCase();
-                    
-                    if (text.includes(term)) {
-                        row.style.setProperty('display', '', 'important');
-                        visibleCount++;
-                    } else {
-                        row.style.setProperty('display', 'none', 'important');
-                    }
-                });
-
-                // Optional: Update the "Showing X records" label if it exists
-                const counterLabel = document.querySelector('.total-master-formula');
-                if (counterLabel) {
-                    counterLabel.textContent = `Showing ${visibleCount} records`;
+    jQuery(document).ready(function($) {
+        const tableId = '#mfRecordsTable';
+        
+        // 1. INITIALIZE DATATABLE
+        const table = $(tableId).DataTable({
+            serverSide: true,
+            processing: true,
+            deferRender: true,
+            scrollY: '62vh',
+            scrollCollapse: true,
+            ajax: {
+                url: "/master-formula/data/",
+                type: "GET",
+                data: function(d) {
+                    d.length = $('#mfTableLength').val(); 
                 }
-            });
-        }
-
-        // Click a row -> load its materials into the side panel
-        rows.forEach(row => {
-            row.addEventListener('click', async function () {
-                rows.forEach(r => r.classList.remove('table-active'));
-                row.classList.add('table-active');
-
-                const formId = row.dataset.formId;
-                detailBody.innerHTML = '<tr><td colspan="2" class="text-center py-4"><div class="spinner-border spinner-border-sm text-teal"></div></td></tr>';
-
-                try {
-                    const response = await fetch(`/master-formula/${encodeURIComponent(formId)}/materials/`);
-
-                    if (!response.ok) {
-                        detailBody.innerHTML = '<tr><td colspan="2" class="text-center py-4 text-danger">Record not found.</td></tr>';
-                        selectedRecordLabel.innerText = '';
-                        return;
-                    }
-
-                    const data = await response.json();
-                    const materials = data.materials;
-
-                    // Small subtitle under the main title — index/form no + customer
-                    selectedRecordLabel.innerText = `# ${data.form_id} | Index: ${data.index_no} : ${data.customer}`;
-
-                    if (!materials.length) {
-                        detailBody.innerHTML = '<tr><td colspan="2" class="text-center py-4 text-muted">No materials found.</td></tr>';
-                        return;
-                    }
-
-                    detailBody.innerHTML = materials.map(m => `
-                        <tr>
-                            <td class="ps-3">${m.material_code}</td>
-                            <td class="pe-3 text-end">${m.concentration}</td>
-                        </tr>
-                    `).join('');
-                } catch (err) {
-                    console.error('Error fetching materials:', err);
-                    detailBody.innerHTML = '<tr><td colspan="2" class="text-center py-4 text-danger">Error loading materials.</td></tr>';
-                }
-            });
-
-            // Double-click -> go to Entry tab pre-filled with this record
-            row.addEventListener('dblclick', function () {
-                const formId = row.dataset.formId;
-                window.location.href = `${window.location.pathname}?form_id=${encodeURIComponent(formId)}`;
-            });
+            },
+            columns: [
+                { data: "form_id", className: "ps-3 fw-bold text-teal" },
+                { data: "index_no" },
+                { data: "customer" },
+                { data: "product_code" },
+                { data: "prod_color" },
+                { data: "total_concentration" },
+                { data: "ld", className: "pe-3" }
+            ],
+            dom: 'rtp',
+            pageLength: 1000, 
+            ordering: true,
+            order: [[0, 'desc']],
+            language: {
+                processing: '<div class="d-flex justify-content-center py-5"><div class="spinner-border text-teal"></div></div>',
+            },
+            createdRow: function(row, data) {
+                $(row).addClass('record-row').attr('data-form-id', data.form_id).css('cursor', 'pointer');
+            },
+            drawCallback: function(settings) {
+                $('#mfTableInfo').text("Showing " + settings._iRecordsDisplay + " of " + settings._iRecordsTotal + " records");
+            }
         });
 
-        // --- EXPORT FILTER PANEL ---
+        // 2. CUSTOM SEARCH (Debounced)
+        let searchTimeout;
+        $('#mfRecordSearch').on('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                table.search(this.value).draw();
+            }, 400);
+        });
+
+        // 3. ROW CLICK (Fetch Materials)
+        $(tableId + ' tbody').on('click', 'tr', async function() {
+            $('.record-row').removeClass('table-active');
+            $(this).addClass('table-active');
+            
+            const formId = $(this).data('form-id');
+            const detailBody = document.getElementById('mfDetailTableBody');
+            detailBody.innerHTML = '<tr><td colspan="2" class="text-center py-4"><div class="spinner-border spinner-border-sm text-teal"></div></td></tr>';
+            
+            try {
+                const response = await fetch(`/master-formula/${encodeURIComponent(formId)}/materials/`);
+                const data = await response.json();
+                document.getElementById('mfSelectedRecordLabel').innerText = `# ${data.form_id} | Index: ${data.index_no} : ${data.customer}`;
+                
+                if (!data.materials || data.materials.length === 0) {
+                    detailBody.innerHTML = '<tr><td colspan="2" class="text-center py-4 text-muted">No materials found.</td></tr>';
+                    return;
+                }
+                detailBody.innerHTML = data.materials.map(m => `
+                    <tr>
+                        <td class="ps-3">${m.material_code}</td>
+                        <td class="pe-3 text-end">${m.concentration}</td>
+                    </tr>
+                `).join('');
+            } catch (err) { detailBody.innerHTML = '<tr><td colspan="2" class="text-center py-4 text-danger">Error loading details.</td></tr>'; }
+        });
+
+        // 4. DOUBLE CLICK (Edit)
+        $(tableId + ' tbody').on('dblclick', 'tr', function() {
+            window.location.href = `${window.location.pathname}?form_id=${$(this).data('form-id')}`;
+        });
+
+        // 5. CONTROLS
+        $('#mfTableLength').on('change', function() { table.page.len(this.value).draw(); });
+        $('#btnRefreshTable').on('click', () => table.ajax.reload());
+
+        // 6. EXPORT PANEL
         const exportFilterBtn = document.getElementById('mfExportFilterBtn');
         const exportFilterPanel = document.getElementById('mfExportFilterPanel');
-        const exportDateFrom = document.getElementById('mfExportDateFrom');
-        const exportDateTo = document.getElementById('mfExportDateTo');
-        const exportExcelBtn = document.getElementById('mfExportExcelBtn');
-
-        function formatDateMMDDYYYY(date) {
-            const mm = String(date.getMonth() + 1).padStart(2, '0');
-            const dd = String(date.getDate()).padStart(2, '0');
-            const yyyy = date.getFullYear();
-            return `${mm}/${dd}/${yyyy}`;
-        }
-
-        if (exportFilterBtn && exportFilterPanel) {
-            const today = new Date();
-            const sevenDaysAgo = new Date();
-            sevenDaysAgo.setDate(today.getDate() - 7);
-
-            if (exportDateTo) exportDateTo.value = formatDateMMDDYYYY(today);
-            if (exportDateFrom) exportDateFrom.value = formatDateMMDDYYYY(sevenDaysAgo);
-
-            exportFilterBtn.addEventListener('click', function (e) {
+        if (exportFilterBtn) {
+            exportFilterBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 exportFilterPanel.classList.toggle('d-none');
             });
-
-            document.addEventListener('click', function (e) {
+            document.addEventListener('click', (e) => {
                 if (!exportFilterPanel.contains(e.target) && e.target !== exportFilterBtn) {
                     exportFilterPanel.classList.add('d-none');
                 }
             });
-
-            exportFilterPanel.addEventListener('click', function (e) {
-                e.stopPropagation();
-            });
         }
 
-        if (exportExcelBtn) {
-            exportExcelBtn.addEventListener('click', function () {
-                const dateFrom = exportDateFrom?.value || '';
-                const dateTo = exportDateTo?.value || '';
-
-                Preline.confirm(
-                    'Export to Excel?',
-                    `Date Range: ${dateFrom} to ${dateTo}`,
-                    'success',
-                    () => {
-                        const params = new URLSearchParams();
-                        params.set('date_from', dateFrom);
-                        params.set('date_to', dateTo);
-                        window.location.href = `/master-formula/export/?${params.toString()}`;
-                    }
-                );
+        $('#mfExportExcelBtn').on('click', function() {
+            const from = $('#mfExportDateFrom').val() || '';
+            const to = $('#mfExportDateTo').val() || '';
+            Preline.confirm('Export to Excel?', `Range: ${from || 'All'} to ${to || 'All'}`, 'success', () => {
+                window.location.href = `/master-formula/export/?date_from=${from}&date_to=${to}`;
             });
-        }
-    })();
+        });
+    });
 </script>
