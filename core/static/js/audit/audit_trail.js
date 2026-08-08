@@ -67,12 +67,12 @@ jQuery(document).ready(function($) {
     });
 
     // 1. Search with debounce
-    let searchTimeout;
+    const handleSearch = debounce(function(value) {
+        table.search(value).draw();
+    }, 600);
+
     $('#auditSearch').on('input', function() {
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(() => {
-            table.search(this.value).draw();
-        }, 400);
+        handleSearch(this.value);
     });
 
     // 2. Dropdown and Date listeners

@@ -170,13 +170,13 @@
             }
         });
 
-        // 2. CUSTOM SEARCH (Debounced)
-        let searchTimeout;
+        //  Search with debounce
+        const handleSearch = debounce(function(value) {
+            table.search(value).draw();
+        }, 600);
+
         $('#mfRecordSearch').on('input', function() {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-                table.search(this.value).draw();
-            }, 400);
+            handleSearch(this.value);
         });
 
         // 3. ROW CLICK (Fetch Materials)
