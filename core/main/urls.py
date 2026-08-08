@@ -1,5 +1,7 @@
 from django.urls import path
 
+from .services.audit import audit_services
+
 
 from .services.formula import master_formula_services, formulation_services
 
@@ -34,6 +36,7 @@ urlpatterns = [
     path('check-previous-matching/', previous_cmf_record.check_previous_matching, name='check_previous_matching'),
     path('formulation/data/', formulation_services.get_formulation_records_json, name='formulation_data'),
     path('master-formula/data/', master_formula_services.get_master_formula_records_json, name='master_formula_data'),
+    path('audit-trail/data/', audit_services.get_audit_trail_data, name='audit_trail_data'),
     path('master-formula/<int:form_id>/materials/', master_formula_services.master_formula_materials_json, name='master_formula_materials_json'),
     path('formulation/<int:form_id>/materials/', formulation_services.formulation_materials_json, name='formulation_materials_json'),
     # with parameters

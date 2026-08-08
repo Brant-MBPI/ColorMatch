@@ -982,25 +982,9 @@ def feedback(request):
 
 @role_required
 def audit_trail(request):
-    cache_key = 'audit_trail_records_list'
-    records = cache.get(cache_key)
-
-    if records is None:
-        # We use list() to evaluate the QuerySet immediately 
-        # so the actual data is stored in the cache.
-        records = list(
-            tbl_audit_trail.objects.all()
-            .select_related('user__role')
-            .order_by('-timestamp')
-        )
-        # Store for 24 hours (86400 seconds) or until cache.delete is called
-        cache.set(cache_key, records, 86400)
-
-    context = {
-        "records": records,
-        "record_count": len(records),
-    }
-    return render(request, "sidemenu/audit_trail.html", context)
+    # Just return the count for the header; DataTables handles the rest
+    record_count = tbl_audit_trail.objects.count()
+    return render(request, "sidemenu/audit_trail.html", {"record_count": record_count})
 
 
 
