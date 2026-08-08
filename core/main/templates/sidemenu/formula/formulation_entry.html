@@ -332,7 +332,10 @@
 
             if (newBtn) {
                 newBtn.addEventListener('click', () => {
-                    window.location.href = "{% url 'master_formula' %}";
+                    // We set the preference to Entry so when it reloads, it stays on the form
+                    localStorage.setItem("activeFormulationTab", "fml-entry-tab");
+                    // Reload without the ?form_id= parameter
+                    window.location.href = window.location.pathname;
                 });
             }
 
