@@ -332,12 +332,18 @@
 
             if (newBtn) {
                 newBtn.addEventListener('click', () => {
-                    // We set the preference to Entry so when it reloads, it stays on the form
-                    localStorage.setItem("activeFormulationTab", "fml-entry-tab");
-                    // Reload without the ?form_id= parameter
-                    window.location.href = window.location.pathname;
+                    Preline.confirm(
+                        'Create New?',
+                        'Any unsaved changes on this form will be lost. Do you want to continue?',
+                        'warning',
+                        () => {
+                            window.location.href = "{% url 'formulation' %}?new_entry=true";
+                        }
+                    );
                 });
             }
+            
+            
 
             // --- 3. MATERIAL CONTROL BUTTONS WITH ERROR HANDLING ---
             document.getElementById('mfAddMaterialBtn').addEventListener('click', function () {
