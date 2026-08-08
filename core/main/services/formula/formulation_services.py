@@ -62,7 +62,7 @@ def get_formulation_list():
     
     if not records:
         qs = tbl_formula01.objects.filter(is_deleted=False).order_by('-form_id').values(
-            'form_id', 'index_no', 'customer', 'prod_code', 'prod_color', 'total_concentration', 'ld'
+            'form_id', 'index_no', 'customer', 'prod_code', 'prod_color', 'dosage', 'ld'
         )
         records = list(qs)
         cache.set('formulation_records_list', records, CACHE_TIMEOUT)

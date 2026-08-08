@@ -68,7 +68,7 @@ def get_master_formula_list():
     if not records:
         # Fetch from DB if cache is empty
         qs = tbl_master_formula.objects.filter(is_deleted=False).order_by('-form_id').values(
-            'form_id', 'index_no', 'customer', 'product_code', 'prod_color', 'total_concentration', 'ld'
+            'form_id', 'index_no', 'customer', 'product_code', 'prod_color', 'dosage', 'ld'
         )
         records = list(qs)
         cache.set('master_formula_records_list', records, CACHE_TIMEOUT)
