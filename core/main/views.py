@@ -5,10 +5,12 @@ from django.core.cache import cache
 from django.core.management import call_command
 from django.contrib.auth import authenticate, login, logout, get_user_model 
 from django.contrib.auth.models import User
+from django.db.models import Min
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib import messages
 from datetime import datetime
+from django.utils import timezone
 
 from main.services.formula import master_formula_services, formulation_services
 from main.services.save import mb_formula_save, dc_formula_save, rs_entry_save
@@ -982,11 +984,27 @@ def feedback(request):
 
 @role_required
 def audit_trail(request):
-    # Just return the count for the header; DataTables handles the rest
+    # 1. Get total record count
     record_count = tbl_audit_trail.objects.count()
-    return render(request, "sidemenu/audit_trail.html", {"record_count": record_count})
+    
+    # 2. Get the date of the earliest record (to default 'dateFrom')
+    min_timestamp = tbl_audit_trail.objects.aggregate(Min('timestamp'))['timestamp__min']
+    
+    # Fallback to today if no records exist
+    if min_timestamp:
+        default_from = min_timestamp.date().strftime('%Y-%m-%d')
+    else:
+        default_from = timezone.now().date().strftime('%Y-%m-%d')
+        
+    # 3. Get today's date for 'dateTo' and for the 'max' limit
+    today = timezone.now().date().strftime('%Y-%m-%d')
 
-
+    context = {
+        "record_count": record_count,
+        "default_from": default_from,
+        "default_to": today,
+    }
+    return render(request, "sidemenu/audit_trail.html", context)
 
 
 
