@@ -343,8 +343,14 @@
 
             if (newBtn) {
                 newBtn.addEventListener('click', () => {
-                    localStorage.setItem("activeMasterFormulaTab", "mf-entry-tab"); // Stay on entry tab
-                    window.location.href = window.location.pathname; // Reload without ?form_id=
+                    Preline.confirm(
+                        'Create New?',
+                        'Any unsaved changes on this form will be lost. Do you want to continue?',
+                        'warning',
+                        () => {
+                            window.location.href = "{% url 'master_formula' %}?new_entry=true";
+                        }
+                    );
                 });
             }
 
