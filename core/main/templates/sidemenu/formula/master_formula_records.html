@@ -157,7 +157,16 @@
                 $(row).addClass('record-row').attr('data-form-id', data.form_id).css('cursor', 'pointer');
             },
             drawCallback: function(settings) {
-                $('#mfTableInfo').text("Showing " + settings._iRecordsDisplay + " of " + settings._iRecordsTotal + " records");
+                const api = this.api();
+                const info = api.page.info();
+                const total = info.recordsTotal.toLocaleString();
+                const filtered = info.recordsDisplay.toLocaleString();
+
+                if (info.recordsTotal === info.recordsDisplay) {
+                    $('#mfTableInfo').text("Total records: " + total);
+                } else {
+                    $('#mfTableInfo').text("Showing " + filtered + " found (from " + total + " total)");
+                }
             }
         });
 
