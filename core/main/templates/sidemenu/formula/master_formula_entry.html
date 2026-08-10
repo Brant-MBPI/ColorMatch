@@ -22,12 +22,18 @@
                         <div class="row g-2 align-items-center">
                             <div class="col-md-4"><label class="extra-small fw-bold required-label">Customer:</label></div>
                             <div class="col-md-8">
-                                <select name="customer" id="id_mf_customer" class="form-select form-select-sm ts-select" placeholder="Select customer..." required>
-                                    <option value=""></option>
-                                    {% for customer in customers %}
-                                        <option value="{{ customer }}" {% if form_data.customer == customer %}selected{% endif %}>{{ customer }}</option>
-                                    {% endfor %}
-                                </select>
+                                {% if not request.GET.form_id or request.GET.new_entry %}
+                                    <!-- NEW ENTRY: Select for active customers -->
+                                    <select name="customer" id="id_mf_customer" class="form-select form-select-sm ts-select" placeholder="Select customer..." required>
+                                        <option value=""></option>
+                                        {% for customer in customers %}
+                                            <option value="{{ customer }}" {% if form_data.customer == customer %}selected{% endif %}>{{ customer }}</option>
+                                        {% endfor %}
+                                    </select>
+                                {% else %}
+                                    <!-- VIEWING: Readonly input for legacy/old customers -->
+                                    <input type="text" name="customer" id="id_mf_customer" value="{{ form_data.customer|default:'' }}" class="form-control form-control-sm uniform-input readonly-gray fw-bold" readonly required>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
@@ -102,17 +108,21 @@
                         <div class="row g-2 align-items-center mb-2">
                             <div class="col-md-4"><label class="extra-small fw-bold">Matching No.:</label></div>
                             <div class="col-md-8">
-                                <div class="input-group input-group-sm">
-                                    <select name="cm_no" id="id_mf_cm_no" class="form-select form-select-sm ts-select" placeholder="Search CM#/RS#">
-                                        <option value=""></option>
-                                        {% for no in matching_numbers %}
-                                            <option value="{{ no }}" {% if form_data.cm_no == no %}selected{% endif %}>{{ no }}</option>
-                                        {% endfor %}
-                                    </select>
-                                    <button type="button" id="mfBrowseFormulasBtn" class="btn btn-sm btn-dark-teal" disabled>
-                                        <i class="bi bi-search"></i>
-                                    </button>
-                                </div>
+                                {% if not request.GET.form_id or request.GET.new_entry %}
+                                    <div class="input-group input-group-sm">
+                                        <select name="cm_no" id="id_mf_cm_no" class="form-select form-select-sm ts-select" placeholder="Search CM#/RS#">
+                                            <option value=""></option>
+                                            {% for no in matching_numbers %}
+                                                <option value="{{ no }}" {% if form_data.cm_no == no %}selected{% endif %}>{{ no }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <button type="button" id="mfBrowseFormulasBtn" class="btn btn-sm btn-dark-teal" disabled>
+                                            <i class="bi bi-search"></i>
+                                        </button>
+                                    </div>
+                                {% else %}
+                                    <input type="text" name="cm_no" id="id_mf_cm_no" value="{{ form_data.cm_no|default:'' }}" class="form-control form-control-sm uniform-input readonly-gray fw-bold" readonly>
+                                {% endif %}
                             </div>
                         </div>
 
