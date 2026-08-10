@@ -192,4 +192,80 @@
     const initialTable = document.querySelector('.js-formula-table');
     if(initialTable) calculateFormulaTotals(initialTable);
 
+
+    //  Shared AJAX Auto-population Logic for MB and DC
+    const cmfSelectMB = document.getElementById('id_mb_cmf_number');
+    const cmfSelectDC = document.getElementById('id_dc_cmf_number');
+    const isDC = !!cmfSelectDC;
+    const cmfSelectEl = cmfSelectMB || cmfSelectDC;
+
+    async function fetchCmfDetails(cmfNo) {
+        // Map IDs based on which page is active
+        const fields = {
+            customer: isDC ? 'id_dc_customer' : 'id_customer',
+            resin: isDC ? 'id_dc_resin' : 'id_resin_used',
+            color: isDC ? 'id_dc_color' : 'id_color',
+            product: isDC ? 'id_dc_product_code' : 'id_product',
+            dosage: isDC ? 'id_dc_dosage' : 'id_dosage',
+            application: isDC ? 'id_dc_application' : 'id_application',
+            finished_product: isDC ? 'id_dc_finished_product' : 'id_finished_product'
+        };
+
+        try {
+            const response = await fetch(`/cmf/mb-dc-formula/?cm_no=${encodeURIComponent(cmfNo)}`);
+            if (!response.ok) throw new Error('Network response was not ok');
+            const data = await response.json();
+
+            const setVal = (id, val) => {
+                const el = document.getElementById(id);
+                if (el) el.value = val || '';
+            };
+
+            setVal(fields.customer, data.customer);
+            setVal(fields.resin, data.resin_used || data.resin);
+            setVal(fields.color, data.color);
+            setVal(fields.application, data.application);
+            setVal(fields.finished_product, data.finished_product);
+            setVal(fields.product, data.product || data.product_code);
+            setVal(fields.dosage, data.dosage);
+
+            Preline.toast(`Details for ${cmfNo} loaded.`, 'success');
+            
+        } catch (error) {
+            console.error('Error fetching CMF details:', error);
+            
+            Preline.toast('Error fetching details from server.', 'danger');
+            
+        }
+    }
+
+    const initAutoPop = () => {
+        if (cmfSelectEl && cmfSelectEl.tagName === 'SELECT') {
+            let tsAttempts = 0;
+            const pollTomSelect = setInterval(() => {
+                tsAttempts++;
+                if (cmfSelectEl.tomselect) {
+                    clearInterval(pollTomSelect);
+                    
+                    cmfSelectEl.tomselect.on('change', function(value) {
+                        if (!value) return;
+
+                       
+                        Preline.confirm(
+                            'Load Record Details?',
+                            `Do you want to automatically fill the form with details from CMF #${value}?`,
+                            'info',
+                            () => fetchCmfDetails(value), 
+                            () => { console.log("User cancelled auto-fill."); }
+                        );
+                    });
+                } else if (tsAttempts > 50) {
+                    clearInterval(pollTomSelect);
+                }
+            }, 100);
+        }
+    };
+
+    initAutoPop();
+
 })();
