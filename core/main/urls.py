@@ -1,5 +1,7 @@
 from django.urls import path
 
+from .services.cmf_records import mb_dc_formulation_services
+
 from .services.audit import audit_services
 
 
@@ -32,6 +34,7 @@ urlpatterns = [
     # export
     path('cmf/records/export/', views.cmf_records_export_preview, name='cmf_records_export_preview'),
     # ajax
+    path('cmf/mb-dc-formula/', mb_dc_formulation_services.get_formulation_details, name='mb_dc_lookup_details'),
     path('master-formula/lookup/', master_formula_services.master_formula_lookup, name='master_formula_lookup'),
     path('check-previous-matching/', previous_cmf_record.check_previous_matching, name='check_previous_matching'),
     path('formulation/data/', formulation_services.get_formulation_records_json, name='formulation_data'),
