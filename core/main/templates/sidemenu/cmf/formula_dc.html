@@ -34,11 +34,22 @@ Formula DC
                             </div>
                         </div>
                         <div class="row g-2 align-items-center mb-2">
-                            <div class="col-5"><label class="extra-small fw-bold">CMF Number:</label></div>
+                        <div class="col-5"><label class="extra-small fw-bold required-label">CMF Number:</label></div>
                             <div class="col-7">
-                                <input type="text" name="cmf_number" id="id_dc_cmf_number" 
-                                       value="{{ form_data.cm_form_no|default:'' }}" 
-                                       class="form-control form-control-sm uniform-input readonly-gray" required readonly>
+                                {% if form_data.formula_id %}
+                                    <!-- Editing Mode: Readonly Input -->
+                                    <input type="text" name="cmf_number" id="id_dc_cmf_number" 
+                                        value="{{ form_data.cm_form_no|default:'' }}" 
+                                        class="form-control form-control-sm uniform-input readonly-gray" readonly required>
+                                {% else %}
+                                    <!-- New Mode: TomSelect Dropdown -->
+                                    <select name="cmf_number" id="id_dc_cmf_number" class="form-select form-select-sm ts-select" required>
+                                        <option value=""></option>
+                                        {% for cm_no in cmf_list %}
+                                            <option value="{{ cm_no }}" {% if form_data.cm_form_no == cm_no %}selected{% endif %}>{{ cm_no }}</option>
+                                        {% endfor %}
+                                    </select>
+                                {% endif %}
                             </div>
                         </div>
                         <div class="row g-2 align-items-center mb-2">

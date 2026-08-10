@@ -485,6 +485,7 @@ def cmf_mb_formula(request):
         "users": list(user_names),
         "colorant_mismatch": colorant_mismatch,
         "ingredients": ingredients,
+        "cmf_list": tbl_cmf.objects.values_list('cm_no', flat=True).order_by('-cm_no'),
     }
     return render(request, "sidemenu/cmf/formula_mb.html", context)
 
@@ -625,6 +626,7 @@ def cmf_dc_formula(request):
         "users": list(user_names),
         "colorant_mismatch": colorant_mismatch,
         "ingredients": ingredients,
+        "cmf_list": tbl_cmf.objects.values_list('cm_no', flat=True).order_by('-cm_no'),
     }
     return render(request, "sidemenu/cmf/formula_dc.html", context)
 
