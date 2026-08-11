@@ -296,7 +296,7 @@ Formula DC
                         <!-- Total Weight -->
                         <div class="d-flex align-items-center gap-3 order-1 order-md-2 ms-auto ms-md-0">
                             <span class="fw-bold small text-uppercase">Total Weight:</span>
-                            <input type="text" name="total_weight" class="form-control total-weight-input total-weight-display" value="{{ form_data.total_weight|default:'0.00' }}">
+                            <input type="text" name="total_weight" class="form-control total-weight-input total-weight-display" value="{{ form_data.total_weight|default:form_data.dosage }}">
                         </div>
                     </div>
 
