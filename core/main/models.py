@@ -359,7 +359,14 @@ class tbl_feedback_details(models.Model):
     feedback_no = models.AutoField(primary_key=True)
     pieces = models.IntegerField(blank=True, null=True)
     quantity_given = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
-    code_submitted = models.CharField(max_length=60, blank=True, null=True)
+    # code_submitted = models.CharField(max_length=60, blank=True, null=True)
+    code = models.ForeignKey(
+        'tbl_generated_prod_code', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        db_column="code_no"
+    )
     date_sample_received = models.DateField(blank=True, null=True)
     status = models.CharField(max_length=10, default='pending')
     comment = models.TextField(blank=True, null=True)

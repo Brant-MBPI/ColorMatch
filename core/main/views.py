@@ -634,7 +634,6 @@ def cmf_dc_formula(request):
 
 def cmf_pending_completed(request):
     form_data = {}
-    # Prioritize POST data during a save operation
     record_no = request.POST.get('record_no') or request.GET.get('no')
     record_type = request.POST.get('record_type') or request.GET.get('type', 'cmf')
 
@@ -646,6 +645,8 @@ def cmf_pending_completed(request):
         if val is None or val == "" or val == "None": return "---"
         if isinstance(val, (date, datetime)):
             return val.strftime('%m/%d/%Y')
+        if isinstance(val, (Decimal, float)):
+            return format(float(val), ".2f")
         return str(val).strip()
 
     def parse_date(d_str):
@@ -663,58 +664,76 @@ def cmf_pending_completed(request):
             data = request.POST
             diff_logs = []
             tracking_instance = None
+            feedback_instance = None
             parent_display = ""
-            # 1. Identify Parent and Get/Create Tracking Instance
+
+            # 1. Identify Parent and Get/Create Instances
             if record_type == 'cmf':
                 cmf_obj = tbl_cmf.objects.filter(cm_no=record_no).first()
                 if not cmf_obj: raise Exception(f"CMF {record_no} not found.")
                 tracking_instance, _ = tbl_cmf_pending_completed.objects.get_or_create(cm_no=cmf_obj)
+                feedback_instance, _ = tbl_feedback_details.objects.get_or_create(cm_no=cmf_obj)
                 parent_display = f"CMF: {record_no}"
             else:
-                # For RS, record_no is the ID
                 rs_obj = tbl_rs.objects.filter(pk=record_no).first()
                 if not rs_obj: raise Exception(f"RS record not found.")
                 tracking_instance, _ = tbl_cmf_pending_completed.objects.get_or_create(rs_no=rs_obj)
+                feedback_instance, _ = tbl_feedback_details.objects.get_or_create(rs_no=rs_obj)
                 parent_display = f"RS: {rs_obj.rs_no}"
 
-            # 2. Define Update Map 
-            # Format: POST_KEY -> (Model_Attr, Label, Transform_Func)
+            # 2. Update Map for Tracking Table
             update_map = {
-                'status': ('is_completed', 'Status', lambda x: x == 'Completed'),
-                'pending_reason': ('reason', 'Reason', str),
-                'product_code': ('code', 'Product Code', get_prod_code_obj), # Using 'code' FK
-                'code_description': ('code_details', 'Code Details', str),
-                'date_submitted': ('date_submitted', 'Date Submitted', parse_date),
-                'ar_no': ('ar_no', 'AR No.', str),
-                'ar_date': ('ar_date', 'AR Date', parse_date),
+                'status': (tracking_instance, 'is_completed', 'Status', lambda x: x == 'Completed'),
+                'pending_reason': (tracking_instance, 'reason', 'Reason', str),
+                'product_code': (tracking_instance, 'code', 'Product Code', get_prod_code_obj),
+                'lot_no': (tracking_instance, 'lot_no', 'Lot Number', str),
+                'code_description': (tracking_instance, 'code_details', 'Code Details', str),
+                'date_submitted': (tracking_instance, 'date_submitted', 'Date Submitted', parse_date),
+                'ar_no': (tracking_instance, 'ar_no', 'AR No.', str),
+                'ar_date': (tracking_instance, 'ar_date', 'AR Date', parse_date),
+            }
+
+            # 3. Update Map for Feedback Table
+            feedback_map = {
+                'qty_given': (feedback_instance, 'quantity_given', 'Qty Given', lambda x: Decimal(x) if x else None),
+                'set_pc': (feedback_instance, 'pieces', 'Sets/Pcs', lambda x: int(x) if x else None),
             }
 
             with transaction.atomic():
-                for post_key, (attr, label, transform) in update_map.items():
-                    current_val = getattr(tracking_instance, attr)
+                # Process Tracking Diffs
+                for post_key, (inst, attr, label, transform) in update_map.items():
+                    current_val = getattr(inst, attr)
                     new_val = transform(data.get(post_key, ''))
-
-                    # Special handling for Comparing Objects (Product Code FK)
-                    if attr == 'code':
-                        curr_str = format_val(current_val.product_code if current_val else "")
-                        new_str = format_val(new_val.product_code if new_val else "")
-                    else:
-                        curr_str = format_val(current_val)
-                        new_str = format_val(new_val)
+                    
+                    curr_str = format_val(current_val.product_code if attr == 'code' and current_val else current_val)
+                    new_str = format_val(new_val.product_code if attr == 'code' and new_val else new_val)
 
                     if curr_str != new_str:
                         diff_logs.append(f"{label} ({curr_str} -> {new_str})")
-                        setattr(tracking_instance, attr, new_val)
+                        setattr(inst, attr, new_val)
+
+                # Process Feedback Diffs
+                for post_key, (inst, attr, label, transform) in feedback_map.items():
+                    current_val = getattr(inst, attr)
+                    new_val = transform(data.get(post_key, ''))
+                    
+                    curr_str, new_str = format_val(current_val), format_val(new_val)
+                    if curr_str != new_str:
+                        diff_logs.append(f"{label} ({curr_str} -> {new_str})")
+                        setattr(inst, attr, new_val)
+
+                # Sync Code FK to Feedback
+                if feedback_instance.code != tracking_instance.code:
+                    feedback_instance.code = tracking_instance.code
 
                 if diff_logs:
                     tracking_instance.save()
-                    log_msg = f"Updated Status for {parent_display}. Changes: {', '.join(diff_logs)}"
-                    log_audit(request, "Updated", log_msg)
+                    feedback_instance.save()
+                    log_audit(request, "Updated", f"Updated Status for {parent_display}. Changes: {', '.join(diff_logs)}")
                     messages.success(request, f"Successfully updated tracking for {parent_display}")
                 else:
                     messages.info(request, "No changes detected.")
-                cache.delete('cmf_records_list')
-                cache.delete('rs_records_list')
+
                 return redirect(f"{request.path}?no={record_no}&type={record_type}")
 
         except Exception as e:
@@ -728,6 +747,7 @@ def cmf_pending_completed(request):
                 dates = tbl_cmf_dates.objects.filter(cm_no=cmf).first()
                 formula_info = tbl_cmf_formula.objects.filter(cm_no=cmf).first()
                 tracking = tbl_cmf_pending_completed.objects.filter(cm_no=cmf).select_related('code').first()
+                feedback = tbl_feedback_details.objects.filter(cm_no=cmf).first()
                 
                 is_dc = (cmf.colorant_type or "").upper() == 'DC'
                 final_formula = tbl_mb_extruder_formula.objects.filter(cm_no=cmf, is_final=True).select_related('code').first()
@@ -737,8 +757,8 @@ def cmf_pending_completed(request):
 
                 final_prod_code = final_formula.code.product_code if final_formula and final_formula.code else (tracking.code.product_code if tracking and tracking.code else "")
                 
+                selected_lot = "N/A" if is_dc else (tracking.lot_no if tracking and tracking.lot_no else (final_formula.lot_no if final_formula else ""))
                 lot_options = ["N/A"] if is_dc else []
-                selected_lot = "N/A" if is_dc else (final_formula.lot_no if final_formula else "")
                 if not is_dc and final_formula and final_formula.code:
                     mb_lots = tbl_mb_extruder_formula.objects.filter(cm_no=cmf, code=final_formula.code).values_list('lot_no', flat=True)
                     lot_options = sorted(list(set(filter(None, mb_lots))), reverse=True)
@@ -761,6 +781,8 @@ def cmf_pending_completed(request):
                     'lot_no': selected_lot,
                     'lot_options': lot_options,
                     'is_dc': is_dc,
+                    'qty_given': feedback.quantity_given if feedback else "",
+                    'set_pc': feedback.pieces if feedback else "",
                     'code_description': tracking.code_details if tracking else "",
                     'date_submitted': format_val(tracking.date_submitted) if tracking else "",
                     'ar_no': tracking.ar_no if tracking else "",
@@ -773,6 +795,7 @@ def cmf_pending_completed(request):
             rs = tbl_rs.objects.filter(id=record_no).first()
             if rs:
                 tracking = tbl_cmf_pending_completed.objects.filter(rs_no=rs).select_related('code').first()
+                feedback = tbl_feedback_details.objects.filter(rs_no=rs).first()
                 dates = tbl_cmf_dates.objects.filter(rs_no=rs).first()
                 resins_list = tbl_resins_selected.objects.filter(rs_no=rs).values_list('resin_no__abbreviation', flat=True)
                 processes = tbl_cmf_process02.objects.filter(rs_no=rs).values_list('process_no__name', flat=True)
@@ -780,8 +803,8 @@ def cmf_pending_completed(request):
                 is_dc = (rs.colorant_type or "").upper() == 'DC'
                 final_prod_code = tracking.code.product_code if tracking and tracking.code else ""
 
+                selected_lot = "N/A" if is_dc else (tracking.lot_no if tracking else "")
                 lot_options = ["N/A"] if is_dc else []
-                selected_lot = "N/A" if is_dc else ""
                 if not is_dc and tracking and tracking.code:
                     mb_lots = tbl_mb_extruder_formula.objects.filter(rs_no=rs, code=tracking.code).values_list('lot_no', flat=True)
                     lot_options = sorted(list(set(filter(None, mb_lots))), reverse=True)
@@ -807,6 +830,8 @@ def cmf_pending_completed(request):
                     'lot_no': selected_lot,
                     'lot_options': lot_options,
                     'is_dc': is_dc,
+                    'qty_given': feedback.quantity_given if feedback else "",
+                    'set_pc': feedback.pieces if feedback else "",
                     'code_description': tracking.code_details if tracking else "",
                     'date_submitted': format_val(tracking.date_submitted) if tracking else "",
                     'ar_no': tracking.ar_no if tracking else "",
@@ -815,7 +840,7 @@ def cmf_pending_completed(request):
                     'record_type': 'rs',
                 }
 
-    return render(request, "sidemenu/cmf/pending_completed.html", {"form_data": form_data}) 
+    return render(request, "sidemenu/cmf/pending_completed.html", {"form_data": form_data})
 
 def master_formula(request):
     form_id = request.GET.get('form_id')
@@ -974,7 +999,7 @@ def feedback(request):
             messages.error(request, f"Feedback record with ID {feedback_no} not found.")
 
     # --- 3. LOAD RECORDS LIST (STATIC FOR NOW) ---
-    feedback_qs = tbl_feedback_details.objects.all().select_related('cm_no', 'rs_no').order_by('-feedback_no')
+    feedback_qs = tbl_feedback_details.objects.all().select_related('cm_no', 'rs_no', 'code').order_by('-feedback_no')
 
     records_list = []
     for fb in feedback_qs:
@@ -1002,7 +1027,7 @@ def feedback(request):
                 'due_date': dates.due_date_lab.strftime('%m/%d/%Y') if dates and dates.due_date_lab else '---',
                 'type': fb.cm_no.matching_type or '---',
                 'mode': 'cmf',
-                'prod_code': final_formula.code.product_code if final_formula and final_formula.code else (fb.code_submitted or '---')
+                'prod_code': final_formula.code.product_code if final_formula and final_formula.code else (fb.code.product_code if fb.code else '---')
             })
         elif fb.rs_no:
             pending_info = tbl_cmf_pending_completed.objects.filter(rs_no=fb.rs_no).select_related('code').first()
