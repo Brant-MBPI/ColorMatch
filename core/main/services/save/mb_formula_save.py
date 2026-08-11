@@ -153,13 +153,13 @@ def save_mb_complete_formula(request):
             lot_display = header.lot_no if header.lot_no else "N/A"
             if action_type == "Updated":
                 if not diff_logs and not ingredients_changed:
-                    msg = f"Updated MB Formula (Lot: {lot_display}) with no technical changes."
+                    msg = f"MB Formula (Lot: {lot_display}) with no technical changes."
                 else:
-                    msg = f"Updated MB Formula (Lot: {lot_display}). Changes: " + ", ".join(diff_logs)
+                    msg = f"MB Formula (Lot: {lot_display}). Changes: " + ", ".join(diff_logs)
                     if ingredients_changed:
                         msg += " (Material Breakdown was modified)."
             else:
-                msg = f"Saved New MB Formula (Lot: {lot_display}) for {parent_label}."
+                msg = f"New MB Formula (Lot: {lot_display}) for {parent_label}."
 
             log_audit(request, action_type, msg)
             return header

@@ -246,7 +246,7 @@ def save_formulation(request):
                 log_message = f"New Formulation Entry: #{f.form_id}"
             else:
                 details = ", ".join(diff_logs) if diff_logs else "No technical changes"
-                log_message = f"Updated Formulation #{f.form_id}. Changes: {details}"
+                log_message = f"Formulation #{f.form_id}. Changes: {details}"
 
             log_audit(request, action_type, log_message)
             cache.delete('formulation_records_list')

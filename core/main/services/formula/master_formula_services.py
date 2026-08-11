@@ -247,7 +247,7 @@ def save_master_formula(request):
                 log_message = f"New Master Formula Entry: #{mf.form_id}"
             else:
                 details = ", ".join(diff_logs) if diff_logs else "No technical field changes"
-                log_message = f"Updated Master Formula #{mf.form_id}. Changes: {details}"
+                log_message = f"Master Formula #{mf.form_id}. Changes: {details}"
 
             log_audit(request, action_type, log_message)
             return True, mf.form_id

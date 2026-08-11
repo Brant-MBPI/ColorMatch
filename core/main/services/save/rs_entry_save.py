@@ -231,7 +231,7 @@ def update_rs_complete_entry(request, original_rs_id):
         tbl_cmf_pending_completed.objects.filter(rs_no=rs_instance).update(code=code_obj)
 
         # --- 4. LOGGING ---
-        log_msg = f"Updated RS Entry: {rs_instance.rs_no}"
+        log_msg = f"RS Entry: {rs_instance.rs_no}"
         if diff_logs:
             log_msg += ". Changes: " + (", ".join(diff_logs))
         else:

@@ -149,14 +149,14 @@ def save_dc_complete_formula(request):
             
             if action_type == "Updated":
                 # FORMAT: Updated DC Formula (CMF: A9267a | Code: P-123 ). Changes: ...
-                msg = f"Updated DC Formula (CMF: {cm_display} | Code: {code_display} ). "
+                msg = f"DC Formula (CMF: {cm_display} | Code: {code_display} ). "
                 if not diff_logs and not ingredients_changed:
                     msg += "No technical changes."
                 else:
                     if diff_logs: msg += f"Changes: {', '.join(diff_logs)}. "
                     if ingredients_changed: msg += "Material composition updated."
             else:
-                msg = f"Saved New DC Formula (CMF: {cm_display} | Code: {code_display} )."
+                msg = f"New DC Formula (CMF: {cm_display} | Code: {code_display} )."
 
             log_audit(request, action_type, msg)
             return header
