@@ -117,7 +117,7 @@
     }
 
     // --- 5. Save / New / Print button confirmations ---
-    const saveBtn = document.querySelector('.btn-save');
+    const saveBtn = document.querySelector('.btn-save-formula');
     const newBtn = document.querySelector('.btn-new');
     const printBtn = document.querySelector('.btn-print');
     const form = saveBtn ? saveBtn.closest('form') : null;

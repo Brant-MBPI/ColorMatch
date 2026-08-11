@@ -337,7 +337,7 @@
         <button type="button" class="btn btn-sm btn-primary px-4 shadow-sm btn-new">
             <i class="bi bi-file-earmark-plus me-1"></i> New
         </button>
-        <button type="button" class="btn btn-sm btn-success px-4 shadow-sm btn-save">
+        <button type="button" class="btn btn-sm btn-success px-4 shadow-sm btn-save-formula">
             {% if form_data.formula_id %}
                 <i class="bi bi-save me-1"></i> Update
             {% else %}
@@ -367,6 +367,6 @@
 
 {% endblock content %}
 {% block scripts %}
-<script src="{% static 'js/cmf/formula_mb.js' %}"></script>
 <script src="{% static 'js/cmf/formula.js' %}"></script>
+<script src="{% static 'js/cmf/formula_mb.js' %}"></script>
 {% endblock %}
