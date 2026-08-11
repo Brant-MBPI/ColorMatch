@@ -192,7 +192,7 @@ RS Entry
                 <i class="bi bi-plus-lg"></i> New
             </button>
             <button type="button" class="btn btn-sm btn-success px-3 shadow-sm btn-save">
-                <i class="bi bi-save"></i> {% if is_edit %}Update RS{% else %}Save RS{% endif %}
+                <i class="bi bi-save"></i> {% if form_data.original_rs_id %}Update RS{% else %}Save RS{% endif %}
             </button>
         </div>
     </form>
