@@ -22,7 +22,7 @@ CACHE_TIMEOUT = 3600  # 1 hour
 # --- 1. DATA RETRIEVAL (FOR ENTRY/EDIT) ---
 
 def get_master_formula_details(form_id):
-    """Fetches full details for a single master formula (Used when editing)."""
+    """Fetches full details for a single master formula."""
     formula = tbl_master_formula.objects.filter(pk=form_id, is_deleted=False).first()
     if not formula:
         return None
@@ -42,7 +42,7 @@ def get_master_formula_details(form_id):
         'prod_color': formula.prod_color or '',
         'total_concentration': format(formula.total_concentration or 0, ".6f"),
         'sum_of_concentration': format(formula.dosage or 0, ".6f"),
-        'dosage': formula.ld or '',
+        'dosage': format(formula.ld or 0, ".6f"),
         'mix_time': formula.mix_time or '',
         'resin': formula.resin or '',
         'application': formula.application or '',
@@ -62,7 +62,7 @@ def get_master_formula_details(form_id):
     }
 
 def get_all_matching_numbers():
-    """Fetches unique CM/RS numbers for the TomSelect dropdown (Cached)."""
+    """Fetches unique CM/RS numbers for the TomSelect dropdown."""
     nos = cache.get('matching_numbers_list')
     if not nos:
         cmf_nos = list(tbl_cmf.objects.exclude(cm_no__isnull=True).exclude(cm_no='').values_list('cm_no', flat=True))
@@ -72,7 +72,7 @@ def get_all_matching_numbers():
     return nos
 
 def get_master_formula_context(form_id=None):
-    """Context for the Master Formula page. Removed the 17k record list."""
+    """Context for the Master Formula page."""
     if form_id:
         form_data = get_master_formula_details(form_id)
     else:
@@ -96,20 +96,15 @@ def get_master_formula_context(form_id=None):
         'customers': ["Masterbatch PH", "Generic Co."],
     }
 
-# --- 2. DATA TABLES (JSON ENDPOINTS) ---
+# --- 2. DATA TABLES ---
 
 def get_master_formula_records_json(request):
-    """Server-side DataTables logic for Master Formula records (High Performance)."""
+    """Server-side DataTables logic for Master Formula records."""
     draw = int(request.GET.get('draw', 1))
     start = int(request.GET.get('start', 0))
-    length = request.GET.get('length', 1000) 
-    
-    if length == '-1':
-        length = tbl_master_formula.objects.filter(is_deleted=False).count()
-    else:
-        length = int(length)
-
+    length = int(request.GET.get('length', 1000))
     search_value = request.GET.get('search[value]', '').strip()
+    
     queryset = tbl_master_formula.objects.filter(is_deleted=False)
     total_records = queryset.count()
 
@@ -122,20 +117,13 @@ def get_master_formula_records_json(request):
             Q(prod_color__icontains=search_value)
         )
 
-    # Ordering mapping
-    order_column_index = request.GET.get('order[0][column]')
-    order_dir = request.GET.get('order[0][dir]')
-    column_mapping = {
-        '0': 'form_id', '1': 'index_no', '2': 'customer', 
-        '3': 'product_code', '4': 'prod_color', 
-        '5': 'total_concentration', '6': 'ld'
-    }
-    
-    order_field = column_mapping.get(order_column_index, '-form_id')
-    if order_dir == 'desc' and not order_field.startswith('-'):
-        order_field = f"-{order_field}"
-    
-    queryset = queryset.order_by(order_field)
+    # Column Ordering
+    order_col = request.GET.get('order[0][column]', '0')
+    order_dir = request.GET.get('order[0][dir]', 'desc')
+    mapping = {'0': 'form_id', '1': 'index_no', '2': 'customer', '3': 'product_code', '4': 'prod_color'}
+    sort_field = mapping.get(order_col, 'form_id')
+    queryset = queryset.order_by(f"{'-' if order_dir == 'desc' else ''}{sort_field}")
+
     filtered_records = queryset.count()
     queryset = queryset[start:start + length]
 
@@ -149,33 +137,12 @@ def get_master_formula_records_json(request):
         "ld": format(row.ld or 0, ".6f"),
     } for row in queryset]
 
-    return JsonResponse({
-        "draw": draw,
-        "recordsTotal": total_records,
-        "recordsFiltered": filtered_records,
-        "data": data,
-    })
+    return JsonResponse({"draw": draw, "recordsTotal": total_records, "recordsFiltered": filtered_records, "data": data})
 
-def master_formula_materials_json(request, form_id):
-    """API for the Material Breakdown side-panel."""
-    formula = tbl_master_formula.objects.filter(pk=form_id).first()
-    if not formula:
-        return JsonResponse({'error': 'Not found'}, status=404)
-    
-    materials = list(tbl_master_formula_info.objects.filter(form=formula, is_deleted=False)
-                     .order_by('sequence_no').values('material_code', 'concentration'))
-    
-    return JsonResponse({
-        'form_id': formula.form_id,
-        'index_no': formula.index_no or '-',
-        'customer': formula.customer or '',
-        'materials': materials
-    })
-
-# --- 3. PERSISTENCE (SAVE / LOOKUP) ---
+# --- 3. PERSISTENCE (SAVE / AUDIT) ---
 
 def save_master_formula(request):
-    """Handles creating or updating a Master Formula."""
+    """Handles creating or updating a Master Formula with detailed Audit Trail."""
     try:
         with transaction.atomic():
             data = request.POST
@@ -183,18 +150,52 @@ def save_master_formula(request):
             is_new = data.get('is_new_flag') == 'true'
             current_time_str = timezone.now().strftime('%m/%d/%Y %I:%M %p')
             
+            diff_logs = []
+
+            # 1. Capture Original Data if Updating
             if not is_new and form_id:
                 mf = tbl_master_formula.objects.get(pk=form_id)
-                action_type, log_message = "Updated", f"Updated Master Formula Entry: {form_id}"
+                action_type = "Updated"
+                
+                # Check for changes in main fields
+                # Key = POST field name, Value = (Model field, Label)
+                field_map = {
+                    'customer': ('customer', 'Customer'),
+                    'index_no': ('index_no', 'Index #'),
+                    'product_code': ('product_code', 'Product Code'),
+                    'prod_color': ('prod_color', 'Color'),
+                    'sum_of_concentration': ('dosage', 'Sum of Con'),
+                    'dosage': ('ld', 'Dosage'),
+                    'mix_time': ('mix_time', 'Mixing Time'),
+                    'resin': ('resin', 'Resin'),
+                    'application': ('application', 'Application'),
+                    'notes': ('notes', 'Notes'),
+                    'html_code_hex': ('html_code_hex', 'Hex Code'),
+                }
+
+                for post_key, (model_attr, label) in field_map.items():
+                    old_val = str(getattr(mf, model_attr) or '').strip()
+                    new_val = str(data.get(post_key) or '').strip()
+                    if old_val != new_val:
+                        diff_logs.append(f"{label}: {old_val} -> {new_val}")
+
+                # Check for Material Changes (Summary compare)
+                old_mats = list(tbl_master_formula_info.objects.filter(form=mf).values_list('material_code', flat=True))
+                new_mats_raw = data.get('materials_data')
+                if new_mats_raw:
+                    new_mats = [m['material'] for m in json.loads(new_mats_raw)]
+                    if set(old_mats) != set(new_mats):
+                        diff_logs.append("Material Breakdown updated")
+
                 mf.date_modified = current_time_str
             else:
                 mf = tbl_master_formula()
                 if form_id: mf.form_id = form_id 
-                action_type, log_message = "Saved", f"New Master Formula Entry: {form_id}"
+                action_type = "Saved"
                 mf.date = timezone.now().date()
                 mf.date_modified = None  
 
-            # Field Mapping
+            # 2. Map & Save Fields
             mf.customer = data.get('customer')
             mf.index_no = data.get('index_no')
             mf.product_code = data.get('product_code')
@@ -204,7 +205,10 @@ def save_master_formula(request):
             mf.ld = data.get('dosage') or 0
             mf.mix_time, mf.resin, mf.application, mf.cm_no = data.get('mix_time'), data.get('resin'), data.get('application'), data.get('cm_no')
             mf.notes, mf.html_code_hex = data.get('notes'), data.get('html_code_hex')
-            mf.cyan, mf.magenta, mf.yellow, mf.black = data.get('cyan') or None, data.get('magenta') or None, data.get('yellow') or None, data.get('black') or None
+            mf.cyan = data.get('cyan') if data.get('cyan') else None
+            mf.magenta = data.get('magenta') if data.get('magenta') else None
+            mf.yellow = data.get('yellow') if data.get('yellow') else None
+            mf.black = data.get('black') if data.get('black') else None
             
             dt_str = data.get('colormatch_date')
             if dt_str:
@@ -212,14 +216,18 @@ def save_master_formula(request):
                 except: pass
             mf.save()
 
-            # Materials
+            # 3. Handle Materials
             tbl_master_formula_info.objects.filter(form=mf).delete()
             materials_json = data.get('materials_data')
             if materials_json:
                 for i, mat in enumerate(json.loads(materials_json)):
-                    tbl_master_formula_info.objects.create(form=mf, sequence_no=i+1, material_code=mat['material'], concentration=mat['concentration'])
+                    tbl_master_formula_info.objects.create(
+                        form=mf, sequence_no=i+1, 
+                        material_code=mat['material'], 
+                        concentration=mat['concentration']
+                    )
 
-            # Metadata
+            # 4. Metadata
             encode, _ = tbl_master_formula_encode.objects.get_or_create(form=mf)
             encode.match_by = data.get('matched_by')
             if is_new:
@@ -228,19 +236,29 @@ def save_master_formula(request):
                 encode.updated_by = request.user.first_name if request.user.is_authenticated else "System"
             encode.save()
 
-            # Update Source Formula
+            # 5. Update Source Formula Reference
             source_pk, source_type = data.get('source_formula_pk'), data.get('source_formula_type')
             if source_pk and source_type:
                 model = tbl_mb_extruder_formula if source_type == 'MB' else tbl_dc_extruder_formula
                 model.objects.filter(pk=source_pk).update(in_master_formula=True)
 
+            # 6. Construct Final Audit Message
+            if is_new:
+                log_message = f"New Master Formula Entry: #{mf.form_id}"
+            else:
+                details = ", ".join(diff_logs) if diff_logs else "No technical field changes"
+                log_message = f"Updated Master Formula #{mf.form_id}. Changes: {details}"
+
             log_audit(request, action_type, log_message)
             return True, mf.form_id
+
     except Exception as e:
         return False, str(e)
 
+# --- 4. LOOKUP ---
+
 def master_formula_lookup(request):
-    """Lookup logic for searching CM/RS records to import into Entry tab."""
+    """Lookup logic for searching CM/RS records."""
     matching_no = request.GET.get('matching_no', '').strip()
     error, mb_list, dc_list, color = None, [], [], ''
     parent = {'customer': '', 'resin_used': '', 'colorant_type': '', 'process': ''}
@@ -272,17 +290,25 @@ def master_formula_lookup(request):
 
             for qs, target, ftype in [(mb_qs, mb_list, 'MB'), (dc_qs, dc_list, 'DC')]:
                 for f in qs:
-                    # Determine ingredients based on type
                     ing_model = tbl_mb_extruder_formula02 if ftype == 'MB' else tbl_dc_extruder_formula02
                     filter_key = {'mb': f} if ftype == 'MB' else {'dc': f}
                     ingredients = [{'material': i.material, 'value': float(i.value or 0)} for i in ing_model.objects.filter(**filter_key)]
                     target.append({
                         'header': f, 'pk': f.pk, 'ingredients': ingredients,
                         'sum_con': format(sum(item['value'] for item in ingredients), ".6f"),
-                        'script_id': f'mf-ing-{ftype.lower()}-{f.pk}'
+                        'script_id': f'mf-ing-{ftype.lower()}-{f.pk}',
+                        'cm_no': matching_no # Added for the setVal JS helper
                     })
 
     return render(request, "modal/master-formula/master_formula_lookup.html", {
         'matching_no': matching_no, 'error': error, 'color': color, 'parent': parent,
         'mb_formulas': mb_list, 'dc_formulas': dc_list
     })
+
+def master_formula_materials_json(request, form_id):
+    """API for materials breakdown."""
+    formula = tbl_master_formula.objects.filter(pk=form_id).first()
+    if not formula: return JsonResponse({'error': 'Not found'}, status=404)
+    materials = list(tbl_master_formula_info.objects.filter(form=formula, is_deleted=False)
+                     .order_by('sequence_no').values('material_code', 'concentration'))
+    return JsonResponse({'form_id': formula.form_id, 'index_no': formula.index_no or '-', 'customer': formula.customer or '', 'materials': materials})

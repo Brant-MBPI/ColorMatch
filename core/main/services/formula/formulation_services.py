@@ -39,19 +39,19 @@ def get_formulation_details(form_id):
         'form_id': f.form_id,
         'index_no': f.index_no or '',
         'customer': f.customer or '',
-        'product_code': f.prod_code or '', # Model uses prod_code
+        'product_code': f.prod_code or '', 
         'prod_color': f.prod_color or '',
         'total_concentration': format(f.total_concentration or 0, ".6f"),
-        'sum_of_concentration': format(f.dosage or 0, ".6f"), # Model dosage = Sum of Con input
-        'dosage': f.ld or '',                                # Model ld = Dosage input
+        'sum_of_concentration': format(f.dosage or 0, ".6f"), 
+        'dosage': format(f.ld or 0, ".6f"),
         'mix_time': f.mix_time or '',
         'resin': f.resin or '',
         'application': f.application or '',
-        'cm_no': f.colormatch_no or '', # Model uses colormatch_no
+        'cm_no': f.colormatch_no or '', 
         'colormatch_date': f.colormatch_date.strftime('%m/%d/%Y') if f.colormatch_date else '',
         'notes': f.notes or '',
         'updated_by': encode.updated_by if encode else '',
-        'updated_time': f.date_time or '', # Model uses date_time as mod string
+        'updated_time': f.date_time or '', 
         'matched_by': encode.match_by if encode else '',
         'encoded_by': encode.encoded_by if encode else '',
         'materials': materials,
@@ -74,7 +74,6 @@ def get_formulation_context(form_id=None):
         .order_by('full_name')
     )
     
-    # Reusing the global CM/RS numbers logic
     from .master_formula_services import get_all_matching_numbers
 
     return {
@@ -91,13 +90,8 @@ def get_formulation_records_json(request):
     """Server-side DataTables logic for 17,000+ Formulation records."""
     draw = int(request.GET.get('draw', 1))
     start = int(request.GET.get('start', 0))
-    length = request.GET.get('length', 1000) 
+    length = int(request.GET.get('length', 1000))
     
-    if length == '-1':
-        length = tbl_formula01.objects.filter(is_deleted=False).count()
-    else:
-        length = int(length)
-
     search_value = request.GET.get('search[value]', '').strip()
     queryset = tbl_formula01.objects.filter(is_deleted=False)
     total_records = queryset.count()
@@ -111,20 +105,12 @@ def get_formulation_records_json(request):
             Q(prod_color__icontains=search_value)
         )
 
-    # Ordering mapping
-    order_column_index = request.GET.get('order[0][column]')
-    order_dir = request.GET.get('order[0][dir]')
-    column_mapping = {
-        '0': 'form_id', '1': 'index_no', '2': 'customer', 
-        '3': 'prod_code', '4': 'prod_color', 
-        '5': 'total_concentration', '6': 'ld'
-    }
-    
-    order_field = column_mapping.get(order_column_index, '-form_id')
-    if order_dir == 'desc' and not order_field.startswith('-'):
-        order_field = f"-{order_field}"
-    
-    queryset = queryset.order_by(order_field)
+    order_col = request.GET.get('order[0][column]', '0')
+    order_dir = request.GET.get('order[0][dir]', 'desc')
+    mapping = {'0': 'form_id', '1': 'index_no', '2': 'customer', '3': 'prod_code', '4': 'prod_color'}
+    sort_field = mapping.get(order_col, 'form_id')
+    queryset = queryset.order_by(f"{'-' if order_dir == 'desc' else ''}{sort_field}")
+
     filtered_records = queryset.count()
     queryset = queryset[start:start + length]
 
@@ -138,12 +124,7 @@ def get_formulation_records_json(request):
         "ld": format(row.ld or 0, ".6f"),
     } for row in queryset]
 
-    return JsonResponse({
-        "draw": draw,
-        "recordsTotal": total_records,
-        "recordsFiltered": filtered_records,
-        "data": data,
-    })
+    return JsonResponse({"draw": draw, "recordsTotal": total_records, "recordsFiltered": filtered_records, "data": data})
 
 def formulation_materials_json(request, form_id):
     """API for the Side-Panel Material breakdown."""
@@ -164,7 +145,7 @@ def formulation_materials_json(request, form_id):
 # --- 3. SAVE AND LOOKUP ---
 
 def save_formulation(request):
-    """Handles creating or updating a Formulation record."""
+    """Handles creating or updating a Formulation record with detailed Audit Trail."""
     try:
         with transaction.atomic():
             data = request.POST
@@ -172,18 +153,52 @@ def save_formulation(request):
             is_new = data.get('is_new_flag') == 'true'
             current_time_str = timezone.now().strftime('%m/%d/%Y %I:%M %p')
             
+            diff_logs = []
+
+            # 1. Capture Original Data if Updating
             if not is_new and form_id:
                 f = tbl_formula01.objects.get(pk=form_id)
-                action_type, log_message = "Updated", f"Updated Formulation Entry: {form_id}"
+                action_type = "Updated"
+                
+                # Check Technical Field Changes
+                # POST Key -> (Model Attribute, Display Label)
+                field_map = {
+                    'customer': ('customer', 'Customer'),
+                    'index_no': ('index_no', 'Index #'),
+                    'product_code': ('prod_code', 'Product Code'),
+                    'prod_color': ('prod_color', 'Color'),
+                    'sum_of_concentration': ('dosage', 'Sum of Con'),
+                    'dosage': ('ld', 'Dosage'),
+                    'mix_time': ('mix_time', 'Mixing Time'),
+                    'resin': ('resin', 'Resin'),
+                    'application': ('application', 'Application'),
+                    'notes': ('notes', 'Notes'),
+                    'cm_no': ('colormatch_no', 'CM Form #'),
+                }
+
+                for post_key, (model_attr, label) in field_map.items():
+                    old_val = str(getattr(f, model_attr) or '').strip()
+                    new_val = str(data.get(post_key) or '').strip()
+                    if old_val != new_val:
+                        diff_logs.append(f"{label}: {old_val} -> {new_val}")
+
+                # Check for Material Changes
+                old_mats = list(tbl_formula02.objects.filter(form=f).values_list('material_code', flat=True))
+                new_mats_raw = data.get('materials_data')
+                if new_mats_raw:
+                    new_mats = [m['material'] for m in json.loads(new_mats_raw)]
+                    if set(old_mats) != set(new_mats):
+                        diff_logs.append("Material Breakdown updated")
+
                 f.date_time = current_time_str
             else:
                 f = tbl_formula01()
                 if form_id: f.form_id = form_id 
-                action_type, log_message = "Saved", f"New Formulation Entry: {form_id}"
+                action_type = "Saved"
                 f.date = timezone.now().date()
                 f.date_time = None  
 
-            # Field Mapping
+            # 2. Map and Save Fields
             f.customer = data.get('customer')
             f.index_no = data.get('index_no')
             f.prod_code = data.get('product_code')
@@ -200,14 +215,18 @@ def save_formulation(request):
                 except: pass
             f.save()
 
-            # Materials
+            # 3. Handle Materials
             tbl_formula02.objects.filter(form=f).delete()
             materials_json = data.get('materials_data')
             if materials_json:
                 for i, mat in enumerate(json.loads(materials_json)):
-                    tbl_formula02.objects.create(form=f, sequence_no=i+1, material_code=mat['material'], concentration=mat['concentration'])
+                    tbl_formula02.objects.create(
+                        form=f, sequence_no=i+1, 
+                        material_code=mat['material'], 
+                        concentration=mat['concentration']
+                    )
 
-            # Metadata
+            # 4. Metadata
             encode, _ = tbl_formula_encode.objects.get_or_create(form=f)
             encode.match_by = data.get('matched_by')
             if is_new:
@@ -216,19 +235,28 @@ def save_formulation(request):
                 encode.updated_by = request.user.first_name if request.user.is_authenticated else "System"
             encode.save()
 
-            # Update Source Formula Mark
+            # 5. Update Source Formula Reference
             source_pk, source_type = data.get('source_formula_pk'), data.get('source_formula_type')
             if source_pk and source_type:
                 model = tbl_mb_extruder_formula if source_type == 'MB' else tbl_dc_extruder_formula
                 model.objects.filter(pk=source_pk).update(in_master_formula=True)
 
+            # 6. Audit Trail Logging
+            if is_new:
+                log_message = f"New Formulation Entry: #{f.form_id}"
+            else:
+                details = ", ".join(diff_logs) if diff_logs else "No technical changes"
+                log_message = f"Updated Formulation #{f.form_id}. Changes: {details}"
+
             log_audit(request, action_type, log_message)
+            cache.delete('formulation_records_list')
             return True, f.form_id
+            
     except Exception as e:
         return False, str(e)
 
 def formulation_lookup(request):
-    """Lookup logic for searching CM/RS records to import into Entry tab."""
+    """Lookup logic for searching CM/RS records."""
     matching_no = request.GET.get('matching_no', '').strip()
     error, mb_list, dc_list, color = None, [], [], ''
     parent = {'customer': '', 'resin_used': '', 'colorant_type': '', 'process': ''}
