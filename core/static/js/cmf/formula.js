@@ -130,13 +130,14 @@
             // --- MASTERBATCH (MB) SPECIFIC VALIDATION ---
             // We check if the form has the class we added in the template
             const isMB = form.classList.contains('js-mb-formula');
+            const isDC = form.classList.contains('js-dc-formula');
 
+            // Get values from the summary row and the supposed weight input
+            const totalPct = parseFloat(document.querySelector('.js-total-percent-summary')?.value) || 0;
+            const totalWgt = parseFloat(document.querySelector('.js-total-weight-summary')?.value) || 0;
+            const masterWgt = parseFloat(document.querySelector('.total-weight-display')?.value) || 0;
+            
             if (isMB) {
-                // Get values from the summary row and the supposed weight input
-                const totalPct = parseFloat(document.querySelector('.js-total-percent-summary')?.value) || 0;
-                const totalWgt = parseFloat(document.querySelector('.js-total-weight-summary')?.value) || 0;
-                const masterWgt = parseFloat(document.querySelector('.total-weight-display')?.value) || 0;
-
                 // Validation A: Total percentage must be exactly 100
                 // Using .toFixed(2) to handle tiny floating point math errors
                 if (totalPct.toFixed(2) !== "100.00") {
@@ -145,6 +146,12 @@
                 }
 
                 // Validation B: Summary weight must match the supposed total weight input
+                if (totalWgt.toFixed(2) !== masterWgt.toFixed(2)) {
+                    Preline.toast(`Cannot Save: Summary weight (${totalWgt.toFixed(2)}) does not match Supposed Total Weight (${masterWgt.toFixed(2)}).`, 'error');
+                    return; // Stop the save
+                }
+            }
+            if (isDC) {
                 if (totalWgt.toFixed(2) !== masterWgt.toFixed(2)) {
                     Preline.toast(`Cannot Save: Summary weight (${totalWgt.toFixed(2)}) does not match Supposed Total Weight (${masterWgt.toFixed(2)}).`, 'error');
                     return; // Stop the save

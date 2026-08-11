@@ -12,9 +12,10 @@ Formula DC
         <h4 class="fw-bold m-0 main-title">DRY COLOR MATCHING FORM</h4>
     </div>
 
-    <form id="formulaDcForm" method="POST">
+    <form id="formulaDcForm" class="js-dc-formula" method="POST">
         {% csrf_token %}
         <input type="hidden" name="formula_id" value="{{ form_data.formula_id|default:'' }}">
+        <input type="hidden" name="record_id" value="{{ form_data.record_id|default:'' }}">
         <input type="hidden" name="record_type" value="{{ form_data.record_type|default:'cmf' }}">
         <div class="row g-4">
             <!-- LEFT COLUMN: Input Sections -->
@@ -144,6 +145,15 @@ Formula DC
                                        value="{{ form_data.finished_product|default:'' }}" 
                                        class="form-control form-control-sm uniform-input readonly-gray" readonly
                                        required>
+                            </div>
+                        </div>
+                        <div class="row g-2 align-items-start">
+                            <div class="col-5"><label class="extra-small fw-bold">Note:</label></div>
+                            <div class="col-7">
+                                <textarea name="note" id="id_dc_note" rows="1" 
+                                          class="form-control form-control-sm uniform-input" 
+                                          style="resize: none;"
+                                          placeholder="Add remarks here...">{{ form_data.notes|default:'' }}</textarea>
                             </div>
                         </div>
                     </div>
@@ -334,7 +344,7 @@ Formula DC
             <button type="button" class="btn btn-sm btn-primary px-4 shadow-sm btn-new">
                 <i class="bi bi-file-earmark-plus me-1"></i> New
             </button>
-            <button type="button" class="btn btn-sm btn-success px-4 shadow-sm btn-save">
+            <button type="button" class="btn btn-sm btn-success px-4 shadow-sm btn-save-formula">
                 {% if form_data.formula_id %}
                     <i class="bi bi-save me-1"></i> Update
                 {% else %}
