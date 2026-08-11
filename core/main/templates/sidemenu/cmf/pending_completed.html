@@ -7,7 +7,8 @@ Pending/Completed Forms
 
 {% block content %}
 <div class="container-fluid p-0">
-    <form id="updateStatusForm">
+    <form id="updateStatusForm" method="POST">
+        {% csrf_token %}
         <input type="hidden" name="record_no" value="{{ form_data.record_no|default:'' }}">
         <input type="hidden" name="record_type" value="{{ form_data.record_type|default:'cmf' }}">
         <div class="card pc-card shadow-sm border-0 rounded-3">
@@ -187,10 +188,30 @@ Pending/Completed Forms
 
         <!-- Update Button -->
         <div class="d-flex justify-content-end mt-4 mb-5">
-            <button type="button" class="btn btn-success px-4 py-2 shadow-sm d-flex align-items-center btn-save">
+            <button type="button" class="btn btn-success px-4 py-2 shadow-sm d-flex align-items-center btn-update">
                 <i class="bi bi-save me-2"></i> Update Record
             </button>
         </div>
     </form>
 </div>
+<script>
+    const saveBtn = document.querySelector('.btn-update');
+    const entryForm = saveBtn ? saveBtn.closest('form') : null;
+    if (saveBtn && entryForm) {
+        saveBtn.addEventListener('click', function() {
+            // 1. Validate Form
+            if (entryForm.reportValidity()) {
+
+                Preline.confirm(
+                    'Update Entry?',
+                    'Are you sure you want to update this entry? Existing records will be modified.',
+                    'success',
+                    () => {
+                        entryForm.submit();
+                    }
+                );
+            }
+        });
+    }
+</script>
 {% endblock %}
