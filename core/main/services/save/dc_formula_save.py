@@ -22,17 +22,15 @@ def save_dc_complete_formula(request):
     def format_val(val):
         """Standardizes values to readable strings for audit comparison."""
         if val is None or val == "" or val == "None": return "---"
-        # Standardize Decimals to 4 places for comparison
         if isinstance(val, (Decimal, float)):
             return format(float(val), ".4f")
-        # Standardize Dates to MM/DD/YYYY
         if isinstance(val, (date, datetime)):
             return val.strftime('%m/%d/%Y')
         return str(val).strip()
 
     def get_pretty_name(field):
         mapping = {
-            'date': 'Date Matched', 'lot_no': 'Lot Number', 'sample_size': 'Sample Size',
+            'date': 'Date Matched', 'sample_size': 'Sample Size',
             'mixing_time': 'Mixing Time', 'matched_by': 'Matched By',
             'weighted_by': 'Weighed By', 'encoded_by': 'Encoded By',
             'total_weight': 'Total Weight', 'html': 'sRGB Hex',
@@ -51,23 +49,24 @@ def save_dc_complete_formula(request):
             # 2. Resolve Parent
             cmf_obj = None
             rs_obj = None
-            parent_label = ""
+            cm_display = "" # For Audit Log
+
             if record_type == 'rs':
                 rs_obj = tbl_rs.objects.get(pk=post_data.get('record_id'))
-                parent_label = f"RS: {rs_obj.rs_no}"
+                cm_display = rs_obj.rs_no
                 dosage_val = clean_num(post_data.get('dosage'))
                 if dosage_val is not None:
                     rs_obj.dosage = dosage_val
                     rs_obj.save(update_fields=['dosage'])
             else:
                 cmf_obj = tbl_cmf.objects.get(cm_no=post_data.get('record_id'))
-                parent_label = f"CMF: {cmf_obj.cm_no}"
+                cm_display = cmf_obj.cm_no
 
             # 3. Standardize Date
             raw_date = post_data.get('date_matched')
             formatted_date = datetime.strptime(raw_date, '%m/%d/%Y').date() if raw_date else None
 
-            # 4. Prepare Header Data
+            # 4. Header Data (Lot Number Removed)
             header_params = {
                 'date': formatted_date,
                 'cm_no': cmf_obj,
@@ -98,28 +97,24 @@ def save_dc_complete_formula(request):
             if formula_id:
                 header = tbl_dc_extruder_formula.objects.get(pk=formula_id)
 
-                # --- TRACK HEADER CHANGES ---
+                # --- TRACK CHANGES ---
                 for field, new_val in header_params.items():
                     current_val = getattr(header, field)
                     
-                    # Special logic for Foreign Key display comparison
                     if field == 'code':
                         curr_str = format_val(current_val.product_code if current_val else "")
                         new_str = format_val(new_val.product_code if new_val else "")
-                    elif field in ['cm_no', 'rs_no']:
-                        continue # References are usually static
+                    elif field in ['cm_no', 'rs_no']: continue
                     else:
-                        curr_str = format_val(current_val)
-                        new_str = format_val(new_val)
+                        curr_str, new_str = format_val(current_val), format_val(new_val)
 
                     if curr_str != new_str:
                         diff_logs.append(f"{get_pretty_name(field)} ({curr_str} -> {new_str})")
                         setattr(header, field, new_val)
                 header.save()
 
-                # --- TRACK INGREDIENT CHANGES ---
+                # --- INGREDIENTS ---
                 old_ings = list(tbl_dc_extruder_formula02.objects.filter(dc=header).values('material', 'value', 'weight'))
-                
                 new_ings = []
                 for i in range(1, 11):
                     mat = post_data.get(f'material_{i}', '').strip()
@@ -130,13 +125,11 @@ def save_dc_complete_formula(request):
                             'weight': Decimal(clean_num(post_data.get(f'weight_{i}')) or 0)
                         })
 
-                # Compare ingredients via JSON stringification for deep comparison
                 if json.dumps([(i['material'], str(i['value']), str(i['weight'])) for i in old_ings]) != \
                    json.dumps([(i['material'], str(i['value']), str(i['weight'])) for i in new_ings]):
                     ingredients_changed = True
                     tbl_dc_extruder_formula02.objects.filter(dc=header).delete()
-                    for ing in new_ings:
-                        tbl_dc_extruder_formula02.objects.create(dc=header, **ing)
+                    for ing in new_ings: tbl_dc_extruder_formula02.objects.create(dc=header, **ing)
 
                 action_type = "Updated"
             else:
@@ -145,29 +138,28 @@ def save_dc_complete_formula(request):
                     mat = post_data.get(f'material_{i}', '').strip()
                     if mat:
                         tbl_dc_extruder_formula02.objects.create(
-                            dc=header,
-                            material=mat,
+                            dc=header, material=mat,
                             value=clean_num(post_data.get(f'percentage_{i}')) or 0,
                             weight=clean_num(post_data.get(f'weight_{i}')) or 0
                         )
                 action_type = "Saved"
 
             # --- FINAL LOGGING ---
-            lot_display = header.lot_no if header.lot_no else "N/A"
+            code_display = prod_code_obj.product_code if prod_code_obj else "---"
+            
             if action_type == "Updated":
+                # FORMAT: Updated DC Formula (CMF: A9267a | Code: P-123 ). Changes: ...
+                msg = f"Updated DC Formula (CMF: {cm_display} | Code: {code_display} ). "
                 if not diff_logs and not ingredients_changed:
-                    msg = f"Updated DC Formula (Lot: {lot_display}) with no technical changes."
+                    msg += "No technical changes."
                 else:
-                    msg = f"Updated DC Formula (Lot: {lot_display}). Changes: " + ", ".join(diff_logs)
-                    if ingredients_changed:
-                        msg += " (Material composition updated)."
+                    if diff_logs: msg += f"Changes: {', '.join(diff_logs)}. "
+                    if ingredients_changed: msg += "Material composition updated."
             else:
-                msg = f"Saved New DC Formula (Lot: {lot_display}) for {parent_label}."
+                msg = f"Saved New DC Formula (CMF: {cm_display} | Code: {code_display} )."
 
             log_audit(request, action_type, msg)
             return header
 
-    except IntegrityError:
-        raise Exception("The Lot Number provided already exists. Please use a unique Lot Number.")
     except Exception as e:
         raise Exception(f"Database Error: {str(e)}")
