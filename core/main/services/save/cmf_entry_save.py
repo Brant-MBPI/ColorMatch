@@ -1,7 +1,8 @@
 import re
+import json
 from django.core.cache import cache
 from django.db import transaction
-from datetime import datetime
+from datetime import datetime, date
 from main.services.save.utils import to_bool, format_date, clean_numeric
 from main.utils.log_audit_trail import log_audit
 from main.models import (
@@ -14,8 +15,7 @@ from main.models import (
 def save_cmf_complete_entry(request):
     data = request.POST
     
-    # --- 1. CLEAN AND VALIDATE LISTS FIRST ---
-    # Browsers sometimes send [''] for empty selections. We filter those out.
+    # --- 1. CLEAN AND VALIDATE LISTS ---
     selected_resins = [r for r in data.getlist('resin') if r.strip()]
     selected_processes = [p for p in data.getlist('process') if p.strip()]
     selected_specs = [s for s in data.getlist('specification') if s.strip()]
@@ -25,41 +25,16 @@ def save_cmf_complete_entry(request):
     if not selected_processes:
         raise Exception("Selection Required: At least one Process must be selected.")
 
-    # --- 2. STRICT TEXT VALIDATION ---
-    required_fields = [
-        'cmf_no', 'customer', 'date_created', 'required_date', 'date_received', 
-        'due_date', 'matchType', 'salesman', 'finished_product', 'primary_color', 
-        'color_description', 'colorReq', 'qty_resin_test', 'customerResin', 
-        'mi_customer_resin', 'sampleColorant', 'colorantType', 'dosage', 
-        'processing_temp', 'color_guide_return', 'is_low_cost'
-    ]
-    
-    def clean_label(name):
-        mapping = {
-            'cmf_no': 'CMF No.', 'matchType': 'Matching Type', 'colorReq': 'Color Requirement',
-            'qty_resin_test': 'Qty Resin for Test', 'customerResin': 'Customer Resin Provided',
-            'mi_customer_resin': 'MI Customer Resin', 'sampleColorant': 'Sample Colorant Available',
-            'colorantType': 'Colorant Type', 'is_low_cost': 'Is Low Cost'
-        }
-        return mapping.get(name, name.replace('_', ' ').title())
-
-    for field in required_fields:
-        val = data.get(field, '').strip()
-        if not val:
-            raise Exception(f"Field required: {clean_label(field)}. This cannot be empty.")
-
-    # --- 4. DATABASE TRANSACTION ---
+    # --- 2. DATABASE TRANSACTION ---
     with transaction.atomic():
-        # A. Lookup Salesman
         salesman_name = data.get('salesman').strip()
         salesman_obj = tbl_cmf_salesman.objects.filter(name=salesman_name).first()
         if not salesman_obj:
             raise Exception(f"Salesman Error: '{salesman_name}' is not a registered salesman.")
 
-        # B. tbl_cmf (Main)
         cm_no = data.get('cmf_no').strip()
         if tbl_cmf.objects.filter(cm_no=cm_no).exists():
-            raise Exception(f"Duplicate Error: CMF No. {cm_no} already exists in the system.")
+            raise Exception(f"Duplicate Error: CMF No. {cm_no} already exists.")
 
         ct_value = data.get('colorantType')
         if ct_value == "Other": ct_value = data.get('colorantTypeOther')
@@ -82,7 +57,6 @@ def save_cmf_complete_entry(request):
             sm=salesman_obj
         )
 
-        # C. Related Tables
         c_req = data.get('colorReq')
         if c_req == "other": c_req = data.get('colorReq_other')
         tbl_cmf_color_req.objects.create(name=c_req, cm_no=cmf_main)
@@ -102,22 +76,18 @@ def save_cmf_complete_entry(request):
             cm_no=cmf_main
         )
 
-        # D. Junction Tables (Using the cleaned lists from step 1)
         for p_name in selected_processes:
-            if p_name == "others": p_name = data.get('otherProcess')
+            p_name = data.get('otherProcess') if p_name == "others" else p_name
             if p_name:
                 p_ref, _ = tbl_cmf_process.objects.get_or_create(name=p_name.strip())
                 tbl_cmf_process02.objects.create(cmf_formula_no=formula_obj, process_no=p_ref)
 
         for r_id in selected_resins:
-            try:
-                resin_ref = tbl_resin.objects.get(resin_no=r_id)
-                tbl_resins_selected.objects.create(cm_no=cmf_main, resin_no=resin_ref)
-            except tbl_resin.DoesNotExist:
-                raise Exception(f"Resin Error: Resin ID {r_id} does not exist.")
+            resin_ref = tbl_resin.objects.get(resin_no=r_id)
+            tbl_resins_selected.objects.create(cm_no=cmf_main, resin_no=resin_ref)
 
         for s_name in selected_specs:
-            if s_name == "Others": s_name = data.get('specificationOther')
+            s_name = data.get('specificationOther') if s_name == "Others" else s_name
             if s_name:
                 s_ref, _ = tbl_cmf_specification.objects.get_or_create(name=s_name.strip())
                 tbl_cmf_specification02.objects.create(cm_no=cmf_main, spec_no=s_ref)
@@ -131,38 +101,53 @@ def save_cmf_complete_entry(request):
 
 def update_cmf_complete_entry(request, original_cmf_no):
     data = request.POST
+    diff_logs = []
 
-    # --- 1. PREPARE DATA & LISTS ---
-    selected_resins = [r for r in data.getlist('resin') if r.strip()]
-    selected_processes = [p for p in data.getlist('process') if p.strip()]
-    selected_specs = [s for s in data.getlist('specification') if s.strip()]
-
-    if not selected_resins:
-        raise Exception("Selection Required: At least one Resin Type must be selected.")
-    if not selected_processes:
-        raise Exception("Selection Required: At least one Process must be selected.")
+    # --- 1. HELPERS ---
+    def format_val(val):
+        """Standardizes values to readable strings for comparison."""
+        if val is True or str(val).lower() == 'true': return "Yes"
+        if val is False or str(val).lower() == 'false': return "No"
+        if val is None or val == "" or val == "None": return "---"
+        
+        # Handle Date/Datetime objects from Database
+        if isinstance(val, (date, datetime)):
+            return val.strftime('%m/%d/%Y')
+        
+        # Handle Date-like strings (e.g. '2026-05-12' -> '05/12/2026')
+        val_str = str(val).strip()
+        if re.match(r'^\d{4}-\d{2}-\d{2}$', val_str):
+            try:
+                return datetime.strptime(val_str, '%Y-%m-%d').strftime('%m/%d/%Y')
+            except: pass
+            
+        return val_str
 
     def get_pretty_name(field):
         mapping = {
             'matching_type': 'Matching Type', 'in_code_no_id': 'Primary Color',
-            'color_desc': 'Color Description', 'qty_resin_testing': 'Qty Resin for Test',
-            'is_resin_provided': 'Resin Provided', 'mi_c_resin': 'MI Customer Resin',
+            'color_desc': 'Color Description', 'qty_resin_testing': 'Qty Resin',
+            'is_resin_provided': 'Resin Provided', 'mi_c_resin': 'MI Resin',
             'is_sample_available': 'Sample Available', 'colorant_type': 'Colorant Type',
-            'is_guide_to_return': 'Guide Return', 'temperature': 'Processing Temp',
+            'is_guide_to_return': 'Guide Return', 'temperature': 'Temp',
             'is_low_cost': 'Low Cost', 'remarks': 'Remarks', 'sm': 'Salesman',
-            'customer': 'Customer', 'finished_product': 'Finished Product', 'dosage': 'Dosage'
+            'customer': 'Customer', 'finished_product': 'Finished Product', 'dosage': 'Dosage',
+            'color_req': 'Color Requirement', 'form_made': 'Date Created', 
+            'date_required': 'Req. Date', 'date_received_lab': 'Date Received', 'due_date_lab': 'Due Date'
         }
         return mapping.get(field, field.replace('_', ' ').title())
 
+    # --- 2. PREPARE INPUTS ---
+    selected_resins = [r for r in data.getlist('resin') if r.strip()]
+    selected_processes = [p for p in data.getlist('process') if p.strip()]
+    selected_specs = [s for s in data.getlist('specification') if s.strip()]
+
     with transaction.atomic():
         old_cmf = tbl_cmf.objects.filter(cm_no=original_cmf_no).first()
-        if not old_cmf:
-            raise Exception(f"Update Failed: CMF No. {original_cmf_no} no longer exists.")
+        if not old_cmf: raise Exception("CMF not found.")
 
         salesman_name = data.get('salesman', '').strip()
         salesman_obj = tbl_cmf_salesman.objects.filter(name=salesman_name).first()
-        if not salesman_obj:
-            raise Exception(f"Salesman Error: '{salesman_name}' is not a registered salesman.")
 
         new_cmf_no = data.get('cmf_no').strip()
         renaming = new_cmf_no != original_cmf_no
@@ -170,12 +155,8 @@ def update_cmf_complete_entry(request, original_cmf_no):
         ct_value = data.get('colorantType')
         if ct_value == "Other": ct_value = data.get('colorantTypeOther')
 
-        # --- TRACKING CHANGES ---
-        changed_fields = []
-        selections_changed = False
-
-        # Prepare new values for comparison
-        new_values = {
+        # --- A. TRACK HEADER CHANGES ---
+        header_map = {
             'matching_type': data.get('matchType'),
             'in_code_no_id': int(data.get('primary_color')) if data.get('primary_color') else None,
             'color_desc': data.get('color_description'),
@@ -191,116 +172,117 @@ def update_cmf_complete_entry(request, original_cmf_no):
             'sm': salesman_obj
         }
 
-        # Compare Header Fields
-        for field, new_val in new_values.items():
+        for field, new_val in header_map.items():
             current_val = getattr(old_cmf, field)
-            if str(current_val) != str(new_val):
-                changed_fields.append(get_pretty_name(field))
+            curr_str = format_val(current_val.name if field == 'sm' and current_val else current_val)
+            new_str = format_val(new_val.name if field == 'sm' and new_val else new_val)
+            if curr_str != new_str:
+                diff_logs.append(f"{get_pretty_name(field)} ({curr_str} -> {new_str})")
 
-        # --- EXECUTE UPDATE OR RENAME ---
+        # --- B. TRACK COLOR REQUIREMENT ---
+        old_req_obj = tbl_cmf_color_req.objects.filter(cm_no=old_cmf).first()
+        new_req_val = data.get('colorReq_other') if data.get('colorReq') == "other" else data.get('colorReq')
+        
+        old_req_str = format_val(old_req_obj.name if old_req_obj else "")
+        new_req_str = format_val(new_req_val)
+        if old_req_str != new_req_str:
+            diff_logs.append(f"Color Requirement ({old_req_str} -> {new_req_str})")
+
+        # --- C. TRACK DATES (STRICT MM/DD/YYYY) ---
+        old_dates_obj = tbl_cmf_dates.objects.filter(cm_no=old_cmf).first()
+        if old_dates_obj:
+            # Comparing Raw Strings from POST vs Database formatted strings
+            date_comparisons = [
+                ('form_made', data.get('date_created')),
+                ('date_required', data.get('required_date')),
+                ('date_received_lab', data.get('date_received')),
+                ('due_date_lab', data.get('due_date')),
+            ]
+            for field_name, new_date_str in date_comparisons:
+                db_val = getattr(old_dates_obj, field_name)
+                db_str = format_val(db_val)
+                input_str = format_val(new_date_str)
+                
+                if db_str != input_str:
+                    diff_logs.append(f"{get_pretty_name(field_name)} ({db_str} -> {input_str})")
+
+        # --- D. TRACK FORMULA ---
+        formula_obj, _ = tbl_cmf_formula.objects.get_or_create(cm_no=old_cmf)
+        formula_map = {
+            'customer': data.get('customer'),
+            'finished_product': data.get('finished_product'),
+            'dosage': str(clean_numeric(data.get('dosage')))
+        }
+        for f_field, f_val in formula_map.items():
+            curr_f_val = format_val(getattr(formula_obj, f_field))
+            new_f_val = format_val(f_val)
+            if curr_f_val != new_f_val:
+                diff_logs.append(f"{get_pretty_name(f_field)} ({curr_f_val} -> {new_f_val})")
+
+        # --- E. TRACK JUNCTIONS ---
+        # Resins
+        curr_resins = ", ".join(sorted(tbl_resins_selected.objects.filter(cm_no=old_cmf).values_list('resin_no__abbreviation', flat=True)))
+        new_resins_str = ", ".join(sorted(list(tbl_resin.objects.filter(resin_no__in=selected_resins).values_list('abbreviation', flat=True))))
+        if curr_resins != new_resins_str:
+            diff_logs.append(f"Resins ({curr_resins or 'None'} -> {new_resins_str or 'None'})")
+
+        # Processes
+        curr_procs = ", ".join(sorted(tbl_cmf_process02.objects.filter(cmf_formula_no=formula_obj).values_list('process_no__name', flat=True)))
+        new_procs_list = sorted([data.get('otherProcess', '').strip() if p.lower() == "others" else p.strip() for p in selected_processes if p.strip()])
+        new_procs_str = ", ".join(new_procs_list)
+        if curr_procs != new_procs_str:
+            diff_logs.append(f"Processes ({curr_procs or 'None'} -> {new_procs_str or 'None'})")
+
+        # Specifications
+        curr_specs = ", ".join(sorted(tbl_cmf_specification02.objects.filter(cm_no=old_cmf).values_list('spec_no__name', flat=True)))
+        new_specs_list = sorted([data.get('specificationOther', '').strip() if s == "Others" else s.strip() for s in selected_specs if s.strip()])
+        new_specs_str = ", ".join(new_specs_list)
+        if curr_specs != new_specs_str:
+            diff_logs.append(f"Specifications ({curr_specs or 'None'} -> {new_specs_str or 'None'})")
+
+        # --- 3. DATABASE EXECUTION ---
         if renaming:
-            if tbl_cmf.objects.filter(cm_no=new_cmf_no).exists():
-                raise Exception(f"Duplicate Error: CMF No. {new_cmf_no} already exists.")
-
-            cmf_main = tbl_cmf.objects.create(cm_no=new_cmf_no, user=old_cmf.user, **new_values)
-
-            # Re-point dependents
-            tbl_cmf_color_req.objects.filter(cm_no=old_cmf).update(cm_no=cmf_main)
-            tbl_cmf_dates.objects.filter(cm_no=old_cmf).update(cm_no=cmf_main)
-            tbl_cmf_formula.objects.filter(cm_no=old_cmf).update(cm_no=cmf_main)
-            tbl_resins_selected.objects.filter(cm_no=old_cmf).update(cm_no=cmf_main)
-            tbl_cmf_specification02.objects.filter(cm_no=old_cmf).update(cm_no=cmf_main)
-            tbl_cmf_pending_completed.objects.filter(cm_no=old_cmf).update(cm_no=cmf_main)
-            tbl_feedback_details.objects.filter(cm_no=old_cmf).update(cm_no=cmf_main)
-            
+            if tbl_cmf.objects.filter(cm_no=new_cmf_no).exists(): raise Exception("Duplicate No.")
+            cmf_main = tbl_cmf.objects.create(cm_no=new_cmf_no, user=old_cmf.user, **header_map)
+            for model in [tbl_cmf_color_req, tbl_cmf_dates, tbl_cmf_formula, tbl_resins_selected, tbl_cmf_specification02, tbl_cmf_pending_completed, tbl_feedback_details]:
+                model.objects.filter(cm_no=old_cmf).update(cm_no=cmf_main)
             old_cmf.delete()
         else:
             cmf_main = old_cmf
-            for field, val in new_values.items():
-                setattr(cmf_main, field, val)
+            for field, val in header_map.items(): setattr(cmf_main, field, val)
             cmf_main.save()
 
-        # --- UPDATE RELATED TABLES & TRACK SUB-CHANGES ---
-        # B. Color Requirement
-        c_req = data.get('colorReq')
-        if c_req == "other": c_req = data.get('colorReq_other')
-        _, created = tbl_cmf_color_req.objects.update_or_create(cm_no=cmf_main, defaults={'name': c_req})
-        if not created: selections_changed = True
-
-        # C. Dates
-        tbl_cmf_dates.objects.update_or_create(
-            cm_no=cmf_main,
-            defaults={
-                'form_made': format_date(data.get('date_created')),
-                'date_required': data.get('required_date'),
-                'date_received_lab': data.get('date_received'),
-                'due_date_lab': format_date(data.get('due_date')),
-            }
+        # Update Related
+        tbl_cmf_color_req.objects.filter(cm_no=cmf_main).update(name=new_req_val)
+        tbl_cmf_dates.objects.filter(cm_no=cmf_main).update(
+            form_made=format_date(data.get('date_created')),
+            date_required=data.get('required_date'),
+            date_received_lab=data.get('date_received'),
+            due_date_lab=format_date(data.get('due_date'))
         )
-
-        # D. Formula (Track sub-fields)
-        formula_obj, _ = tbl_cmf_formula.objects.get_or_create(cm_no=cmf_main)
-        formula_updates = {
-            'customer': data.get('customer'),
-            'finished_product': data.get('finished_product'),
-            'dosage': clean_numeric(data.get('dosage'))
-        }
-        for f_field, f_val in formula_updates.items():
-            if str(getattr(formula_obj, f_field)) != str(f_val):
-                setattr(formula_obj, f_field, f_val)
-                changed_fields.append(get_pretty_name(f_field))
-        formula_obj.save()
-
-        # E. Junction tables (Track if list changed)
-        # Process JTs
-        old_procs = set(tbl_cmf_process02.objects.filter(cmf_formula_no=formula_obj).values_list('process_no__name', flat=True))
-        new_procs_list = []
-        for p_item in selected_processes:
-            p_name = data.get('otherProcess', '').strip() if p_item.lower() == "others" else p_item.strip()
-            if p_name: new_procs_list.append(p_name)
+        tbl_cmf_formula.objects.filter(cm_no=cmf_main).update(**formula_map)
         
-        if old_procs != set(new_procs_list):
-            selections_changed = True
-            tbl_cmf_process02.objects.filter(cmf_formula_no=formula_obj).delete()
-            for name in new_procs_list:
-                p_ref, _ = tbl_cmf_process.objects.get_or_create(name=name)
-                tbl_cmf_process02.objects.create(cmf_formula_no=formula_obj, process_no=p_ref)
+        # Junctions
+        tbl_cmf_process02.objects.filter(cmf_formula_no__cm_no=cmf_main).delete()
+        for name in new_procs_list:
+            p_ref, _ = tbl_cmf_process.objects.get_or_create(name=name)
+            tbl_cmf_process02.objects.create(cmf_formula_no=tbl_cmf_formula.objects.get(cm_no=cmf_main), process_no=p_ref)
 
-        # Resin JTs
-        old_resins = set(tbl_resins_selected.objects.filter(cm_no=cmf_main).values_list('resin_no_id', flat=True))
-        if old_resins != set(map(int, selected_resins)):
-            selections_changed = True
-            tbl_resins_selected.objects.filter(cm_no=cmf_main).delete()
-            for r_id in selected_resins:
-                resin_ref = tbl_resin.objects.get(resin_no=r_id)
-                tbl_resins_selected.objects.create(cm_no=cmf_main, resin_no=resin_ref)
+        tbl_resins_selected.objects.filter(cm_no=cmf_main).delete()
+        for r_id in selected_resins:
+            resin_ref = tbl_resin.objects.get(resin_no=r_id)
+            tbl_resins_selected.objects.create(cm_no=cmf_main, resin_no=resin_ref)
 
-        # Spec JTs
-        old_specs = set(tbl_cmf_specification02.objects.filter(cm_no=cmf_main).values_list('spec_no__name', flat=True))
-        new_specs_list = []
-        for s_item in selected_specs:
-            s_name = data.get('specificationOther', '').strip() if s_item == "Others" else s_item.strip()
-            if s_name: new_specs_list.append(s_name)
+        tbl_cmf_specification02.objects.filter(cm_no=cmf_main).delete()
+        for name in new_specs_list:
+            s_ref, _ = tbl_cmf_specification.objects.get_or_create(name=name)
+            tbl_cmf_specification02.objects.create(cm_no=cmf_main, spec_no=s_ref)
 
-        if old_specs != set(new_specs_list):
-            selections_changed = True
-            tbl_cmf_specification02.objects.filter(cm_no=cmf_main).delete()
-            for name in new_specs_list:
-                s_ref, _ = tbl_cmf_specification.objects.get_or_create(name=name)
-                tbl_cmf_specification02.objects.create(cm_no=cmf_main, spec_no=s_ref)
-
-        # --- BUILD FINAL AUDIT LOG ---
+        # --- 4. LOGGING ---
         log_msg = f"CMF: {original_cmf_no}"
-        if renaming:
-            log_msg += f" (Renamed to {new_cmf_no})"
-        
-        if not changed_fields and not selections_changed:
-            log_msg += ". No data changes were made."
-        else:
-            if changed_fields:
-                log_msg += f". Modified: {', '.join(changed_fields)}"
-            if selections_changed:
-                log_msg += ". Selection configurations (Resin/Process/Specification) were updated."
+        if renaming: log_msg += f" (Renamed to {new_cmf_no})"
+        log_msg += ". Changes: " + (", ".join(diff_logs) if diff_logs else "No technical changes.")
+
         cache.delete('cmf_records_list')
         log_audit(request, "Updated", log_msg)
 
