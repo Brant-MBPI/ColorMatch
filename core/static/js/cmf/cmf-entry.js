@@ -1,9 +1,10 @@
 document.addEventListener('DOMContentLoaded', function() {
 
     // --- 2. DOM ELEMENTS ---
+    const cmfInput = document.getElementById('id_cmf_no');
     const saveBtn = document.querySelector('.btn-save');
     const newBtn = document.querySelector('.btn-new');
-    const printBtn = document.querySelector('.btn-print');
+    const printBtn = document.querySelector('.btn-cmf-print');
     const refreshBtn = document.getElementById('refreshBtn');
 
     // Works on any page — CMF Entry, RS Entry, or anywhere else these
@@ -74,10 +75,27 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     if (printBtn) {
-        printBtn.addEventListener('click', () => {
-            window.print();
-        });
-    }
+            printBtn.addEventListener('click', function() {
+                const cmNo = cmfInput.value.trim();
+
+                // 1. Client-side validation (Immediate UI feedback)
+                if (!cmNo) {
+                    Preline.confirm(
+                        'Missing CMF',
+                        'Please enter or load a Color Matching No. before printing.',
+                        'danger',
+                        () => { /* No action, just closes */ }
+                    );
+                    return;
+                }
+
+                // 2. Proceed to print (New Tab)
+                const printUrl = "{% url 'print_cmf' 'PLACEHOLDER' %}".replace('PLACEHOLDER', encodeURIComponent(cmNo));
+                window.location.href = printUrl; 
+                // Note: Using window.location.href instead of window.open ensures 
+                // that if a redirect (error) happens, it stays in the same tab.
+            });
+        }
 
     if (refreshBtn) {
         refreshBtn.addEventListener('click', () => window.location.reload());
