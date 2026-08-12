@@ -10,6 +10,7 @@ from django.http import HttpResponse, HttpResponseServerError
 from django.shortcuts import redirect
 from django.views.decorators.clickjacking import xframe_options_exempt
 
+from main.services.print.print_util import _resize_pdf_to_fixed_size
 from main.models import (
     tbl_cmf, tbl_cmf_dates, tbl_cmf_formula, tbl_cmf_color_req,
     tbl_resins_selected, tbl_cmf_process02, tbl_cmf_specification02,
@@ -159,6 +160,19 @@ def _fill_and_export_via_excel(template_abs_path, pdf_path, data):
         set_cell('C48', cmf.remarks)
         set_cell('D62', final_prod_code)
 
+        # --- PAGE SETUP: zero margins, fit print area to one page ---
+        # Assumes PrintArea is already defined in the template itself.
+        ps = ws.PageSetup
+        ps.LeftMargin = 0
+        ps.RightMargin = 0
+        ps.TopMargin = 0
+        ps.BottomMargin = 0
+        ps.HeaderMargin = 0
+        ps.FooterMargin = 0
+        ps.Zoom = False
+        ps.FitToPagesWide = 1
+        ps.FitToPagesTall = 1
+
         # 0 = xlTypePDF
         ws.ExportAsFixedFormat(0, pdf_path)
 
@@ -173,8 +187,9 @@ def _fill_and_export_via_excel(template_abs_path, pdf_path, data):
 def print_cmf_preview(request, cm_no):
     """
     Fills the ORIGINAL Excel template directly via COM (preserving all
-    drawings/checkboxes/formatting), exports to PDF for inline browser
-    preview, and cleans up the temp PDF before returning.
+    drawings/checkboxes/formatting), exports to PDF, resizes that PDF to
+    a fixed 8.5in x 6.5in page with no margin, and serves it inline for
+    browser preview. All temp files are cleaned up before returning.
     """
     try:
         data = _fetch_cmf_data(cm_no)
@@ -190,20 +205,25 @@ def print_cmf_preview(request, cm_no):
         return HttpResponseServerError("Template file not found on server.")
 
     with tempfile.TemporaryDirectory() as tmpdir:
-        pdf_path = os.path.join(tmpdir, f"{uuid.uuid4().hex}.pdf")
+        raw_pdf_path = os.path.join(tmpdir, f"{uuid.uuid4().hex}_raw.pdf")
+        final_pdf_path = os.path.join(tmpdir, f"{uuid.uuid4().hex}_final.pdf")
 
         try:
             with _excel_lock:
-                _fill_and_export_via_excel(template_abs_path, pdf_path, data)
+                _fill_and_export_via_excel(template_abs_path, raw_pdf_path, data)
+            _resize_pdf_to_fixed_size(
+                raw_pdf_path, final_pdf_path,
+                width_in=8.5, height_in=6.5,
+            )
         except Exception as e:
             return HttpResponseServerError(f"PDF export failed: {str(e)}")
 
-        if not os.path.exists(pdf_path):
+        if not os.path.exists(final_pdf_path):
             return HttpResponseServerError("PDF export failed: no output file produced.")
 
-        with open(pdf_path, 'rb') as f:
+        with open(final_pdf_path, 'rb') as f:
             pdf_bytes = f.read()
-    # TemporaryDirectory context manager deletes the pdf here, unconditionally.
+    # TemporaryDirectory context manager deletes both PDFs here, unconditionally.
 
     response = HttpResponse(pdf_bytes, content_type='application/pdf')
     response['Content-Disposition'] = 'inline'
