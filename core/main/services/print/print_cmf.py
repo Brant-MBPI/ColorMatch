@@ -30,37 +30,37 @@ def print_cmf(request, cm_no):
     spec_list = list(tbl_cmf_specification02.objects.filter(cm_no=cmf).values_list('spec_no__name', flat=True))
 
     # 2. Load Excel Template
-    template_path = 'path/to/your/assets/templates/cmf_template.xlsx'
+    template_path = 'main/templates/print_excel/cmf_template.xlsx'
     wb = load_workbook(template_path)
     ws = wb.active
 
     # 3. Fill the Cells (Mapping based on your Excel structure)
     # General Info
-    ws['C6'] = cmf.cm_no
-    ws['C7'] = formula_info.customer if formula_info else ""
-    ws['C8'] = dates.form_made.strftime('%m/%d/%Y') if dates and dates.form_made else ""
-    ws['C9'] = dates.date_required if dates else ""
+    ws['E6'] = cmf.cm_no
+    ws['E7'] = formula_info.customer if formula_info else ""
+    ws['E8'] = dates.form_made.strftime('%m/%d/%Y') if dates and dates.form_made else ""
+    ws['E9'] = dates.date_required if dates else ""
     
     # Matching Type (Checkboxes)
-    ws['D11'] = "✔" if cmf.matching_type == 'new' else ""
-    ws['F11'] = "✔" if cmf.matching_type == 'rematch' else ""
+    ws['E11'] = "✔" if cmf.matching_type == 'new' else ""
+    ws['H11'] = "✔" if cmf.matching_type == 'rematch' else ""
     
-    ws['C12'] = cmf.sm.name if cmf.sm else ""
-    ws['C13'] = cmf.color_desc
-    ws['C14'] = formula_info.finished_product if formula_info else ""
+    ws['E12'] = cmf.sm.name if cmf.sm else ""
+    ws['E13'] = cmf.color_desc
+    ws['E14'] = formula_info.finished_product if formula_info else ""
 
     # Color Requirement (Logic for checkboxes)
-    req_map = {'transparent': 'D17', 'opaque': 'F17', 'translucent': 'H17', 'metallic': 'B19', 'fluorescent': 'D19', 'pearlescent': 'F19'}
+    req_map = {'transparent': 'E17', 'opaque': 'H17', 'translucent': 'K17', 'metallic': 'E19', 'fluorescent': 'H19', 'pearlescent': 'K19'}
     if color_req and color_req.name in req_map:
         ws[req_map[color_req.name]] = "✔"
     elif color_req and color_req.name == 'other':
-        ws['G20'] = cmf.color_req_other # Assuming you have this field
+        ws['G21'] = cmf.color_req_other # Assuming you have this field
 
     # Resin and Process
     ws['C21'] = resins
-    ws['D23'] = "✔" if 'injection' in process_list else ""
-    ws['F23'] = "✔" if 'blow-molding' in process_list else ""
-    ws['I23'] = "✔" if 'film' in process_list else ""
+    ws['E24'] = "✔" if 'injection' in process_list else ""
+    ws['H24'] = "✔" if 'blow-molding' in process_list else ""
+    ws['L24'] = "✔" if 'film' in process_list else ""
 
     ws['C35'] = formula_info.dosage if formula_info else ""
     ws['C52'] = "PRODUCT CODE: " + (getattr(cmf, 'product_code', '') or "") # Handle your product code logic here

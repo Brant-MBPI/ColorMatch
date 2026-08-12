@@ -90,7 +90,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 // 2. Proceed to print (New Tab)
-                const printUrl = "{% url 'print_cmf' 'PLACEHOLDER' %}".replace('PLACEHOLDER', encodeURIComponent(cmNo));
+                const printUrl = `/cmf/print/${encodeURIComponent(cmNo)}`;
                 window.location.href = printUrl; 
                 // Note: Using window.location.href instead of window.open ensures 
                 // that if a redirect (error) happens, it stays in the same tab.
@@ -154,10 +154,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initial run
     applyFilters();
-
-
-    // CMF  previous data lookup logic
-    const cmfInput = document.getElementById('id_cmf_no');
 
     // The function that checks the database
     const handleCmfLookup = debounce(async (event) => {

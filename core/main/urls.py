@@ -47,6 +47,6 @@ urlpatterns = [
     # with parameters
     path('cmf/records/<str:cm_no>/', views.cmf_record_detail, name='cmf_record_detail'),
     path('cmf/formula/<str:formula_type>/<int:formula_id>/toggle-final/', cmf_records_services.toggle_final_formula, name='toggle_final_formula'),
-    path('cmf/rs-records/<int:rs_id>/', views.rs_record_detail, name='rs_record_detail'),
+    path('cmf/rs-records/cmf/rs-records/<int:rs_id>/', views.rs_record_detail, name='rs_record_detail'),
     path('cmf/print/<str:cm_no>/', print_cmf.print_cmf, name='print_cmf'),
 ]
