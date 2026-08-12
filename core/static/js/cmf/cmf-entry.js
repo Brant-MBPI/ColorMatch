@@ -74,28 +74,63 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    function openPrintPreview(cmNo) {
+        const previewUrl = `/cmf/print/${encodeURIComponent(cmNo)}/preview`;
+
+        const dialog = document.createElement('dialog');
+        dialog.className = 'p-0 border-0 rounded-3 shadow-lg';
+        dialog.style.width = '90vw';
+        dialog.style.height = '90vh';
+        dialog.style.maxWidth = '1200px';
+        dialog.innerHTML = `
+            <div class="d-flex flex-column w-100 h-100">
+                <div class="d-flex justify-content-end gap-2 p-2 bg-dark">
+                    <button id="cmfPreviewPrintBtn" class="btn btn-primary btn-sm">
+                        <i class="bi bi-printer"></i> Print
+                    </button>
+                    <button id="cmfPreviewCloseBtn" class="btn btn-secondary btn-sm">
+                        Close
+                    </button>
+                </div>
+                <iframe id="cmfPreviewFrame" src="${previewUrl}" class="flex-grow-1 w-100 border-0"></iframe>
+            </div>
+        `;
+        document.body.appendChild(dialog);
+
+        const iframe = dialog.querySelector('#cmfPreviewFrame');
+
+        dialog.querySelector('#cmfPreviewPrintBtn').addEventListener('click', function() {
+            iframe.contentWindow.print();
+        });
+
+        dialog.querySelector('#cmfPreviewCloseBtn').addEventListener('click', function() {
+            dialog.close();
+        });
+
+        dialog.addEventListener('close', function() {
+            dialog.remove();
+        });
+
+        dialog.showModal();
+    }
+
     if (printBtn) {
-            printBtn.addEventListener('click', function() {
-                const cmNo = cmfInput.value.trim();
+        printBtn.addEventListener('click', function() {
+            const cmNo = cmfInput.value.trim();
 
-                // 1. Client-side validation (Immediate UI feedback)
-                if (!cmNo) {
-                    Preline.confirm(
-                        'Missing CMF',
-                        'Please enter or load a Color Matching No. before printing.',
-                        'danger',
-                        () => { /* No action, just closes */ }
-                    );
-                    return;
-                }
+            if (!cmNo) {
+                Preline.confirm(
+                    'Missing CMF',
+                    'Please enter or load a Color Matching No. before printing.',
+                    'danger',
+                    () => {}
+                );
+                return;
+            }
 
-                // 2. Proceed to print (New Tab)
-                const printUrl = `/cmf/print/${encodeURIComponent(cmNo)}`;
-                window.location.href = printUrl; 
-                // Note: Using window.location.href instead of window.open ensures 
-                // that if a redirect (error) happens, it stays in the same tab.
-            });
-        }
+            openPrintPreview(cmNo);
+        });
+    }
 
     if (refreshBtn) {
         refreshBtn.addEventListener('click', () => window.location.reload());
