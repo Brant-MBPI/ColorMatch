@@ -1,289 +1,184 @@
-import re
-import json
-from django.core.cache import cache
-from django.db import transaction
-from datetime import datetime, date
-from main.services.save.utils import to_bool, format_date, clean_numeric
-from main.utils.log_audit_trail import log_audit
+import os
+import tempfile
+import threading
+import uuid
+
+import pythoncom
+import win32com.client as win32
+from django.contrib import messages
+from django.http import HttpResponse, HttpResponseServerError
+from django.shortcuts import redirect
+from openpyxl import load_workbook
+
 from main.models import (
-    tbl_cmf, tbl_cmf_color_req, tbl_cmf_dates, tbl_cmf_formula, 
-    tbl_cmf_process, tbl_cmf_process02, tbl_resin, tbl_resins_selected,
-    tbl_cmf_specification, tbl_cmf_specification02, tbl_cmf_salesman,
-    tbl_cmf_pending_completed, tbl_feedback_details
+    tbl_cmf, tbl_cmf_dates, tbl_cmf_formula, tbl_cmf_color_req,
+    tbl_resins_selected, tbl_cmf_process02, tbl_cmf_specification02,
+    tbl_mb_extruder_formula, tbl_dc_extruder_formula
 )
 
-def save_cmf_complete_entry(request):
-    data = request.POST
-    
-    # --- 1. CLEAN AND VALIDATE LISTS ---
-    selected_resins = [r for r in data.getlist('resin') if r.strip()]
-    selected_processes = [p for p in data.getlist('process') if p.strip()]
-    selected_specs = [s for s in data.getlist('specification') if s.strip()]
+# Excel COM automation isn't safe to run from multiple threads/requests at
+# once. Serialize access so only one conversion happens at a time.
+_excel_lock = threading.Lock()
 
-    if not selected_resins:
-        raise Exception("Selection Required: At least one Resin Type must be selected.")
-    if not selected_processes:
-        raise Exception("Selection Required: At least one Process must be selected.")
 
-    # --- 2. DATABASE TRANSACTION ---
-    with transaction.atomic():
-        salesman_name = data.get('salesman').strip()
-        salesman_obj = tbl_cmf_salesman.objects.filter(name=salesman_name).first()
-        if not salesman_obj:
-            raise Exception(f"Salesman Error: '{salesman_name}' is not a registered salesman.")
+def _build_cmf_workbook(cm_no):
+    """Loads the template and writes DB data into it. Returns an openpyxl Workbook."""
+    cmf = tbl_cmf.objects.get(cm_no=cm_no)
+    dates = tbl_cmf_dates.objects.filter(cm_no=cmf).first()
+    formula_info = tbl_cmf_formula.objects.filter(cm_no=cmf).first()
+    color_req_obj = tbl_cmf_color_req.objects.filter(cm_no=cmf).first()
 
-        cm_no = data.get('cmf_no').strip()
-        if tbl_cmf.objects.filter(cm_no=cm_no).exists():
-            raise Exception(f"Duplicate Error: CMF No. {cm_no} already exists.")
+    resins = ", ".join(list(tbl_resins_selected.objects.filter(cm_no=cmf).values_list('resin_no__abbreviation', flat=True)))
+    process_list = list(tbl_cmf_process02.objects.filter(cmf_formula_no=formula_info).values_list('process_no__name', flat=True)) if formula_info else []
+    spec_list = list(tbl_cmf_specification02.objects.filter(cm_no=cmf).values_list('spec_no__name', flat=True))
 
-        ct_value = data.get('colorantType')
-        if ct_value == "Other": ct_value = data.get('colorantTypeOther')
+    final_prod_code = ""
+    final_f = tbl_mb_extruder_formula.objects.filter(cm_no=cmf, is_final=True).select_related('code').first()
+    if not final_f:
+        final_f = tbl_dc_extruder_formula.objects.filter(cm_no=cmf, is_final=True).select_related('code').first()
+    if final_f and final_f.code:
+        final_prod_code = final_f.code.product_code
 
-        cmf_main = tbl_cmf.objects.create(
-            cm_no=cm_no,
-            matching_type=data.get('matchType'),
-            in_code_no_id=data.get('primary_color'),
-            color_desc=data.get('color_description'),
-            qty_resin_testing=data.get('qty_resin_test'),
-            is_resin_provided=to_bool(data.get('customerResin')),
-            mi_c_resin=data.get('mi_customer_resin'),
-            is_sample_available=to_bool(data.get('sampleColorant')),
-            colorant_type=ct_value,
-            is_guide_to_return=to_bool(data.get('color_guide_return')),
-            temperature=data.get('processing_temp'),
-            is_low_cost=to_bool(data.get('is_low_cost')),
-            remarks=data.get('remarks'),
-            user=request.user,
-            sm=salesman_obj
-        )
+    template_path = 'main/templates/print_excel/cmf_template.xlsx'
+    wb = load_workbook(template_path)
+    ws = wb.active
 
-        c_req = data.get('colorReq')
-        if c_req == "other": c_req = data.get('colorReq_other')
-        tbl_cmf_color_req.objects.create(name=c_req, cm_no=cmf_main)
+    ws['F6'] = cmf.cm_no
+    ws['F7'] = formula_info.customer if formula_info else ""
+    ws['F8'] = dates.form_made.strftime('%m/%d/%Y') if dates and dates.form_made else ""
+    ws['F9'] = dates.date_required if dates else ""
+    ws['F11'] = "✔" if cmf.matching_type == 'new' else ""
+    ws['I11'] = "✔" if cmf.matching_type == 'rematch' else ""
+    ws['F12'] = cmf.sm.name if cmf.sm else ""
+    ws['F13'] = cmf.color_desc
+    ws['F14'] = formula_info.finished_product if formula_info else ""
 
-        tbl_cmf_dates.objects.create(
-            form_made=format_date(data.get('date_created')),
-            date_required=data.get('required_date'),
-            date_received_lab=data.get('date_received'),
-            due_date_lab=format_date(data.get('due_date')),
-            cm_no=cmf_main
-        )
+    c_req_name = color_req_obj.name if color_req_obj else ""
+    standard_reqs = ['transparent', 'opaque', 'translucent', 'metallic', 'fluorescent', 'pearlescent']
+    req_map = {'transparent': 'F17', 'opaque': 'I17', 'translucent': 'L17', 'metallic': 'F19', 'fluorescent': 'I19', 'pearlescent': 'L19'}
+    if c_req_name in standard_reqs:
+        ws[req_map[c_req_name]] = "✔"
+    elif c_req_name:
+        ws['F21'] = "✔"
+        ws['H21'] = c_req_name
 
-        formula_obj = tbl_cmf_formula.objects.create(
-            customer=data.get('customer'),
-            finished_product=data.get('finished_product'),
-            dosage=clean_numeric(data.get('dosage')),
-            cm_no=cmf_main
-        )
+    ws['D21'] = resins
+    ws['F24'] = "✔" if 'injection' in process_list else ""
+    ws['I24'] = "✔" if 'blow-molding' in process_list else ""
+    ws['M24'] = "✔" if 'film' in process_list else ""
+    ws['F26'] = "✔" if 'pipe-extrusion' in process_list else ""
 
-        for p_name in selected_processes:
-            p_name = data.get('otherProcess') if p_name == "others" else p_name
-            if p_name:
-                p_ref, _ = tbl_cmf_process.objects.get_or_create(name=p_name.strip())
-                tbl_cmf_process02.objects.create(cmf_formula_no=formula_obj, process_no=p_ref)
+    standard_procs = ['injection', 'blow-molding', 'film', 'pipe-extrusion']
+    other_procs = [p for p in process_list if p not in standard_procs]
+    if other_procs:
+        ws['I26'] = "✔"
+        ws['L26'] = ", ".join(other_procs)
 
-        for r_id in selected_resins:
-            resin_ref = tbl_resin.objects.get(resin_no=r_id)
-            tbl_resins_selected.objects.create(cm_no=cmf_main, resin_no=resin_ref)
+    ws['F28'] = cmf.qty_resin_testing
+    ws['F29'] = "✔" if cmf.is_resin_provided is True else ""
+    ws['I29'] = "✔" if cmf.is_resin_provided is False else ""
+    ws['F30'] = cmf.mi_c_resin
+    ws['F31'] = "✔" if cmf.is_sample_available is True else ""
+    ws['I31'] = "✔" if cmf.is_sample_available is False else ""
 
-        for s_name in selected_specs:
-            s_name = data.get('specificationOther') if s_name == "Others" else s_name
-            if s_name:
-                s_ref, _ = tbl_cmf_specification.objects.get_or_create(name=s_name.strip())
-                tbl_cmf_specification02.objects.create(cm_no=cmf_main, spec_no=s_ref)
-        
-        tbl_cmf_pending_completed.objects.create(cm_no=cmf_main)
-        tbl_feedback_details.objects.create(cm_no=cmf_main)
-        
-        cache.delete('cmf_records_list')
-        log_audit(request, "Saved", f"New CMF Entry: {cmf_main.cm_no}")
-    return cmf_main
+    if cmf.colorant_type == 'MB':
+        ws['F33'] = "✔"
+    elif cmf.colorant_type == 'DC':
+        ws['I33'] = "✔"
+    else:
+        ws['L33'] = "✔"
+        ws['O33'] = cmf.colorant_type
 
-def update_cmf_complete_entry(request, original_cmf_no):
-    data = request.POST
-    diff_logs = []
+    ws['F35'] = formula_info.dosage if formula_info else ""
+    ws['F37'] = "✔" if cmf.is_guide_to_return is True else ""
+    ws['I37'] = "✔" if cmf.is_guide_to_return is False else ""
 
-    # --- 1. HELPERS ---
-    def format_val(val):
-        """Standardizes values to readable strings for comparison."""
-        if val is True or str(val).lower() == 'true': return "Yes"
-        if val is False or str(val).lower() == 'false': return "No"
-        if val is None or val == "" or val == "None": return "---"
-        
-        # Handle Date/Datetime objects from Database
-        if isinstance(val, (date, datetime)):
-            return val.strftime('%m/%d/%Y')
-        
-        # Handle Date-like strings (e.g. '2026-05-12' -> '05/12/2026')
-        val_str = str(val).strip()
-        if re.match(r'^\d{4}-\d{2}-\d{2}$', val_str):
-            try:
-                return datetime.strptime(val_str, '%Y-%m-%d').strftime('%m/%d/%Y')
-            except: pass
-            
-        return val_str
+    ws['F39'] = "✔" if 'Food Contact' in spec_list else ""
+    ws['I39'] = "✔" if 'Sunlight Exposure' in spec_list else ""
 
-    def get_pretty_name(field):
-        mapping = {
-            'matching_type': 'Matching Type', 'in_code_no_id': 'Primary Color',
-            'color_desc': 'Color Description', 'qty_resin_testing': 'Qty Resin',
-            'is_resin_provided': 'Resin Provided', 'mi_c_resin': 'MI Resin',
-            'is_sample_available': 'Sample Available', 'colorant_type': 'Colorant Type',
-            'is_guide_to_return': 'Guide Return', 'temperature': 'Temp',
-            'is_low_cost': 'Low Cost', 'remarks': 'Remarks', 'sm': 'Salesman',
-            'customer': 'Customer', 'finished_product': 'Finished Product', 'dosage': 'Dosage',
-            'color_req': 'Color Requirement', 'form_made': 'Date Created', 
-            'date_required': 'Req. Date', 'date_received_lab': 'Date Received', 'due_date_lab': 'Due Date'
-        }
-        return mapping.get(field, field.replace('_', ' ').title())
+    standard_specs = ['Food Contact', 'Sunlight Exposure']
+    other_specs = [s for s in spec_list if s not in standard_specs]
+    if other_specs:
+        ws['F41'] = "✔"
+        ws['G41'] = ", ".join(other_specs)
 
-    # --- 2. PREPARE INPUTS ---
-    selected_resins = [r for r in data.getlist('resin') if r.strip()]
-    selected_processes = [p for p in data.getlist('process') if p.strip()]
-    selected_specs = [s for s in data.getlist('specification') if s.strip()]
+    ws['F43'] = cmf.temperature
+    ws['F44'] = "✔" if cmf.is_low_cost is True else ""
+    ws['I44'] = "✔" if cmf.is_low_cost is False else ""
 
-    with transaction.atomic():
-        old_cmf = tbl_cmf.objects.filter(cm_no=original_cmf_no).first()
-        if not old_cmf: raise Exception("CMF not found.")
+    ws['C48'] = cmf.remarks
+    ws['D62'] = final_prod_code
 
-        salesman_name = data.get('salesman', '').strip()
-        salesman_obj = tbl_cmf_salesman.objects.filter(name=salesman_name).first()
+    return wb
 
-        new_cmf_no = data.get('cmf_no').strip()
-        renaming = new_cmf_no != original_cmf_no
-        
-        ct_value = data.get('colorantType')
-        if ct_value == "Other": ct_value = data.get('colorantTypeOther')
 
-        # --- A. TRACK HEADER CHANGES ---
-        header_map = {
-            'matching_type': data.get('matchType'),
-            'in_code_no_id': int(data.get('primary_color')) if data.get('primary_color') else None,
-            'color_desc': data.get('color_description'),
-            'qty_resin_testing': data.get('qty_resin_test'),
-            'is_resin_provided': to_bool(data.get('customerResin')),
-            'mi_c_resin': data.get('mi_customer_resin'),
-            'is_sample_available': to_bool(data.get('sampleColorant')),
-            'colorant_type': ct_value,
-            'is_guide_to_return': to_bool(data.get('color_guide_return')),
-            'temperature': data.get('processing_temp'),
-            'is_low_cost': to_bool(data.get('is_low_cost')),
-            'remarks': data.get('remarks'),
-            'sm': salesman_obj
-        }
+def _convert_xlsx_to_pdf_via_excel(xlsx_path, pdf_path):
+    """
+    Drives a real Excel install through COM to export the sheet as PDF.
+    Must run inside pythoncom.CoInitialize()/CoUninitialize() on whatever
+    thread calls it, and must guarantee Excel.Quit() even on failure so
+    no orphaned EXCEL.EXE processes pile up on the server.
+    """
+    pythoncom.CoInitialize()
+    excel = None
+    wb = None
+    try:
+        # DispatchEx starts a fresh, isolated Excel instance rather than
+        # attaching to one that might already be open/in use.
+        excel = win32.DispatchEx("Excel.Application")
+        excel.Visible = False
+        excel.DisplayAlerts = False
 
-        for field, new_val in header_map.items():
-            current_val = getattr(old_cmf, field)
-            curr_str = format_val(current_val.name if field == 'sm' and current_val else current_val)
-            new_str = format_val(new_val.name if field == 'sm' and new_val else new_val)
-            if curr_str != new_str:
-                diff_logs.append(f"{get_pretty_name(field)} ({curr_str} -> {new_str})")
+        wb = excel.Workbooks.Open(xlsx_path)
+        ws = wb.Worksheets(1)
 
-        # --- B. TRACK COLOR REQUIREMENT ---
-        old_req_obj = tbl_cmf_color_req.objects.filter(cm_no=old_cmf).first()
-        new_req_val = data.get('colorReq_other') if data.get('colorReq') == "other" else data.get('colorReq')
-        
-        old_req_str = format_val(old_req_obj.name if old_req_obj else "")
-        new_req_str = format_val(new_req_val)
-        if old_req_str != new_req_str:
-            diff_logs.append(f"Color Requirement ({old_req_str} -> {new_req_str})")
+        # 0 = xlTypePDF
+        ws.ExportAsFixedFormat(0, pdf_path)
+    finally:
+        if wb is not None:
+            wb.Close(SaveChanges=False)
+        if excel is not None:
+            excel.Quit()
+        pythoncom.CoUninitialize()
 
-        # --- C. TRACK DATES (STRICT MM/DD/YYYY) ---
-        old_dates_obj = tbl_cmf_dates.objects.filter(cm_no=old_cmf).first()
-        if old_dates_obj:
-            # Comparing Raw Strings from POST vs Database formatted strings
-            date_comparisons = [
-                ('form_made', data.get('date_created')),
-                ('date_required', data.get('required_date')),
-                ('date_received_lab', data.get('date_received')),
-                ('due_date_lab', data.get('due_date')),
-            ]
-            for field_name, new_date_str in date_comparisons:
-                db_val = getattr(old_dates_obj, field_name)
-                db_str = format_val(db_val)
-                input_str = format_val(new_date_str)
-                
-                if db_str != input_str:
-                    diff_logs.append(f"{get_pretty_name(field_name)} ({db_str} -> {input_str})")
 
-        # --- D. TRACK FORMULA ---
-        formula_obj, _ = tbl_cmf_formula.objects.get_or_create(cm_no=old_cmf)
-        formula_map = {
-            'customer': data.get('customer'),
-            'finished_product': data.get('finished_product'),
-            'dosage': str(clean_numeric(data.get('dosage')))
-        }
-        for f_field, f_val in formula_map.items():
-            curr_f_val = format_val(getattr(formula_obj, f_field))
-            new_f_val = format_val(f_val)
-            if curr_f_val != new_f_val:
-                diff_logs.append(f"{get_pretty_name(f_field)} ({curr_f_val} -> {new_f_val})")
+def print_cmf_preview(request, cm_no):
+    """
+    Builds the workbook from the (reusable) template, converts it to PDF
+    via Excel COM automation for inline browser preview, and cleans up
+    every temp file before returning — nothing is left on disk waiting
+    for the client to close anything.
+    """
+    try:
+        wb = _build_cmf_workbook(cm_no)
+    except tbl_cmf.DoesNotExist:
+        messages.error(request, f"Error: CMF No. '{cm_no}' was not found.")
+        return redirect('cmf_entry')
+    except Exception as e:
+        messages.error(request, f"System Error: {str(e)}")
+        return redirect('cmf_entry')
 
-        # --- E. TRACK JUNCTIONS ---
-        # Resins
-        curr_resins = ", ".join(sorted(tbl_resins_selected.objects.filter(cm_no=old_cmf).values_list('resin_no__abbreviation', flat=True)))
-        new_resins_str = ", ".join(sorted(list(tbl_resin.objects.filter(resin_no__in=selected_resins).values_list('abbreviation', flat=True))))
-        if curr_resins != new_resins_str:
-            diff_logs.append(f"Resins ({curr_resins or 'None'} -> {new_resins_str or 'None'})")
+    with tempfile.TemporaryDirectory() as tmpdir:
+        file_id = uuid.uuid4().hex
+        xlsx_path = os.path.join(tmpdir, f"{file_id}.xlsx")
+        pdf_path = os.path.join(tmpdir, f"{file_id}.pdf")
+        wb.save(xlsx_path)
 
-        # Processes
-        curr_procs = ", ".join(sorted(tbl_cmf_process02.objects.filter(cmf_formula_no=formula_obj).values_list('process_no__name', flat=True)))
-        new_procs_list = sorted([data.get('otherProcess', '').strip() if p.lower() == "others" else p.strip() for p in selected_processes if p.strip()])
-        new_procs_str = ", ".join(new_procs_list)
-        if curr_procs != new_procs_str:
-            diff_logs.append(f"Processes ({curr_procs or 'None'} -> {new_procs_str or 'None'})")
+        try:
+            with _excel_lock:
+                _convert_xlsx_to_pdf_via_excel(xlsx_path, pdf_path)
+        except Exception as e:
+            return HttpResponseServerError(f"PDF conversion failed: {str(e)}")
 
-        # Specifications
-        curr_specs = ", ".join(sorted(tbl_cmf_specification02.objects.filter(cm_no=old_cmf).values_list('spec_no__name', flat=True)))
-        new_specs_list = sorted([data.get('specificationOther', '').strip() if s == "Others" else s.strip() for s in selected_specs if s.strip()])
-        new_specs_str = ", ".join(new_specs_list)
-        if curr_specs != new_specs_str:
-            diff_logs.append(f"Specifications ({curr_specs or 'None'} -> {new_specs_str or 'None'})")
+        if not os.path.exists(pdf_path):
+            return HttpResponseServerError("PDF conversion failed: no output file produced.")
 
-        # --- 3. DATABASE EXECUTION ---
-        if renaming:
-            if tbl_cmf.objects.filter(cm_no=new_cmf_no).exists(): raise Exception("Duplicate No.")
-            cmf_main = tbl_cmf.objects.create(cm_no=new_cmf_no, user=old_cmf.user, **header_map)
-            for model in [tbl_cmf_color_req, tbl_cmf_dates, tbl_cmf_formula, tbl_resins_selected, tbl_cmf_specification02, tbl_cmf_pending_completed, tbl_feedback_details]:
-                model.objects.filter(cm_no=old_cmf).update(cm_no=cmf_main)
-            old_cmf.delete()
-        else:
-            cmf_main = old_cmf
-            for field, val in header_map.items(): setattr(cmf_main, field, val)
-            cmf_main.save()
+        with open(pdf_path, 'rb') as f:
+            pdf_bytes = f.read()
+    # TemporaryDirectory context manager deletes xlsx + pdf here, unconditionally.
 
-        # Update Related
-        tbl_cmf_color_req.objects.filter(cm_no=cmf_main).update(name=new_req_val)
-        tbl_cmf_dates.objects.filter(cm_no=cmf_main).update(
-            form_made=format_date(data.get('date_created')),
-            date_required=data.get('required_date'),
-            date_received_lab=data.get('date_received'),
-            due_date_lab=format_date(data.get('due_date'))
-        )
-        tbl_cmf_formula.objects.filter(cm_no=cmf_main).update(**formula_map)
-        
-        # Junctions
-        tbl_cmf_process02.objects.filter(cmf_formula_no__cm_no=cmf_main).delete()
-        for name in new_procs_list:
-            p_ref, _ = tbl_cmf_process.objects.get_or_create(name=name)
-            tbl_cmf_process02.objects.create(cmf_formula_no=tbl_cmf_formula.objects.get(cm_no=cmf_main), process_no=p_ref)
-
-        tbl_resins_selected.objects.filter(cm_no=cmf_main).delete()
-        for r_id in selected_resins:
-            resin_ref = tbl_resin.objects.get(resin_no=r_id)
-            tbl_resins_selected.objects.create(cm_no=cmf_main, resin_no=resin_ref)
-
-        tbl_cmf_specification02.objects.filter(cm_no=cmf_main).delete()
-        for name in new_specs_list:
-            s_ref, _ = tbl_cmf_specification.objects.get_or_create(name=name)
-            tbl_cmf_specification02.objects.create(cm_no=cmf_main, spec_no=s_ref)
-
-        # --- 4. LOGGING ---
-        log_msg = f"CMF: {original_cmf_no}"
-        if renaming: log_msg += f" (Renamed to {new_cmf_no})"
-        log_msg += ". Changes: " + (", ".join(diff_logs) if diff_logs else "No technical changes.")
-
-        cache.delete('cmf_records_list')
-        log_audit(request, "Updated", log_msg)
-
-    return cmf_main
+    response = HttpResponse(pdf_bytes, content_type='application/pdf')
+    # inline (no filename) keeps it in the browser's PDF viewer instead of
+    # prompting a "Save As" with a suggested name.
+    response['Content-Disposition'] = 'inline'
+    return response
