@@ -8,7 +8,6 @@ import win32com.client as win32
 from django.contrib import messages
 from django.http import HttpResponse, HttpResponseServerError
 from django.shortcuts import redirect
-from openpyxl import load_workbook
 from django.views.decorators.clickjacking import xframe_options_exempt
 
 from main.models import (
@@ -21,9 +20,11 @@ from main.models import (
 # once. Serialize access so only one conversion happens at a time.
 _excel_lock = threading.Lock()
 
+TEMPLATE_PATH = os.path.join('main', 'templates', 'print_excel', 'cmf_template.xlsx')
 
-def _build_cmf_workbook(cm_no):
-    """Loads the template and writes DB data into it. Returns an openpyxl Workbook."""
+
+def _fetch_cmf_data(cm_no):
+    """Pulls everything needed from the DB. Raises tbl_cmf.DoesNotExist if not found."""
     cmf = tbl_cmf.objects.get(cm_no=cm_no)
     dates = tbl_cmf_dates.objects.filter(cm_no=cmf).first()
     formula_info = tbl_cmf_formula.objects.filter(cm_no=cmf).first()
@@ -40,118 +41,143 @@ def _build_cmf_workbook(cm_no):
     if final_f and final_f.code:
         final_prod_code = final_f.code.product_code
 
-    template_path = 'main/templates/print_excel/cmf_template.xlsx'
-    wb = load_workbook(template_path)
-    ws = wb.active
-
-    ws['F6'] = cmf.cm_no
-    ws['F7'] = formula_info.customer if formula_info else ""
-    ws['F8'] = dates.form_made.strftime('%m/%d/%Y') if dates and dates.form_made else ""
-    ws['F9'] = dates.date_required if dates else ""
-    ws['F11'] = "✔" if cmf.matching_type == 'new' else ""
-    ws['I11'] = "✔" if cmf.matching_type == 'rematch' else ""
-    ws['F12'] = cmf.sm.name if cmf.sm else ""
-    ws['F13'] = cmf.color_desc
-    ws['F14'] = formula_info.finished_product if formula_info else ""
-
-    c_req_name = color_req_obj.name if color_req_obj else ""
-    standard_reqs = ['transparent', 'opaque', 'translucent', 'metallic', 'fluorescent', 'pearlescent']
-    req_map = {'transparent': 'F17', 'opaque': 'I17', 'translucent': 'L17', 'metallic': 'F19', 'fluorescent': 'I19', 'pearlescent': 'L19'}
-    if c_req_name in standard_reqs:
-        ws[req_map[c_req_name]] = "✔"
-    elif c_req_name:
-        ws['F21'] = "✔"
-        ws['H21'] = c_req_name
-
-    ws['D21'] = resins
-    ws['F24'] = "✔" if 'injection' in process_list else ""
-    ws['I24'] = "✔" if 'blow-molding' in process_list else ""
-    ws['M24'] = "✔" if 'film' in process_list else ""
-    ws['F26'] = "✔" if 'pipe-extrusion' in process_list else ""
-
-    standard_procs = ['injection', 'blow-molding', 'film', 'pipe-extrusion']
-    other_procs = [p for p in process_list if p not in standard_procs]
-    if other_procs:
-        ws['I26'] = "✔"
-        ws['L26'] = ", ".join(other_procs)
-
-    ws['F28'] = cmf.qty_resin_testing
-    ws['F29'] = "✔" if cmf.is_resin_provided is True else ""
-    ws['I29'] = "✔" if cmf.is_resin_provided is False else ""
-    ws['F30'] = cmf.mi_c_resin
-    ws['F31'] = "✔" if cmf.is_sample_available is True else ""
-    ws['I31'] = "✔" if cmf.is_sample_available is False else ""
-
-    if cmf.colorant_type == 'MB':
-        ws['F33'] = "✔"
-    elif cmf.colorant_type == 'DC':
-        ws['I33'] = "✔"
-    else:
-        ws['L33'] = "✔"
-        ws['O33'] = cmf.colorant_type
-
-    ws['F35'] = formula_info.dosage if formula_info else ""
-    ws['F37'] = "✔" if cmf.is_guide_to_return is True else ""
-    ws['I37'] = "✔" if cmf.is_guide_to_return is False else ""
-
-    ws['F39'] = "✔" if 'Food Contact' in spec_list else ""
-    ws['I39'] = "✔" if 'Sunlight Exposure' in spec_list else ""
-
-    standard_specs = ['Food Contact', 'Sunlight Exposure']
-    other_specs = [s for s in spec_list if s not in standard_specs]
-    if other_specs:
-        ws['F41'] = "✔"
-        ws['G41'] = ", ".join(other_specs)
-
-    ws['F43'] = cmf.temperature
-    ws['F44'] = "✔" if cmf.is_low_cost is True else ""
-    ws['I44'] = "✔" if cmf.is_low_cost is False else ""
-
-    ws['C48'] = cmf.remarks
-    ws['D62'] = final_prod_code
-
-    return wb
+    return {
+        'cmf': cmf,
+        'dates': dates,
+        'formula_info': formula_info,
+        'color_req_obj': color_req_obj,
+        'resins': resins,
+        'process_list': process_list,
+        'spec_list': spec_list,
+        'final_prod_code': final_prod_code,
+    }
 
 
-def _convert_xlsx_to_pdf_via_excel(xlsx_path, pdf_path):
+def _fill_and_export_via_excel(template_abs_path, pdf_path, data):
     """
-    Drives a real Excel install through COM to export the sheet as PDF.
-    Must run inside pythoncom.CoInitialize()/CoUninitialize() on whatever
-    thread calls it, and must guarantee Excel.Quit() even on failure so
-    no orphaned EXCEL.EXE processes pile up on the server.
+    Opens the ORIGINAL template directly in Excel (no openpyxl involved,
+    so drawings/form controls/checkboxes/images are untouched), writes
+    values into cells via COM, exports to PDF, then closes WITHOUT
+    saving — the template file on disk is never modified.
     """
+    cmf = data['cmf']
+    dates = data['dates']
+    formula_info = data['formula_info']
+    color_req_obj = data['color_req_obj']
+    resins = data['resins']
+    process_list = data['process_list']
+    spec_list = data['spec_list']
+    final_prod_code = data['final_prod_code']
+
     pythoncom.CoInitialize()
     excel = None
     wb = None
     try:
-        # DispatchEx starts a fresh, isolated Excel instance rather than
-        # attaching to one that might already be open/in use.
         excel = win32.DispatchEx("Excel.Application")
         excel.Visible = False
         excel.DisplayAlerts = False
 
-        wb = excel.Workbooks.Open(xlsx_path)
+        wb = excel.Workbooks.Open(template_abs_path)
         ws = wb.Worksheets(1)
+
+        def set_cell(addr, value):
+            ws.Range(addr).Value = value
+
+        # --- GENERAL INFORMATION ---
+        set_cell('F6', cmf.cm_no)
+        set_cell('F7', formula_info.customer if formula_info else "")
+        set_cell('F8', dates.form_made.strftime('%m/%d/%Y') if dates and dates.form_made else "")
+        set_cell('F9', dates.date_required if dates else "")
+        set_cell('F11', cmf.matching_type == 'new')        # linked checkbox
+        set_cell('I11', cmf.matching_type == 'rematch')    # linked checkbox
+        set_cell('F12', cmf.sm.name if cmf.sm else "")
+        set_cell('F13', cmf.color_desc)
+        set_cell('F14', formula_info.finished_product if formula_info else "")
+
+        # --- COLOR REQUIREMENT ---
+        c_req_name = color_req_obj.name if color_req_obj else ""
+        standard_reqs = ['transparent', 'opaque', 'translucent', 'metallic', 'fluorescent', 'pearlescent']
+        req_map = {'transparent': 'F17', 'opaque': 'I17', 'translucent': 'L17', 'metallic': 'F19', 'fluorescent': 'I19', 'pearlescent': 'L19'}
+
+        # Uncheck all, then check the matching one
+        for addr in req_map.values():
+            set_cell(addr, False)
+        set_cell('F21', False)
+
+        if c_req_name in standard_reqs:
+            set_cell(req_map[c_req_name], True)
+        elif c_req_name:
+            set_cell('F21', True)          # "Others" checkbox
+            set_cell('H21', c_req_name)    # "Others" text
+
+        # --- RESIN & PROCESS ---
+        set_cell('F22', resins)
+        set_cell('F24', 'injection' in process_list)
+        set_cell('I24', 'blow-molding' in process_list)
+        set_cell('M24', 'film' in process_list)
+        set_cell('F26', 'pipe-extrusion' in process_list)
+
+        standard_procs = ['injection', 'blow-molding', 'film', 'pipe-extrusion']
+        other_procs = [p for p in process_list if p not in standard_procs]
+        set_cell('I26', bool(other_procs))
+        set_cell('L26', ", ".join(other_procs) if other_procs else "")
+
+        # --- TECHNICAL SPECS ---
+        set_cell('F28', cmf.qty_resin_testing)
+        set_cell('F29', cmf.is_resin_provided is True)
+        set_cell('I29', cmf.is_resin_provided is False)
+        set_cell('F30', cmf.mi_c_resin)
+
+        set_cell('F31', cmf.is_sample_available is True)
+        set_cell('I31', cmf.is_sample_available is False)
+
+        # Colorant Type
+        set_cell('F33', cmf.colorant_type == 'MB')
+        set_cell('I33', cmf.colorant_type == 'DC')
+        is_other_colorant = cmf.colorant_type not in ('MB', 'DC')
+        set_cell('L33', is_other_colorant)
+        set_cell('O33', cmf.colorant_type if is_other_colorant else "")
+
+        set_cell('F35', formula_info.dosage if formula_info else "")
+        set_cell('F37', cmf.is_guide_to_return is True)
+        set_cell('I37', cmf.is_guide_to_return is False)
+
+        # Specifications
+        set_cell('F39', 'Food Contact' in spec_list)
+        set_cell('I39', 'Sunlight Exposure' in spec_list)
+
+        standard_specs = ['Food Contact', 'Sunlight Exposure']
+        other_specs = [s for s in spec_list if s not in standard_specs]
+        set_cell('F41', bool(other_specs))
+        set_cell('G41', ", ".join(other_specs) if other_specs else "")
+
+        set_cell('F43', cmf.temperature)
+        set_cell('F44', cmf.is_low_cost is True)
+        set_cell('I44', cmf.is_low_cost is False)
+
+        # --- REMARKS & PRODUCT CODE ---
+        set_cell('C48', cmf.remarks)
+        set_cell('D62', final_prod_code)
 
         # 0 = xlTypePDF
         ws.ExportAsFixedFormat(0, pdf_path)
+
     finally:
         if wb is not None:
-            wb.Close(SaveChanges=False)
+            wb.Close(SaveChanges=False)   # never overwrite the template
         if excel is not None:
             excel.Quit()
         pythoncom.CoUninitialize()
 
-@xframe_options_exempt
+
 def print_cmf_preview(request, cm_no):
     """
-    Builds the workbook from the (reusable) template, converts it to PDF
-    via Excel COM automation for inline browser preview, and cleans up
-    every temp file before returning — nothing is left on disk waiting
-    for the client to close anything.
+    Fills the ORIGINAL Excel template directly via COM (preserving all
+    drawings/checkboxes/formatting), exports to PDF for inline browser
+    preview, and cleans up the temp PDF before returning.
     """
     try:
-        wb = _build_cmf_workbook(cm_no)
+        data = _fetch_cmf_data(cm_no)
     except tbl_cmf.DoesNotExist:
         messages.error(request, f"Error: CMF No. '{cm_no}' was not found.")
         return redirect('cmf_entry')
@@ -159,27 +185,30 @@ def print_cmf_preview(request, cm_no):
         messages.error(request, f"System Error: {str(e)}")
         return redirect('cmf_entry')
 
+    template_abs_path = os.path.abspath(TEMPLATE_PATH)
+    if not os.path.exists(template_abs_path):
+        return HttpResponseServerError("Template file not found on server.")
+
     with tempfile.TemporaryDirectory() as tmpdir:
-        file_id = uuid.uuid4().hex
-        xlsx_path = os.path.join(tmpdir, f"{file_id}.xlsx")
-        pdf_path = os.path.join(tmpdir, f"{file_id}.pdf")
-        wb.save(xlsx_path)
+        pdf_path = os.path.join(tmpdir, f"{uuid.uuid4().hex}.pdf")
 
         try:
             with _excel_lock:
-                _convert_xlsx_to_pdf_via_excel(xlsx_path, pdf_path)
+                _fill_and_export_via_excel(template_abs_path, pdf_path, data)
         except Exception as e:
-            return HttpResponseServerError(f"PDF conversion failed: {str(e)}")
+            return HttpResponseServerError(f"PDF export failed: {str(e)}")
 
         if not os.path.exists(pdf_path):
-            return HttpResponseServerError("PDF conversion failed: no output file produced.")
+            return HttpResponseServerError("PDF export failed: no output file produced.")
 
         with open(pdf_path, 'rb') as f:
             pdf_bytes = f.read()
-    # TemporaryDirectory context manager deletes xlsx + pdf here, unconditionally.
+    # TemporaryDirectory context manager deletes the pdf here, unconditionally.
 
     response = HttpResponse(pdf_bytes, content_type='application/pdf')
-    # inline (no filename) keeps it in the browser's PDF viewer instead of
-    # prompting a "Save As" with a suggested name.
     response['Content-Disposition'] = 'inline'
+    response['X-Frame-Options'] = 'SAMEORIGIN'
     return response
+
+
+print_cmf_preview = xframe_options_exempt(print_cmf_preview)
