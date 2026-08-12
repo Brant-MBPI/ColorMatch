@@ -86,79 +86,79 @@ def _fill_and_export_via_excel(template_abs_path, pdf_path, data):
 
         # --- GENERAL INFORMATION ---
         set_cell('F6', cmf.cm_no)
-        set_cell('F7', formula_info.customer if formula_info else "")
-        set_cell('F8', dates.form_made.strftime('%m/%d/%Y') if dates and dates.form_made else "")
-        set_cell('F9', dates.date_required if dates else "")
-        set_cell('F11', cmf.matching_type == 'new')        # linked checkbox
-        set_cell('I11', cmf.matching_type == 'rematch')    # linked checkbox
-        set_cell('F12', cmf.sm.name if cmf.sm else "")
-        set_cell('F13', cmf.color_desc)
-        set_cell('F14', formula_info.finished_product if formula_info else "")
+        set_cell('F8', formula_info.customer if formula_info else "")
+        set_cell('F10', dates.form_made.strftime('%m/%d/%Y') if dates and dates.form_made else "")
+        set_cell('F12', dates.date_required if dates else "")
+        set_cell('F14', cmf.matching_type == 'new')        # linked checkbox
+        set_cell('I14', cmf.matching_type == 'rematch')    # linked checkbox
+        set_cell('F16', cmf.sm.name if cmf.sm else "")
+        set_cell('F18', cmf.color_desc)
+        set_cell('F20', formula_info.finished_product if formula_info else "")
 
         # --- COLOR REQUIREMENT ---
         c_req_name = color_req_obj.name if color_req_obj else ""
         standard_reqs = ['transparent', 'opaque', 'translucent', 'metallic', 'fluorescent', 'pearlescent']
-        req_map = {'transparent': 'F17', 'opaque': 'I17', 'translucent': 'L17', 'metallic': 'F19', 'fluorescent': 'I19', 'pearlescent': 'L19'}
+        req_map = {'transparent': 'F22', 'opaque': 'I22', 'translucent': 'L22', 'metallic': 'F24', 'fluorescent': 'I24', 'pearlescent': 'L24'}
 
         # Uncheck all, then check the matching one
         for addr in req_map.values():
             set_cell(addr, False)
-        set_cell('F21', False)
+        set_cell('F26', False)
 
         if c_req_name in standard_reqs:
             set_cell(req_map[c_req_name], True)
         elif c_req_name:
-            set_cell('F21', True)          # "Others" checkbox
-            set_cell('H21', c_req_name)    # "Others" text
+            set_cell('F26', True)          # "Others" checkbox
+            set_cell('H26', c_req_name)    # "Others" text
 
         # --- RESIN & PROCESS ---
-        set_cell('F22', resins)
-        set_cell('F24', 'injection' in process_list)
-        set_cell('I24', 'blow-molding' in process_list)
-        set_cell('M24', 'film' in process_list)
-        set_cell('F26', 'pipe-extrusion' in process_list)
+        set_cell('F28', resins)
+        set_cell('F30', 'injection' in process_list)
+        set_cell('I30', 'blow-molding' in process_list)
+        set_cell('M30', 'film' in process_list)
+        set_cell('F32', 'pipe-extrusion' in process_list)
 
         standard_procs = ['injection', 'blow-molding', 'film', 'pipe-extrusion']
         other_procs = [p for p in process_list if p not in standard_procs]
-        set_cell('I26', bool(other_procs))
-        set_cell('L26', ", ".join(other_procs) if other_procs else "")
+        set_cell('I32', bool(other_procs))
+        set_cell('L32', ", ".join(other_procs) if other_procs else "")
 
         # --- TECHNICAL SPECS ---
-        set_cell('F28', cmf.qty_resin_testing)
-        set_cell('F29', cmf.is_resin_provided is True)
-        set_cell('I29', cmf.is_resin_provided is False)
-        set_cell('F30', cmf.mi_c_resin)
+        set_cell('F34', cmf.qty_resin_testing)
+        set_cell('F36', cmf.is_resin_provided is True)
+        set_cell('I36', cmf.is_resin_provided is False)
+        set_cell('F38', cmf.mi_c_resin)
 
-        set_cell('F31', cmf.is_sample_available is True)
-        set_cell('I31', cmf.is_sample_available is False)
+        set_cell('F40', cmf.is_sample_available is True)
+        set_cell('I40', cmf.is_sample_available is False)
 
         # Colorant Type
-        set_cell('F33', cmf.colorant_type == 'MB')
-        set_cell('I33', cmf.colorant_type == 'DC')
+        set_cell('F42', cmf.colorant_type == 'MB')
+        set_cell('I42', cmf.colorant_type == 'DC')
         is_other_colorant = cmf.colorant_type not in ('MB', 'DC')
-        set_cell('L33', is_other_colorant)
-        set_cell('O33', cmf.colorant_type if is_other_colorant else "")
+        set_cell('L42', is_other_colorant)
+        set_cell('O42', cmf.colorant_type if is_other_colorant else "")
 
-        set_cell('F35', formula_info.dosage if formula_info else "")
-        set_cell('F37', cmf.is_guide_to_return is True)
-        set_cell('I37', cmf.is_guide_to_return is False)
+        set_cell('F44', formula_info.dosage if formula_info else "")
+        set_cell('F46', cmf.is_guide_to_return is True)
+        set_cell('I46', cmf.is_guide_to_return is False)
 
         # Specifications
-        set_cell('F39', 'Food Contact' in spec_list)
-        set_cell('I39', 'Sunlight Exposure' in spec_list)
+        set_cell('F48', 'Food Contact' in spec_list)
+        set_cell('I48', 'Sunlight Exposure' in spec_list)
 
         standard_specs = ['Food Contact', 'Sunlight Exposure']
         other_specs = [s for s in spec_list if s not in standard_specs]
-        set_cell('F41', bool(other_specs))
-        set_cell('G41', ", ".join(other_specs) if other_specs else "")
+        set_cell('F50', bool(other_specs))
+        set_cell('H50', ", ".join(other_specs) if other_specs else "")
 
-        set_cell('F43', cmf.temperature)
-        set_cell('F44', cmf.is_low_cost is True)
-        set_cell('I44', cmf.is_low_cost is False)
+        set_cell('F52', cmf.temperature)
+        set_cell('F54', cmf.is_low_cost is True)
+        set_cell('I54', cmf.is_low_cost is False)
 
         # --- REMARKS & PRODUCT CODE ---
-        set_cell('C48', cmf.remarks)
-        set_cell('D62', final_prod_code)
+        set_cell('C59', cmf.remarks)
+        set_cell('D74', final_prod_code)
 
         # --- PAGE SETUP: zero margins, fit print area to one page ---
         # Assumes PrintArea is already defined in the template itself.
