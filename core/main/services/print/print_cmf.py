@@ -213,11 +213,15 @@ def print_cmf_preview(request, cm_no):
                 _fill_and_export_via_excel(template_abs_path, raw_pdf_path, data)
             _resize_pdf_to_fixed_size(
                 raw_pdf_path, final_pdf_path,
-                width_in=8.5, height_in=6.5,
+                width_in=6.5, height_in=8.5,
             )
         except Exception as e:
             return HttpResponseServerError(f"PDF export failed: {str(e)}")
 
+        import fitz as _fitz_debug
+        _doc = _fitz_debug.open(final_pdf_path)
+        print("FINAL PDF PAGE SIZE (pt):", _doc[0].rect)
+        _doc.close()
         if not os.path.exists(final_pdf_path):
             return HttpResponseServerError("PDF export failed: no output file produced.")
 

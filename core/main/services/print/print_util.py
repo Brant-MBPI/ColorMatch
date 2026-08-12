@@ -1,6 +1,6 @@
 import fitz  # PyMuPDF
 
-def _resize_pdf_to_fixed_size(input_pdf_path, output_pdf_path, width_in=8.5, height_in=6.5):
+def _resize_pdf_to_fixed_size(input_pdf_path, output_pdf_path, width_in=6.5, height_in=8.5):
     """
     Rescales every page of the exported PDF onto a new page of exactly
     width_in x height_in inches, with no margin — the original content
