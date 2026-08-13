@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .services.print import print_cmf, print_mb_formula
+from .services.print import print_cmf, print_mb_formula, print_dc_formula
 
 from .services.cmf_records import mb_dc_formulation_services
 
@@ -50,4 +50,5 @@ urlpatterns = [
     path('cmf/rs-records/cmf/rs-records/<int:rs_id>/', views.rs_record_detail, name='rs_record_detail'),
     path('cmf/print/<str:cm_no>/preview', print_cmf.print_cmf_preview, name='cmf_print_preview'),
     path('mb-formula/print/<str:formula_id>/preview', print_mb_formula.print_mb_formula_preview, name='mb_formula_print'),
+    path('dc-formula/print/<str:formula_id>/preview', print_dc_formula.print_dc_formula_preview, name='dc_formula_print'),
 ]
