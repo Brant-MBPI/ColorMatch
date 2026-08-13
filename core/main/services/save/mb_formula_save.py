@@ -115,7 +115,7 @@ def save_mb_complete_formula(request):
                 header.save()
 
                 # --- TRACK INGREDIENT CHANGES ---
-                old_ings = list(tbl_mb_extruder_formula02.objects.filter(mb=header).order_id().values('material', 'value', 'weight'))
+                old_ings = list(tbl_mb_extruder_formula02.objects.filter(mb=header).values('material', 'value', 'weight'))
                 
                 new_ings = []
                 for i in range(1, 11):

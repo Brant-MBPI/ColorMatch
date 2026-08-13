@@ -2,7 +2,7 @@ import os
 import tempfile
 import threading
 import uuid
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import Decimal
 
 import pythoncom
 import win32com.client as win32
@@ -27,6 +27,13 @@ MB_PDF_HEIGHT_IN = 6.5
 # Material rows: row 1 -> sheet row 13, one row per material, up to 10.
 MATERIAL_START_ROW = 13
 MATERIAL_MAX_ROWS = 10
+
+# Custom Excel number formats — quoted literals are display-only suffixes,
+# they don't affect the underlying numeric value (e.g. "%" here is just
+# text, not a x100 percentage format).
+FMT_PERCENT_4DP = '0.0000'
+FMT_WEIGHT_7DP_G = '0.0000000"g"'
+FMT_DOSAGE_PCT = '0.00"%"'
 
 
 def _fetch_mb_formula_data(formula_id):
@@ -81,19 +88,16 @@ def _fetch_mb_formula_data(formula_id):
     }
 
 
-def _fmt_percent(val):
-    """4 decimal places, e.g. 12.3400"""
+def _to_num(val):
+    """Safely converts None/'' /Decimal/str into a float for COM, defaulting to 0."""
     if val is None or val == "":
-        return ""
-    return str(Decimal(val).quantize(Decimal('0.0001'), rounding=ROUND_HALF_UP))
-
-
-def _fmt_weight(val):
-    """7 decimal places"""
-    if val is None or val == "":
-        return ""
-    quantized = Decimal(val).quantize(Decimal('0.0000001'), rounding=ROUND_HALF_UP)
-    return f"{quantized}"
+        return 0
+    if isinstance(val, Decimal):
+        return float(val)
+    try:
+        return float(val)
+    except (TypeError, ValueError):
+        return 0
 
 
 def _fill_and_export_mb_formula_via_excel(template_abs_path, pdf_path, data):
@@ -111,8 +115,11 @@ def _fill_and_export_mb_formula_via_excel(template_abs_path, pdf_path, data):
         wb = excel.Workbooks.Open(template_abs_path)
         ws = wb.Worksheets(1)
 
-        def set_cell(addr, value):
-            ws.Range(addr).Value = value
+        def set_cell(addr, value, number_format=None):
+            rng = ws.Range(addr)
+            rng.Value = value
+            if number_format is not None:
+                rng.NumberFormat = number_format
 
         # --- HEADER (left block) ---
         set_cell('B6', header.date.strftime('%m/%d/%Y') if header.date else "")
@@ -124,31 +131,33 @@ def _fill_and_export_mb_formula_via_excel(template_abs_path, pdf_path, data):
         # --- HEADER (right block) ---
         set_cell('F6', data['parent_no'])
         set_cell('F7', data['resin'])
-        set_cell('F8', data['dosage'])
+        # Dosage: numeric value, 2 decimals + literal "%" suffix, no
+        # currency formatting and no x100 percentage conversion.
+        set_cell('F8', _to_num(data['dosage']), number_format=FMT_DOSAGE_PCT)
         set_cell('F9', header.mixing_time)
         set_cell('F10', data['application'])
 
         # --- MATERIALS (row 1 -> sheet row 13, up to 10 rows) ---
-        total_value = Decimal('0')
-        total_weight = Decimal('0')
-
         for i in range(MATERIAL_MAX_ROWS):
             row_num = MATERIAL_START_ROW + i
             if i < len(ingredients):
                 ing = ingredients[i]
                 set_cell(f'A{row_num}', ing.material)
-                set_cell(f'B{row_num}', _fmt_percent(ing.value))
-                set_cell(f'F{row_num}', _fmt_weight(ing.weight))
-                total_value += Decimal(ing.value or 0)
-                total_weight += Decimal(ing.weight or 0)
+                set_cell(f'B{row_num}', _to_num(ing.value), number_format=FMT_PERCENT_4DP)
+                set_cell(f'F{row_num}', _to_num(ing.weight), number_format=FMT_WEIGHT_7DP_G)
             else:
                 set_cell(f'A{row_num}', "")
-                set_cell(f'B{row_num}', "")
-                set_cell(f'F{row_num}', "")
+                set_cell(f'B{row_num}', "", number_format=FMT_PERCENT_4DP)
+                set_cell(f'F{row_num}', "", number_format=FMT_WEIGHT_7DP_G)
 
         # --- TOTALS ---
-        set_cell('B23', _fmt_percent(total_value))
-        set_cell('F23', _fmt_weight(total_weight))
+        # "Value" total still summed from ingredient rows.
+        total_value = sum((Decimal(ing.value or 0) for ing in ingredients), Decimal('0'))
+        set_cell('B23', _to_num(total_value), number_format=FMT_PERCENT_4DP)
+
+        # Total Weight comes directly from the saved header field, not
+        # summed from ingredient rows.
+        set_cell('F23', _to_num(header.total_weight), number_format=FMT_WEIGHT_7DP_G)
 
         # --- PERSONNEL / NOTES ---
         set_cell('B24', header.matched_by)
