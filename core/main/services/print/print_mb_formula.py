@@ -89,11 +89,11 @@ def _fmt_percent(val):
 
 
 def _fmt_weight(val):
-    """7 decimal places, with a literal '5' appended at the end, per spec."""
+    """7 decimal places"""
     if val is None or val == "":
         return ""
     quantized = Decimal(val).quantize(Decimal('0.0000001'), rounding=ROUND_HALF_UP)
-    return f"{quantized}5"
+    return f"{quantized}"
 
 
 def _fill_and_export_mb_formula_via_excel(template_abs_path, pdf_path, data):

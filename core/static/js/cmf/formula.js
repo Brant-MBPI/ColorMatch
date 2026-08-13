@@ -191,7 +191,86 @@
 
     if (printBtn) {
         printBtn.addEventListener('click', () => {
-            window.print();
+            const config = getFormulaPrintConfig();
+
+            if (!config) {
+                console.error('No recognized formula form found on this page.');
+                return;
+            }
+
+            if (!config.formulaId) {
+                Preline.confirm(
+                    'Not Yet Saved',
+                    'Please save this formula before printing.',
+                    'warning',
+                    () => {}
+                );
+                return;
+            }
+
+            openFormulaPreview(config.urlPrefix, config.formulaId);
+        });
+    }
+
+    function getFormulaPrintConfig() {
+        // Detect which formula form is present on the current page.
+        if (document.querySelector('.js-mb-formula')) {
+            return {
+                urlPrefix: 'mb-formula',
+                formulaId: document.querySelector('input[name="formula_id"]')?.value,
+            };
+        }
+        if (document.querySelector('.js-dc-formula')) {
+            return {
+                urlPrefix: 'dc-formula',
+                formulaId: document.querySelector('input[name="formula_id"]')?.value,
+            };
+        }
+        return null;
+    }
+
+    function openFormulaPreview(urlPrefix, formulaId) {
+        const previewUrl = `/${urlPrefix}/print/${encodeURIComponent(formulaId)}/preview`;
+
+        showLoader();
+
+        const dialog = document.createElement('dialog');
+        dialog.className = 'p-0 border-0 rounded-3 shadow-lg';
+        dialog.style.width = '90vw';
+        dialog.style.height = '90vh';
+        dialog.style.maxWidth = '1200px';
+        dialog.innerHTML = `
+            <div class="d-flex flex-column w-100 h-100">
+                <div class="d-flex justify-content-end gap-2 p-2 bg-dark">
+                    <button id="formulaPreviewPrintBtn" class="btn btn-primary btn-sm">
+                        <i class="bi bi-printer"></i> Print
+                    </button>
+                    <button id="formulaPreviewCloseBtn" class="btn btn-secondary btn-sm">Close</button>
+                </div>
+                <iframe id="formulaPreviewFrame" src="${previewUrl}" class="flex-grow-1 w-100 border-0"></iframe>
+            </div>
+        `;
+        document.body.appendChild(dialog);
+
+        const iframe = dialog.querySelector('#formulaPreviewFrame');
+
+        iframe.addEventListener('load', function() {
+            hideLoader();
+            // Only show the dialog once the PDF has actually loaded, to
+            // avoid a blank/white flash while it's still fetching.
+            dialog.showModal();
+        });
+
+        dialog.querySelector('#formulaPreviewPrintBtn').addEventListener('click', function() {
+            iframe.contentWindow.print();
+        });
+
+        dialog.querySelector('#formulaPreviewCloseBtn').addEventListener('click', function() {
+            dialog.close();
+        });
+
+        dialog.addEventListener('close', function() {
+            dialog.remove();
         });
     }
 
