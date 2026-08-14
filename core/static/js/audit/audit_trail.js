@@ -26,9 +26,22 @@ jQuery(document).ready(function($) {
                 data: "action_type",
                 render: function(data) {
                     let cls = "bg-secondary-subtle text-secondary";
-                    if (['Saved', 'Created'].includes(data)) cls = "bg-success-subtle text-success border-success-subtle";
-                    else if (data.includes('Updated') || data === 'MODIFY') cls = "bg-primary-subtle text-primary border-primary-subtle";
-                    else if (data === 'Deleted') cls = "bg-danger-subtle text-danger border-danger-subtle";
+                    
+                    if (['Saved', 'Created'].includes(data)) {
+                        cls = "bg-success-subtle text-success border-success-subtle";
+                    }
+                    else if (data.includes('Updated') || data === 'MODIFY') {
+                        cls = "bg-primary-subtle text-primary border-primary-subtle";
+                    }
+                    else if (data === 'Deleted') {
+                        cls = "bg-danger-subtle text-danger border-danger-subtle";
+                    }
+                    // NEW: Style for Printed
+                    else if (data === 'Printed') {
+                        // Using Info (Cyan) which looks professional for document actions
+                        cls = "bg-info-subtle text-info border-info-subtle"; 
+                    }
+                    
                     return `<span class="badge ${cls} border px-2">${data}</span>`;
                 }
             },

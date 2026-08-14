@@ -6,10 +6,11 @@ import uuid
 import pythoncom
 import win32com.client as win32
 from django.contrib import messages
-from django.http import HttpResponse, HttpResponseServerError
+from django.http import HttpResponse, HttpResponseServerError, JsonResponse
 from django.shortcuts import redirect
 from django.views.decorators.clickjacking import xframe_options_exempt
 
+from main.utils.log_audit_trail import log_audit
 from main.services.print.print_util import _resize_pdf_to_fixed_size
 from main.models import (
     tbl_cmf, tbl_cmf_dates, tbl_cmf_formula, tbl_cmf_color_req,
@@ -236,3 +237,13 @@ def print_cmf_preview(request, cm_no):
 
 
 print_cmf_preview = xframe_options_exempt(print_cmf_preview)
+
+
+
+def log_cmf_print(request, cm_no):
+    try:
+        # Record the action in the audit trail
+        log_audit(request, "Printed", f"Printed Color Matching Form (CMF No: {cm_no})")
+        return JsonResponse({'status': 'success'})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)

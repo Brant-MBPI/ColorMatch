@@ -54,6 +54,7 @@ urlpatterns = [
     path('cmf/print/<str:cm_no>/preview', print_cmf.print_cmf_preview, name='cmf_print_preview'),
     path('mb-formula/print/<str:formula_id>/preview', print_mb_formula.print_mb_formula_preview, name='mb_formula_print'),
     path('dc-formula/print/<str:formula_id>/preview', print_dc_formula.print_dc_formula_preview, name='dc_formula_print'),
-    path('formula-log-print/mb-formula/<int:formula_id>/', print_mb_formula.log_formula_print, name='log_mb_formula_print'),
-    path('formula-log-print/dc-formula/<int:formula_id>/', print_dc_formula.log_formula_print, name='log_dc_formula_print'),
+    path('cmf/log-print/<str:cm_no>/', print_cmf.log_cmf_print, name='log_cmf_print'),
+    path('formula/log-print/mb-formula/<int:formula_id>/', print_mb_formula.log_formula_print, name='log_mb_formula_print'),
+    path('formula/log-print/dc-formula/<int:formula_id>/', print_dc_formula.log_formula_print, name='log_dc_formula_print'),
 ]

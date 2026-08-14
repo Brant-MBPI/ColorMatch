@@ -115,6 +115,12 @@ document.addEventListener('DOMContentLoaded', function() {
         // Handle Print Button
         dialog.querySelector('#cmfPreviewPrintBtn').addEventListener('click', function() {
             iframe.contentWindow.print();
+
+            fetch(`/cmf/log-print/${encodeURIComponent(cmNo)}/`)
+            .then(response => {
+                if (!response.ok) console.error('Audit logging failed');
+            })
+            .catch(err => console.error('Error logging CMF print:', err));
         });
 
         // Handle Close Button
