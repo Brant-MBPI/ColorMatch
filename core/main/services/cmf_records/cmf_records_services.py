@@ -1,4 +1,5 @@
 from datetime import datetime
+from django.db.models import Q
 from django.views.decorators.http import require_POST
 from django.db import transaction
 from django.core.cache import cache
@@ -201,83 +202,90 @@ def toggle_final_formula(request, formula_type, formula_id):
 
 
 # Formula Records Retrieval for CMF and RS
-def get_all_formula_records():
+def get_all_formula_records(search_query=None):
     """
     Fetches all MB and DC formula headers, combines them,
     and orders them by date descending.
     """
-    cache_key = 'all_extruder_formulas_list'
-    cached_data = cache.get(cache_key)
-    if cached_data is not None:
-        return cached_data
-
     # 1. Fetch MB Formulas
-    # Using select_related to avoid N+1 queries for product codes and parent descriptions
-    mb_formulas = tbl_mb_extruder_formula.objects.select_related(
-        'code', 'cm_no', 'rs_no'
-    ).all()
+    mb_qs = tbl_mb_extruder_formula.objects.select_related('code', 'cm_no', 'rs_no')
+    if search_query:
+        mb_qs = mb_qs.filter(
+            Q(code__product_code__icontains=search_query) |
+            Q(lot_no__icontains=search_query) |
+            Q(cm_no__color_desc__icontains=search_query) |
+            Q(rs_no__color_desc__icontains=search_query) |
+            Q(matched_by__icontains=search_query)
+        )
 
     # 2. Fetch DC Formulas
-    dc_formulas = tbl_dc_extruder_formula.objects.select_related(
-        'code', 'cm_no', 'rs_no'
-    ).all()
+    dc_qs = tbl_dc_extruder_formula.objects.select_related('code', 'cm_no', 'rs_no')
+    if search_query:
+        dc_qs = dc_qs.filter(
+            Q(code__product_code__icontains=search_query) |
+            Q(cm_no__color_desc__icontains=search_query) |
+            Q(rs_no__color_desc__icontains=search_query) |
+            Q(matched_by__icontains=search_query)
+        )
 
     combined_results = []
 
-    # Process MB
-    for f in mb_formulas:
-        # Determine Color from CMF or RS parent
-        color_desc = "---"
-        if f.cm_no:
-            color_desc = f.cm_no.color_desc
-        elif f.rs_no:
-            color_desc = f.rs_no.color_desc
-
+    for f in mb_qs:
+        color = f.cm_no.color_desc if f.cm_no else (f.rs_no.color_desc if f.rs_no else "---")
         combined_results.append({
-            "id": f.mb_no,
-            "date": f.date.strftime('%Y-%m-%d') if f.date else "---",
+            "id": f.mb_no, "type": "MB", "date": f.date,
             "product_code": f.code.product_code if f.code else "---",
-            "color": color_desc,
-            "mixing_time": f.mixing_time or "---",
-            "matched_by": f.matched_by or "---",
-            "lot_no": f.lot_no or "N/A",
-            "html": f.html or "#ffffff",
-            "colorant_type": "MB",
-            "raw_date": f.date # used for sorting
+            "color": color, "mixing": f.mixing_time or "---",
+            "matched_by": f.matched_by or "---", "lot_no": f.lot_no or "N/A",
+            "html": f.html or "#ffffff"
         })
 
-    # Process DC
-    for f in dc_formulas:
-        color_desc = "---"
-        if f.cm_no:
-            color_desc = f.cm_no.color_desc
-        elif f.rs_no:
-            color_desc = f.rs_no.color_desc
-
+    for f in dc_qs:
+        color = f.cm_no.color_desc if f.cm_no else (f.rs_no.color_desc if f.rs_no else "---")
         combined_results.append({
-            "id": f.dc_no,
-            "date": f.date.strftime('%Y-%m-%d') if f.date else "---",
+            "id": f.dc_no, "type": "DC", "date": f.date,
             "product_code": f.code.product_code if f.code else "---",
-            "color": color_desc,
-            "mixing_time": f.mixing_time or "---",
-            "matched_by": f.matched_by or "---",
-            "lot_no": "N/A", # DC model doesn't have lot_no
-            "html": f.html or "#ffffff",
-            "colorant_type": "DC",
-            "raw_date": f.date
+            "color": color, "mixing": f.mixing_time or "---",
+            "matched_by": f.matched_by or "---", "lot_no": "N/A",
+            "html": f.html or "#ffffff"
         })
 
-    # 3. Sort by Date Descending
-    # We use a lambda to handle None dates by providing a minimum date proxy
-    sorted_results = sorted(
-        combined_results, 
-        key=lambda x: x['raw_date'] if x['raw_date'] else datetime.min.date(), 
-        reverse=True
-    )
+    # Sort combined list by date descending
+    combined_results.sort(key=lambda x: x['date'] if x['date'] else datetime.min.date(), reverse=True)
+    
+    return combined_results
 
-    # Remove the raw_date object before caching/returning
-    for item in sorted_results:
-        item.pop('raw_date')
+# DataTables JSON Provider (Server-Side Logic)
+def formula_records_data(request):
+    draw = int(request.GET.get('draw', 1))
+    start = int(request.GET.get('start', 0))
+    length = int(request.GET.get('length', 100))
+    search_value = request.GET.get('search[value]', '')
 
-    cache.set(cache_key, sorted_results, 3600)
-    return sorted_results
+    # Fetch processed data from service
+    all_records = get_all_formula_records(search_query=search_value)
+    
+    total_records = len(all_records)
+    # Paginate (slice) the list
+    paginated_list = all_records[start : start + length]
+
+    # Format dates for display
+    for item in paginated_list:
+        item['date_display'] = item['date'].strftime('%m/%d/%Y') if item['date'] else "---"
+
+    return JsonResponse({
+        "draw": draw,
+        "recordsTotal": total_records,
+        "recordsDisplay": total_records,
+        "data": paginated_list
+    })
+
+def get_formula_materials(request, formula_type, formula_id):
+    if formula_type.upper() == 'MB':
+        materials = tbl_mb_extruder_formula02.objects.filter(mb_id=formula_id).values('material', 'value', 'weight')
+    else:
+        materials = tbl_dc_extruder_formula02.objects.filter(dc_id=formula_id).values('material', 'value', 'weight')
+    
+    return JsonResponse({
+        'materials': list(materials)
+    })

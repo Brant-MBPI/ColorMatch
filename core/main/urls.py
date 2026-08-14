@@ -38,6 +38,7 @@ urlpatterns = [
     path('cmf/records/export/', views.cmf_records_export_preview, name='cmf_records_export_preview'),
     # ajax
     path('cmf/mb-dc-formula/', mb_dc_formulation_services.get_formulation_details, name='mb_dc_lookup_details'),
+    path('cmf/formula-records/data/', cmf_records_services.formula_records_data, name='formula_records_data'),
     path('master-formula/lookup/', master_formula_services.master_formula_lookup, name='master_formula_lookup'),
     path('check-previous-matching/', previous_cmf_record.check_previous_matching, name='check_previous_matching'),
     path('formulation/data/', formulation_services.get_formulation_records_json, name='formulation_data'),
@@ -47,6 +48,7 @@ urlpatterns = [
     path('formulation/<int:form_id>/materials/', formulation_services.formulation_materials_json, name='formulation_materials_json'),
     # with parameters
     path('cmf/records/<str:cm_no>/', views.cmf_record_detail, name='cmf_record_detail'),
+    path('cmf/formula-records/materials/<str:formula_type>/<int:formula_id>/', cmf_records_services.get_formula_materials, name='get_formula_materials'),
     path('cmf/formula/<str:formula_type>/<int:formula_id>/toggle-final/', cmf_records_services.toggle_final_formula, name='toggle_final_formula'),
     path('cmf/rs-records/cmf/rs-records/<int:rs_id>/', views.rs_record_detail, name='rs_record_detail'),
     path('cmf/print/<str:cm_no>/preview', print_cmf.print_cmf_preview, name='cmf_print_preview'),

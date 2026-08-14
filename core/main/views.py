@@ -120,10 +120,8 @@ def cmf_records(request):
     })
 
 def formula_records(request):
-    all_records = cmf_records_services.get_all_formula_records()
-    return render(request, "sidemenu/cmf/formula_records.html", {
-        "records": all_records,
-    })
+    return render(request, "sidemenu/cmf/formula_records.html")
+
 
 def cmf_entry(request):
     form_data = {}
