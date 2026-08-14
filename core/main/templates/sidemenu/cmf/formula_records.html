@@ -9,10 +9,21 @@
                 <span class="text-muted italic">Select a record to view details</span>
             </div>
         </div>
-        
-        <div class="col-md-5">
+
+        <div class="col-md-6">
             <div class="input-group input-group-sm shadow-sm">
-                <input type="text" id="recordSearchInput" class="form-control uniform-input ps-3" placeholder="Search CMF, Code, Color, or Lot...">
+                <select id="searchColumnFilter" class="form-select uniform-input" style="max-width: 200px; flex: 0 0 auto;">
+                    <option value="-1" selected>All Columns</option>
+                    <option value="1">Date</option>
+                    <option value="2">CMF No</option>
+                    <option value="3">Product Code</option>
+                    <option value="4">Color Description</option>
+                    <option value="5">Mixing</option>
+                    <option value="6">Matched By</option>
+                    <option value="7">Lot No</option>
+                    <option value="9">Type</option>
+                </select>
+                <input type="text" id="recordSearchInput" class="form-control uniform-input" placeholder="Search CMF, Code, Color, or Lot...">
                 <span class="input-group-text uniform-input bg-white"><i class="bi bi-search"></i></span>
             </div>
         </div>
@@ -25,16 +36,16 @@
         </div>
     </div>
 
-    <!-- MAIN BODY - Set to flex-grow-1 to occupy remaining height -->
+    <!-- MAIN BODY -->
     <div class="row g-3 flex-grow-1 overflow-hidden min-vh-0">
         <!-- MAIN TABLE -->
         <div class="col-lg-9 h-100 d-flex flex-column">
             <div class="rounded-3 border h-100 bg-white shadow-sm d-flex flex-column overflow-hidden">
                 <div class="flex-grow-1 overflow-hidden">
-                    <table class="table table-hover align-middle mb-0 w-100" id="formulaRecordsTable">
+                    <table class="table table-hover align-middle mb-0" id="formulaRecordsTable" style="width: 100%;">
                         <thead class="bg-white sticky-top border-bottom">
                             <tr class="extra-small text-uppercase text-muted">
-                                <th class="ps-3 selection-column d-none" style="width: 40px;">
+                                <th class="ps-3" style="width: 40px;">
                                     <input type="checkbox" id="selectAllRows" class="form-check-input">
                                 </th>
                                 <th class="no-wrap">Date</th>
@@ -86,14 +97,13 @@
                     <option value="500">500 rows</option>
                     <option value="1000">1000 rows</option>
                 </select>
-                <!-- Fixed Label Logic -->
                 <small id="tableInfo" class="extra-small fw-bold text-muted"></small>
+                <small id="selectionInfo" class="extra-small fw-bold text-teal d-none"></small>
             </div>
-            
+
             <div class="d-flex align-items-center gap-2">
                 <div class="d-flex align-items-center gap-1 bg-light p-1 rounded border me-2">
                     <label class="extra-small fw-bold text-muted px-1">RANGE:</label>
-                    <!-- Default Dates from Context -->
                     <input type="text" id="dateFrom" value="{{ default_from }}" class="form-control form-control-sm date-picker-single border-0 bg-transparent" style="width: 85px; font-size: 0.7rem;" placeholder="From">
                     <span class="text-muted">-</span>
                     <input type="text" id="dateTo" value="{{ default_to }}" class="form-control form-control-sm date-picker-single border-0 bg-transparent" style="width: 85px; font-size: 0.7rem;" placeholder="To">
@@ -109,11 +119,16 @@
     .no-wrap { white-space: nowrap !important; width: 1%; padding-right: 15px !important; }
     .text-teal { color: #2c7a7b; }
     .btn-dark-teal { background-color: #234e52; }
+    .btn-outline-teal { color: #2c7a7b; border-color: #2c7a7b; }
+    .btn-outline-teal:hover, .btn-outline-teal.active { background-color: #2c7a7b; color: #fff; }
     .table-active { background-color: #f0fff4 !important; border-left: 3px solid #38b2ac !important; }
+    .table-selected { background-color: #e6fffa !important; }
     .color-swatch-rect { width: 45px; height: 18px; border-radius: 2px; border: 1px solid #dee2e6; display: inline-block; vertical-align: middle; }
     .uniform-input { font-size: 0.8rem; border-radius: 6px; }
-    
-    /* Ensure DataTables container takes full height */
+
+    .badge-mb { background-color: #2c7a7b; color: #fff; }
+    .badge-dc { background-color: #38b2ac; color: #fff; }
+
     .dataTables_wrapper { height: 100%; display: flex; flex-direction: column; }
     .dataTables_scroll { flex-grow: 1; display: flex; flex-direction: column; }
     .dataTables_scrollBody { flex-grow: 1; }
@@ -121,9 +136,19 @@
 
 <script>
 $(document).ready(function() {
+    let selectionMode = false;
+    let selectedIds = new Set();
+
+    // Column index of the checkbox in the `columns` array below.
+    // Starts hidden via DataTables' own visibility API (not CSS),
+    // which is what lets it recalculate every other column's width
+    // correctly when shown/hidden later.
+    const CHECKBOX_COL_INDEX = 0;
+
     const table = $('#formulaRecordsTable').DataTable({
         serverSide: true,
         processing: true,
+        autoWidth: true,
         ajax: {
             url: "{% url 'formula_records_data' %}",
             data: function(d) {
@@ -131,35 +156,42 @@ $(document).ready(function() {
             }
         },
         columns: [
-            { 
-                data: null, 
-                className: "ps-3 selection-column d-none",
+            {
+                data: null,
+                className: "ps-3",
                 orderable: false,
-                render: function() { return '<input type="checkbox" class="form-check-input row-checkbox">'; }
+                searchable: false,
+                visible: false,  // toggled via API, not a CSS class
+                render: function(data, type, row) {
+                    const key = `${row.type}:${row.id}`;
+                    const checked = selectedIds.has(key) ? 'checked' : '';
+                    return `<input type="checkbox" class="form-check-input row-checkbox" data-key="${key}" ${checked}>`;
+                }
             },
             { data: "date_display", className: "no-wrap fw-bold text-muted" },
-            { data: "cmf_no", className: "no-wrap fw-bold text-dark" }, // New Column
+            { data: "cmf_no", className: "no-wrap fw-bold text-dark" },
             { data: "product_code", className: "no-wrap fw-bold text-teal" },
             { data: "color" },
             { data: "mixing" },
             { data: "matched_by" },
             { data: "lot_no" },
-            { 
-                data: "html", 
+            {
+                data: "html",
                 orderable: false,
+                searchable: false,
                 render: function(data) { return `<div class="color-swatch-rect" style="background-color: ${data}"></div>`; }
             },
-            { 
+            {
                 data: "type",
                 render: function(data) {
-                    const cls = data === 'MB' ? 'bg-primary' : 'bg-info';
+                    const cls = data === 'MB' ? 'badge-mb' : 'badge-dc';
                     return `<span class="badge ${cls} extra-small">${data}</span>`;
                 }
             }
         ],
         dom: 'rtp',
         pageLength: 100,
-        scrollY: '100%', // Changed to 100% to fill container
+        scrollY: '100%',
         scrollCollapse: true,
         order: [[1, 'desc']],
         language: {
@@ -167,44 +199,143 @@ $(document).ready(function() {
         },
         drawCallback: function() {
             const info = this.api().page.info();
-            // Total records logic fixed: showing filtered count out of total count
             if (info.recordsTotal === info.recordsDisplay) {
                 $('#tableInfo').text(`Total Formulas: ${info.recordsTotal.toLocaleString()}`);
             } else {
                 $('#tableInfo').text(`Showing ${info.recordsDisplay.toLocaleString()} of ${info.recordsTotal.toLocaleString()} formulas`);
             }
+            syncSelectAllCheckbox();
         }
     });
 
-    // Handle Search & Length
-    $('#recordSearchInput').on('keyup', function() { table.search(this.value).draw(); });
+    $(window).on('resize', function() {
+        table.columns.adjust();
+    });
+
+    const tableContainer = document.querySelector('#formulaRecordsTable').closest('.flex-grow-1');
+    if (window.ResizeObserver && tableContainer) {
+        const resizeObserver = new ResizeObserver(function() {
+            table.columns.adjust();
+        });
+        resizeObserver.observe(tableContainer);
+    }
+
+    // --- SEARCH (global or per-column, based on dropdown) ---
+    $('#recordSearchInput').on('input', function() {
+        const colIndex = parseInt($('#searchColumnFilter').val(), 10);
+        const value = $(this).val();
+
+        table.columns().search(''); // clear any previous per-column search
+        table.search('');           // clear any previous global search
+
+        if (colIndex === -1) {
+            table.search(value).draw();
+        } else {
+            table.column(colIndex).search(value).draw();
+        }
+    });
+
+    $('#searchColumnFilter').on('change', function() {
+        $('#recordSearchInput').val('');
+        table.search('');
+        table.columns().search('');
+        table.draw();
+    });
+
     $('#tableLength').on('change', function() { table.page.len(this.value).draw(); });
 
-    // Row Click - Updated Header Content
+    function updateSelectionInfo() {
+        if (selectedIds.size > 0) {
+            $('#selectionInfo').removeClass('d-none').text(`${selectedIds.size} selected`);
+        } else {
+            $('#selectionInfo').addClass('d-none');
+        }
+    }
+
+    function syncSelectAllCheckbox() {
+        if (!selectionMode) return;
+        const visibleKeys = table.rows({ page: 'current' }).data().toArray().map(r => `${r.type}:${r.id}`);
+        const allChecked = visibleKeys.length > 0 && visibleKeys.every(k => selectedIds.has(k));
+        $('#selectAllRows').prop('checked', allChecked);
+    }
+
+    // --- MULTI-SELECT TOGGLE ---
+    // Uses DataTables' own column().visible() instead of a CSS class.
+    // This is what makes every other column compress/expand correctly:
+    // DataTables recalculates and resyncs the header/body widths itself
+    // whenever a column's visibility changes through this API.
+    $('#btnToggleSelection').on('click', function() {
+        selectionMode = !selectionMode;
+        $(this).toggleClass('active', selectionMode);
+
+        table.column(CHECKBOX_COL_INDEX).visible(selectionMode);
+
+        if (!selectionMode) {
+            selectedIds.clear();
+            $('tr').removeClass('table-selected');
+            updateSelectionInfo();
+        }
+    });
+
+    $('#selectAllRows').on('change', function() {
+        const isChecked = $(this).is(':checked');
+        table.rows({ page: 'current' }).every(function() {
+            const row = this.data();
+            const key = `${row.type}:${row.id}`;
+            if (isChecked) {
+                selectedIds.add(key);
+            } else {
+                selectedIds.delete(key);
+            }
+        });
+        $('#formulaRecordsTable tbody .row-checkbox').prop('checked', isChecked);
+        $('#formulaRecordsTable tbody tr').toggleClass('table-selected', isChecked);
+        updateSelectionInfo();
+    });
+
+    $('#formulaRecordsTable tbody').on('change', '.row-checkbox', function(e) {
+        e.stopPropagation();
+        const key = $(this).data('key');
+        if ($(this).is(':checked')) {
+            selectedIds.add(key);
+            $(this).closest('tr').addClass('table-selected');
+        } else {
+            selectedIds.delete(key);
+            $(this).closest('tr').removeClass('table-selected');
+        }
+        updateSelectionInfo();
+        syncSelectAllCheckbox();
+    });
+
     $('#formulaRecordsTable tbody').on('click', 'tr', async function(e) {
         if ($(e.target).is('input')) return;
-        
+
+        if (selectionMode) {
+            const checkbox = $(this).find('.row-checkbox');
+            checkbox.prop('checked', !checkbox.is(':checked')).trigger('change');
+            return;
+        }
+
         $('tr').removeClass('table-active');
         $(this).addClass('table-active');
-        
+
         const rowData = table.row(this).data();
-        
-        // Updated Header Display
+
         $('#selectedRecordLabel').html(`
-            <span class="extra-small fw-bold">${rowData.cmf_no}</span> 
-            <span class="text-muted">|</span> 
-            <span class="text-teal fw-bold">${rowData.product_code}</span> 
-            <span class="text-muted">|</span> 
-            <span class="extra-small fw-bold text-uppercase">HTML:</span> 
-            <span class="text-teal fw-bold">${rowData.html === '#ffffff' ? 'N/A' : rowData.html}</span> 
+            <span class="extra-small fw-bold">${rowData.cmf_no}</span>
+            <span class="text-muted">|</span>
+            <span class="text-teal fw-bold">${rowData.product_code}</span>
+            <span class="text-muted">|</span>
+            <span class="extra-small fw-bold text-uppercase">HTML:</span>
+            <span class="text-teal fw-bold">${rowData.html === '#ffffff' ? 'N/A' : rowData.html}</span>
         `);
-        
+
         $('#materialDetailBody').html('<tr><td colspan="2" class="text-center py-5"><div class="spinner-border spinner-border-sm text-teal"></div></td></tr>');
 
         try {
             const res = await fetch(`/cmf/formula-records/materials/${rowData.type}/${rowData.id}/`);
             const data = await res.json();
-            
+
             if (data.materials.length === 0) {
                 $('#materialDetailBody').html('<tr><td colspan="2" class="text-center py-4">No materials found</td></tr>');
                 return;
@@ -222,7 +353,6 @@ $(document).ready(function() {
         }
     });
 
-    // Date pickers for default ranges
     if (typeof flatpickr !== "undefined") {
         flatpickr(".date-picker-single", {
             dateFormat: "m/d/Y",

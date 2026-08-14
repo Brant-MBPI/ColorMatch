@@ -202,45 +202,42 @@ def toggle_final_formula(request, formula_type, formula_id):
 
 
 # Formula Records Retrieval for CMF and RS
-def get_all_formula_records(search_query=None):
-    """
-    Fetches all MB and DC formula headers, combines them,
-    and orders them by date descending.
-    """
-    # 1. Fetch MB Formulas
-    mb_qs = tbl_mb_extruder_formula.objects.select_related('code', 'cm_no', 'rs_no')
-    if search_query:
-        mb_qs = mb_qs.filter(
-            Q(code__product_code__icontains=search_query) |
-            Q(lot_no__icontains=search_query) |
-            Q(cm_no__color_desc__icontains=search_query) |
-            Q(rs_no__color_desc__icontains=search_query) |
-            Q(matched_by__icontains=search_query)
-        )
+# Index 0 (checkbox) and 8 (swatch/html) are intentionally excluded —
+# not meaningful to text-search.
+SEARCHABLE_COLUMNS = {
+    1: 'date_display',
+    2: 'cmf_no',
+    3: 'product_code',
+    4: 'color',
+    5: 'mixing',
+    6: 'matched_by',
+    7: 'lot_no',
+    9: 'type',
+}
 
-    # 2. Fetch DC Formulas
+
+def get_all_formula_records():
+    """
+    Fetches every MB and DC formula header and combines them.
+    No sorting or filtering here — both happen in formula_records_data()
+    so search and ordering can share the same combined list.
+    """
+    mb_qs = tbl_mb_extruder_formula.objects.select_related('code', 'cm_no', 'rs_no')
     dc_qs = tbl_dc_extruder_formula.objects.select_related('code', 'cm_no', 'rs_no')
-    if search_query:
-        dc_qs = dc_qs.filter(
-            Q(code__product_code__icontains=search_query) |
-            Q(cm_no__color_desc__icontains=search_query) |
-            Q(rs_no__color_desc__icontains=search_query) |
-            Q(matched_by__icontains=search_query)
-        )
 
     combined_results = []
 
     for f in mb_qs:
         color = f.cm_no.color_desc if f.cm_no else (f.rs_no.color_desc if f.rs_no else "---")
         combined_results.append({
-            "id": f.mb_no, 
-            "type": "MB", 
+            "id": f.mb_no,
+            "type": "MB",
             "date": f.date,
-            "cmf_no": f.cm_no.cm_no if f.cm_no else (f.rs_no.rs_no if f.rs_no else "N/A"), # Added this
+            "cmf_no": f.cm_no.cm_no if f.cm_no else (f.rs_no.rs_no if f.rs_no else "N/A"),
             "product_code": f.code.product_code if f.code else "---",
-            "color": color, 
+            "color": color,
             "mixing": f.mixing_time or "---",
-            "matched_by": f.matched_by or "---", 
+            "matched_by": f.matched_by or "---",
             "lot_no": f.lot_no or "N/A",
             "html": f.html or "#ffffff"
         })
@@ -248,54 +245,107 @@ def get_all_formula_records(search_query=None):
     for f in dc_qs:
         color = f.cm_no.color_desc if f.cm_no else (f.rs_no.color_desc if f.rs_no else "---")
         combined_results.append({
-            "id": f.dc_no, 
-            "type": "DC", 
+            "id": f.dc_no,
+            "type": "DC",
             "date": f.date,
-            "cmf_no": f.cm_no.cm_no if f.cm_no else (f.rs_no.rs_no if f.rs_no else "N/A"), # Added this
+            "cmf_no": f.cm_no.cm_no if f.cm_no else (f.rs_no.rs_no if f.rs_no else "N/A"),
             "product_code": f.code.product_code if f.code else "---",
-            "color": color, 
+            "color": color,
             "mixing": f.mixing_time or "---",
-            "matched_by": f.matched_by or "---", 
+            "matched_by": f.matched_by or "---",
             "lot_no": "N/A",
             "html": f.html or "#ffffff"
         })
 
-    # Sort combined list by date descending
-    combined_results.sort(key=lambda x: x['date'] if x['date'] else datetime.min.date(), reverse=True)
-    
     return combined_results
 
-# DataTables JSON Provider (Server-Side Logic)
+
+# Maps a DataTables column index to the dict key to sort/filter by.
+# Index 8 (swatch/html) is intentionally not sortable in the JS config,
+# so it's omitted here too.
+SORTABLE_COLUMNS = {
+    1: 'date',           # sort by the raw date object, not date_display string
+    2: 'cmf_no',
+    3: 'product_code',
+    4: 'color',
+    5: 'mixing',
+    6: 'matched_by',
+    7: 'lot_no',
+    9: 'type',
+}
+
+
 def formula_records_data(request):
     draw = int(request.GET.get('draw', 1))
     start = int(request.GET.get('start', 0))
     length = int(request.GET.get('length', 100))
-    search_value = request.GET.get('search[value]', '')
+    global_search = request.GET.get('search[value]', '').strip()
 
-    # Fetch processed data from service
-    all_records = get_all_formula_records(search_query=search_value)
-    
-    total_records = len(all_records)
-    # Paginate (slice) the list
-    paginated_list = all_records[start : start + length]
+    all_records = get_all_formula_records()
+    total_unfiltered = len(all_records)
 
-    # Format dates for display
-    for item in paginated_list:
+    for item in all_records:
         item['date_display'] = item['date'].strftime('%m/%d/%Y') if item['date'] else "---"
+
+    # --- Per-column search ---
+    active_column_filters = {}
+    for idx, field in SEARCHABLE_COLUMNS.items():
+        val = request.GET.get(f'columns[{idx}][search][value]', '').strip()
+        if val:
+            active_column_filters[field] = val.lower()
+
+    if active_column_filters:
+        filtered = [
+            item for item in all_records
+            if all(query in str(item.get(field, '')).lower() for field, query in active_column_filters.items())
+        ]
+    elif global_search:
+        query = global_search.lower()
+        filtered = [
+            item for item in all_records
+            if any(query in str(item.get(field, '')).lower() for field in SEARCHABLE_COLUMNS.values())
+        ]
+    else:
+        filtered = all_records
+
+    # --- Sorting: read DataTables' order[0][column] / order[0][dir] ---
+    order_col_index = request.GET.get('order[0][column]')
+    order_dir = request.GET.get('order[0][dir]', 'asc')
+
+    sort_field = None
+    if order_col_index is not None:
+        sort_field = SORTABLE_COLUMNS.get(int(order_col_index))
+
+    if sort_field:
+        filtered.sort(
+            key=lambda item: (item.get(sort_field) is None, item.get(sort_field) or ''),
+            reverse=(order_dir == 'desc')
+        )
+    else:
+        # Fallback: original default (date desc), for the very first
+        # load or if an unmapped column index somehow comes through.
+        filtered.sort(
+            key=lambda x: x['date'] if x['date'] else datetime.min.date(),
+            reverse=True
+        )
+
+    total_filtered = len(filtered)
+    paginated_list = filtered[start: start + length]
 
     return JsonResponse({
         "draw": draw,
-        "recordsTotal": total_records,
-        "recordsDisplay": total_records,
+        "recordsTotal": total_unfiltered,
+        "recordsFiltered": total_filtered,
         "data": paginated_list
     })
+
 
 def get_formula_materials(request, formula_type, formula_id):
     if formula_type.upper() == 'MB':
         materials = tbl_mb_extruder_formula02.objects.filter(mb_id=formula_id).values('material', 'value', 'weight')
     else:
         materials = tbl_dc_extruder_formula02.objects.filter(dc_id=formula_id).values('material', 'value', 'weight')
-    
+
     return JsonResponse({
         'materials': list(materials)
     })
