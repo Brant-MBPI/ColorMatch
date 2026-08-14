@@ -115,9 +115,9 @@ Formula DC
                             <div class="col-5"><label class="extra-small fw-bold text-nowrap required-label">Product Used:</label></div>
                             <div class="col-7">
                                 <input type="text" name="product_used" id="id_dc_product_used" 
-                                       value="{{ form_data.product_used|default:'' }}" 
+                                       value="{{ form_data.finished_product|default:'' }}" 
                                        class="form-control form-control-sm uniform-input"
-                                       required>
+                                       readonly required>
                             </div>
                         </div>
                         <div class="row g-2 align-items-center mb-2">

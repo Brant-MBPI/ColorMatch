@@ -55,6 +55,12 @@
                             </a>
                         </li>
                         <li>
+                            <a href="{% url 'formula_records' %}"
+                                class="nav-link {% if request.resolver_match.url_name == 'formula_records' %}active-sub{% endif %}">
+                                Formula Records
+                            </a>
+                        </li>
+                        <li>
                             <a href="{% url 'cmf_entry' %}"
                                 class="nav-link {% if request.resolver_match.url_name == 'cmf_entry' %}active-sub{% endif %}">
                                 CMF Entry

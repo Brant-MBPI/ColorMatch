@@ -22,6 +22,7 @@ urlpatterns = [
     path('other/', views.otherPage, name='other'),
     path('dashboard/', views.dashboard, name='dashboard'),
     path('cmf/records/', views.cmf_records, name='cmf_records'),
+    path('cmf/formula-records/', views.formula_records, name='formula_records'),
     path('cmf/entry/', views.cmf_entry, name='cmf_entry'),
     path('cmf/rs-entry/', views.cmf_rs_entry, name='rs_entry'),
     path('cmf/mb-formula/', views.cmf_mb_formula, name='mb_formula'),
