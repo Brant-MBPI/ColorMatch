@@ -24,8 +24,9 @@ _word_lock = threading.Lock()
 
 DC_TEMPLATE_PATH = os.path.join('main', 'templates', 'print_excel', 'dc_formula_template.docx')
 
-DC_PDF_WIDTH_IN = 8.5
-DC_PDF_HEIGHT_IN = 6.5
+# --- UPDATED TO LETTER LANDSCAPE ---
+DC_PDF_WIDTH_IN = 11.0   # Letter Width (Landscape)
+DC_PDF_HEIGHT_IN = 8.5   # Letter Height (Landscape)
 
 MATERIAL_START_ROW = 2   # row 1 is the header row ("MATERIAL", "1", "2", ...)
 MATERIAL_MAX_ROWS = 10
@@ -47,6 +48,7 @@ def _fetch_dc_formula_data(formula_id):
     application = ""
     finished_product = ""
     parent_no = ""
+    dosage = ""
 
     if header.cm_no:
         parent_no = header.cm_no.cm_no
@@ -57,6 +59,7 @@ def _fetch_dc_formula_data(formula_id):
             customer = formula_info.customer
             application = formula_info.finished_product
             finished_product = formula_info.finished_product
+            dosage = formula_info.dosage
 
         resin = ", ".join(
             tbl_resins_selected.objects.filter(cm_no=header.cm_no).values_list('resin_no__abbreviation', flat=True)
@@ -68,6 +71,7 @@ def _fetch_dc_formula_data(formula_id):
         color = header.rs_no.color_desc
         application = header.rs_no.finished_product
         finished_product = header.rs_no.finished_product
+        dosage = header.rs_no.dosage
 
         resin = ", ".join(
             tbl_resins_selected.objects.filter(rs_no=header.rs_no).values_list('resin_no__abbreviation', flat=True)
@@ -78,6 +82,7 @@ def _fetch_dc_formula_data(formula_id):
         'ingredients': ingredients,
         'customer': customer,
         'color': color,
+        'dosage': dosage,
         'resin': resin,
         'application': application,
         'finished_product': finished_product,
@@ -126,20 +131,31 @@ def _fill_and_export_dc_formula_via_word(template_abs_path, pdf_path, data):
         word.DisplayAlerts = False
 
         doc = word.Documents.Open(template_abs_path)
+        # --- FORCE PAGE SETUP TO LANDSCAPE LETTER ---
+        # wdOrientLandscape = 1, wdPaperLetter = 1
+        try:
+            doc.PageSetup.Orientation = 1  # wdOrientLandscape
+            doc.PageSetup.PageWidth = 11.0 * 72
+            doc.PageSetup.PageHeight = 8.5 * 72
+        except Exception as e:
+            # If the printer driver is extremely restrictive, 
+            # we log the warning but allow it to continue with the template's defaults
+            print(f"Warning: Could not force PageSetup dimensions: {e}")
+
 
         # --- HEADER FIELDS (bookmarks) ---
         _set_bookmark(doc, 'code', header.code.product_code if header.code else "")
-        _set_bookmark(doc, 'cmf_no', data['parent_no'])
+        _set_bookmark(doc, 'cmf', data['parent_no'])
         _set_bookmark(doc, 'customer', data['customer'])
         _set_bookmark(doc, 'resin', data['resin'])
         _set_bookmark(doc, 'color', data['color'])
         _set_bookmark(doc, 'date_matched', header.date.strftime('%m/%d/%Y') if header.date else "")
-        _set_bookmark(doc, 'dosage', f"{_to_num(getattr(header, 'dosage', 0)):.2f}%" if hasattr(header, 'dosage') else "")
+        _set_bookmark(doc, 'dosage', f"{_to_num(data['dosage']):.2f}%" if 'dosage' in data else "")
         _set_bookmark(doc, 'sample_size', header.sample_size)
         _set_bookmark(doc, 'product_used', getattr(header, 'product_used', ''))
         _set_bookmark(doc, 'mixing_time', header.mixing_time)
         _set_bookmark(doc, 'application', data['application'])
-        _set_bookmark(doc, 'finished_product', data['finished_product'])
+        _set_bookmark(doc, 'product_used', data['finished_product'])
         _set_bookmark(doc, 'note', header.notes)
         _set_bookmark(doc, 'matched_by', header.matched_by)
         _set_bookmark(doc, 'weighed_by', header.weighted_by)
