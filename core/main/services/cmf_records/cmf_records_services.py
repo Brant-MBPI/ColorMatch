@@ -233,20 +233,30 @@ def get_all_formula_records(search_query=None):
     for f in mb_qs:
         color = f.cm_no.color_desc if f.cm_no else (f.rs_no.color_desc if f.rs_no else "---")
         combined_results.append({
-            "id": f.mb_no, "type": "MB", "date": f.date,
+            "id": f.mb_no, 
+            "type": "MB", 
+            "date": f.date,
+            "cmf_no": f.cm_no.cm_no if f.cm_no else (f.rs_no.rs_no if f.rs_no else "N/A"), # Added this
             "product_code": f.code.product_code if f.code else "---",
-            "color": color, "mixing": f.mixing_time or "---",
-            "matched_by": f.matched_by or "---", "lot_no": f.lot_no or "N/A",
+            "color": color, 
+            "mixing": f.mixing_time or "---",
+            "matched_by": f.matched_by or "---", 
+            "lot_no": f.lot_no or "N/A",
             "html": f.html or "#ffffff"
         })
 
     for f in dc_qs:
         color = f.cm_no.color_desc if f.cm_no else (f.rs_no.color_desc if f.rs_no else "---")
         combined_results.append({
-            "id": f.dc_no, "type": "DC", "date": f.date,
+            "id": f.dc_no, 
+            "type": "DC", 
+            "date": f.date,
+            "cmf_no": f.cm_no.cm_no if f.cm_no else (f.rs_no.rs_no if f.rs_no else "N/A"), # Added this
             "product_code": f.code.product_code if f.code else "---",
-            "color": color, "mixing": f.mixing_time or "---",
-            "matched_by": f.matched_by or "---", "lot_no": "N/A",
+            "color": color, 
+            "mixing": f.mixing_time or "---",
+            "matched_by": f.matched_by or "---", 
+            "lot_no": "N/A",
             "html": f.html or "#ffffff"
         })
 

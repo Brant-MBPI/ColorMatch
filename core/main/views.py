@@ -6,7 +6,7 @@ from django.core.management import call_command
 from django.contrib.auth import authenticate, login, logout, get_user_model 
 from django.contrib.auth.models import User
 from django.db import transaction
-from django.db.models import Min
+from django.db.models import Max, Min
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib import messages
@@ -120,7 +120,20 @@ def cmf_records(request):
     })
 
 def formula_records(request):
-    return render(request, "sidemenu/cmf/formula_records.html")
+    mb_dates = tbl_mb_extruder_formula.objects.aggregate(Min('date'), Max('date'))
+    dc_dates = tbl_dc_extruder_formula.objects.aggregate(Min('date'), Max('date'))
+    
+    # Logic to find absolute min and absolute max
+    all_min = [d for d in [mb_dates['date__min'], dc_dates['date__min']] if d]
+    all_max = [d for d in [mb_dates['date__max'], dc_dates['date__max']] if d]
+    
+    earliest = min(all_min).strftime('%m/%d/%Y') if all_min else ""
+    latest = max(all_max).strftime('%m/%d/%Y') if all_max else ""
+
+    return render(request, "sidemenu/cmf/formula_records.html", {
+        "default_from": earliest,
+        "default_to": latest
+    })
 
 
 def cmf_entry(request):
