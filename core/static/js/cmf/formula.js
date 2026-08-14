@@ -263,6 +263,12 @@
 
         dialog.querySelector('#formulaPreviewPrintBtn').addEventListener('click', function() {
             iframe.contentWindow.print();
+
+            fetch(`/formula-log-print/${urlPrefix}/${formulaId}/`)
+            .then(response => {
+                if (!response.ok) console.error('Failed to log print audit.');
+            });
+
         });
 
         dialog.querySelector('#formulaPreviewCloseBtn').addEventListener('click', function() {

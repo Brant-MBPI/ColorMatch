@@ -7,10 +7,11 @@ from decimal import Decimal
 import pythoncom
 import win32com.client as win32
 from django.contrib import messages
-from django.http import HttpResponse, HttpResponseServerError
+from django.http import HttpResponse, HttpResponseServerError, JsonResponse
 from django.shortcuts import redirect
 from django.views.decorators.clickjacking import xframe_options_exempt
 
+from main.utils.log_audit_trail import log_audit
 from main.services.print.print_util import _resize_pdf_to_fixed_size
 from main.models import (
     tbl_mb_extruder_formula, tbl_mb_extruder_formula02,
@@ -234,3 +235,15 @@ def print_mb_formula_preview(request, formula_id):
 
 
 print_mb_formula_preview = xframe_options_exempt(print_mb_formula_preview)
+
+
+def log_formula_print(request, formula_id):
+    try:
+        
+        formula = tbl_mb_extruder_formula.objects.get(pk=formula_id)
+        desc = f"Printed MB Formula (Lot: {formula.lot_no or 'N/A'})"
+
+        log_audit(request, "Printed", desc)
+        return JsonResponse({'status': 'success'})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)

@@ -25,3 +25,5 @@ def _resize_pdf_to_fixed_size(input_pdf_path, output_pdf_path, width_in=6.5, hei
     dst.save(output_pdf_path)
     dst.close()
     src.close()
+
+
