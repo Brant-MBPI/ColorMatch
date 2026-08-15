@@ -1,10 +1,14 @@
 import io
+import os
+import threading
 import re
 import json
+import win32com.client as win32
+import tempfile
+import uuid
+import pythoncom
 from django.db.models import Max
-from django.http import HttpResponse, JsonResponse
-from openpyxl import Workbook
-from openpyxl.styles import Font, Alignment
+from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from main.services.cmf_records import cmf_records_services # or local check
 from main.models import tbl_cmf, tbl_cmf_formula, tbl_dc_extruder_formula, tbl_dc_extruder_formula02, tbl_mb_extruder_formula, tbl_mb_extruder_formula02, tbl_resins_selected
 
@@ -116,46 +120,124 @@ def get_price_first_data(request):
     return JsonResponse({'data': results})
 
 
+# Same reasoning as the Excel print exports — one COM instance at a time.
+_excel_lock = threading.Lock()
+
+FORMULA_TEMPLATE_PATH = os.path.join('main', 'templates', 'print_excel', 'Formula.xlsx')
+FORMULA_TEMPLATE_PASSWORD = "maranatha101"
+
+# Matches the "Formula" sheet's header row (A1:S1) exactly, in column order.
+COLUMN_ORDER = [
+    'date', 'customer', 'classification', 'prod_code', 'resin', 'mat_code',
+    'mat_conc', 'end_product', 'total', 'others', 'dosage', 'salesman_name',
+    'cmf_no', 'html', 'c', 'm', 'y', 'k', 'remarks'
+]
+
+DATA_START_ROW = 2  # row 1 is the header
+
+
+def _fill_formula_sheet_via_excel(template_abs_path, output_path, rows):
+    """
+    Opens the password-protected template directly in Excel via COM,
+    writes the Price First rows into the 'Formula' sheet (3rd tab)
+    starting at row 2, autofits columns, then saves a NEW file at
+    output_path — protected with the same password. Password args are
+    passed POSITIONALLY, not as keyword args — with late-bound COM
+    dispatch (DispatchEx), keyword arguments can silently fail to map
+    to the correct parameter, which caused Excel to open with no
+    password at all and pop its own blocking password dialog.
+    """
+    pythoncom.CoInitialize()
+    excel = None
+    wb = None
+    try:
+        excel = win32.DispatchEx("Excel.Application")
+        excel.Visible = False
+        excel.DisplayAlerts = False
+
+        # Workbooks.Open positional signature:
+        # (FileName, UpdateLinks, ReadOnly, Format, Password, ...)
+        wb = excel.Workbooks.Open(
+            template_abs_path,  # FileName
+            0,                  # UpdateLinks
+            False,              # ReadOnly
+            None,               # Format
+            FORMULA_TEMPLATE_PASSWORD,  # Password
+        )
+        ws = wb.Worksheets("Formula")
+
+        for r_idx, row in enumerate(rows):
+            excel_row = DATA_START_ROW + r_idx
+            for c_idx, field in enumerate(COLUMN_ORDER):
+                col_letter = chr(ord('A') + c_idx)
+                ws.Range(f"{col_letter}{excel_row}").Value = row.get(field, "")
+
+        ws.Columns.AutoFit()
+
+        # SaveAs positional signature: (Filename, FileFormat, Password, ...)
+        wb.SaveAs(
+            output_path,                 # Filename
+            51,                          # FileFormat: xlOpenXMLWorkbook (.xlsx)
+            FORMULA_TEMPLATE_PASSWORD,   # Password
+        )
+
+    finally:
+        if wb is not None:
+            wb.Close(SaveChanges=False)
+        if excel is not None:
+            excel.Quit()
+        pythoncom.CoUninitialize()
+
+
 def download_price_first_excel(request):
     """
-    Builds an .xlsx from the Price First modal's current rows, sent as
-    JSON in the POST body (so it captures whatever the user typed into
-    Remarks, not just the originally-fetched data). Built server-side
-    with openpyxl since the app runs offline — no CDN-hosted client
-    library involved.
+    Fills the 'Formula' sheet of the protected Formula.xlsx template
+    with the Price First modal's current rows (including user-typed
+    Remarks), autofits columns, and returns the result as a download.
+    The original template is opened read-only (via COM, password
+    supplied) and never modified.
     """
-    payload = json.loads(request.body)
-    rows = payload.get('rows', [])
+    if request.method != 'POST':
+        return HttpResponseBadRequest("POST required.")
 
-    headers = [
-        'Date', 'Customer', 'Class', 'Prod Code', 'Resin', 'Mat Code',
-        'Mat Conc', 'End Product', 'Total', 'Others', 'Dosage',
-        'Salesman', 'CMF No', 'HTML', 'C', 'M', 'Y', 'K', 'Remarks'
-    ]
+    try:
+        payload = json.loads(request.body)
+        rows = payload.get('rows', [])
+    except (json.JSONDecodeError, TypeError):
+        return HttpResponseBadRequest("Invalid JSON body.")
 
-    wb = Workbook()
-    ws = wb.active
-    ws.title = 'Price First'
+    if not rows:
+        return HttpResponseBadRequest("No rows to export.")
 
-    ws.append(headers)
-    for cell in ws[1]:
-        cell.font = Font(bold=True)
-        cell.alignment = Alignment(horizontal='center')
-
+    # The frontend sends rows as flat arrays (one value per column, same
+    # order as COLUMN_ORDER) — convert each to a dict keyed by field name
+    # so _fill_formula_sheet_via_excel can look values up by field.
+    row_dicts = []
     for row in rows:
-        ws.append(row)
+        row_dicts.append({field: (row[i] if i < len(row) else "") for i, field in enumerate(COLUMN_ORDER)})
 
-    for col_cells in ws.columns:
-        max_len = max((len(str(c.value)) if c.value is not None else 0) for c in col_cells)
-        ws.column_dimensions[col_cells[0].column_letter].width = min(max_len + 3, 40)
+    template_abs_path = os.path.abspath(FORMULA_TEMPLATE_PATH)
+    if not os.path.exists(template_abs_path):
+        return HttpResponseBadRequest("Formula.xlsx template not found on server.")
 
-    buffer = io.BytesIO()
-    wb.save(buffer)
-    buffer.seek(0)
+    with tempfile.TemporaryDirectory() as tmpdir:
+        output_path = os.path.join(tmpdir, f"{uuid.uuid4().hex}.xlsx")
+
+        try:
+            with _excel_lock:
+                _fill_formula_sheet_via_excel(template_abs_path, output_path, row_dicts)
+        except Exception as e:
+            return HttpResponseBadRequest(f"Excel export failed: {str(e)}")
+
+        if not os.path.exists(output_path):
+            return HttpResponseBadRequest("Excel export failed: no output file produced.")
+
+        with open(output_path, 'rb') as f:
+            file_bytes = f.read()
 
     response = HttpResponse(
-        buffer.getvalue(),
+        file_bytes,
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
-    response['Content-Disposition'] = 'attachment; filename="PriceFirst.xlsx"'
+    response['Content-Disposition'] = 'attachment; filename="Formula.xlsx"'
     return response
