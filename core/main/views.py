@@ -1,3 +1,4 @@
+from decimal import Decimal
 from urllib import request
 
 import base64

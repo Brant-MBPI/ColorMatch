@@ -354,6 +354,26 @@ $(document).ready(function() {
         }
     });
 
+    $('#formulaRecordsTable tbody').on('dblclick', 'tr', function(e) {
+        if ($(e.target).is('input')) return;
+
+        const rowData = table.row(this).data();
+        if (!rowData || !rowData.record_type || !rowData.record_no) {
+            Preline.toast('Unable to open this record.', 'warning');
+            return;
+        }
+
+        const targetUrl = rowData.type === 'MB' ? "{% url 'mb_formula' %}" : "{% url 'dc_formula' %}";
+
+        const params = new URLSearchParams({
+            no: rowData.record_no,
+            type: rowData.record_type,
+            formula_id: rowData.id,
+        });
+
+        window.location.href = `${targetUrl}?${params.toString()}`;
+    });
+
     if (typeof flatpickr !== "undefined") {
         flatpickr(".date-picker-single", {
             dateFormat: "m/d/Y",

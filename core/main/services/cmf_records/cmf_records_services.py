@@ -217,11 +217,6 @@ SEARCHABLE_COLUMNS = {
 
 
 def get_all_formula_records():
-    """
-    Fetches every MB and DC formula header and combines them.
-    No sorting or filtering here — both happen in formula_records_data()
-    so search and ordering can share the same combined list.
-    """
     mb_qs = tbl_mb_extruder_formula.objects.select_related('code', 'cm_no', 'rs_no')
     dc_qs = tbl_dc_extruder_formula.objects.select_related('code', 'cm_no', 'rs_no')
 
@@ -229,11 +224,27 @@ def get_all_formula_records():
 
     for f in mb_qs:
         color = f.cm_no.color_desc if f.cm_no else (f.rs_no.color_desc if f.rs_no else "---")
+
+        # Which parent type this formula belongs to, and the actual
+        # identifier the formula pages expect for the "no" GET param:
+        # cm_no's string value for CMF, the RS row's pk for RS.
+        if f.cm_no:
+            record_type = 'cmf'
+            record_no = f.cm_no.cm_no
+        elif f.rs_no:
+            record_type = 'rs'
+            record_no = f.rs_no.pk
+        else:
+            record_type = ''
+            record_no = ''
+
         combined_results.append({
             "id": f.mb_no,
             "type": "MB",
             "date": f.date,
             "cmf_no": f.cm_no.cm_no if f.cm_no else (f.rs_no.rs_no if f.rs_no else "N/A"),
+            "record_type": record_type,
+            "record_no": record_no,
             "product_code": f.code.product_code if f.code else "---",
             "color": color,
             "mixing": f.mixing_time or "---",
@@ -244,11 +255,24 @@ def get_all_formula_records():
 
     for f in dc_qs:
         color = f.cm_no.color_desc if f.cm_no else (f.rs_no.color_desc if f.rs_no else "---")
+
+        if f.cm_no:
+            record_type = 'cmf'
+            record_no = f.cm_no.cm_no
+        elif f.rs_no:
+            record_type = 'rs'
+            record_no = f.rs_no.pk
+        else:
+            record_type = ''
+            record_no = ''
+
         combined_results.append({
             "id": f.dc_no,
             "type": "DC",
             "date": f.date,
             "cmf_no": f.cm_no.cm_no if f.cm_no else (f.rs_no.rs_no if f.rs_no else "N/A"),
+            "record_type": record_type,
+            "record_no": record_no,
             "product_code": f.code.product_code if f.code else "---",
             "color": color,
             "mixing": f.mixing_time or "---",
@@ -258,7 +282,6 @@ def get_all_formula_records():
         })
 
     return combined_results
-
 
 # Maps a DataTables column index to the dict key to sort/filter by.
 # Index 8 (swatch/html) is intentionally not sortable in the JS config,
