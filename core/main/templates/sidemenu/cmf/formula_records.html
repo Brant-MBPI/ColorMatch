@@ -123,7 +123,6 @@
         background-color: #fff !important;
     }
 
-    /* Ensure the header of the page has a higher z-index than the table */
     .flex-shrink-0 {
         position: relative;
         z-index: 20;
@@ -151,10 +150,6 @@ $(document).ready(function() {
     let selectionMode = false;
     let selectedIds = new Set();
 
-    // Column index of the checkbox in the `columns` array below.
-    // Starts hidden via DataTables' own visibility API (not CSS),
-    // which is what lets it recalculate every other column's width
-    // correctly when shown/hidden later.
     const CHECKBOX_COL_INDEX = 0;
 
     const table = $('#formulaRecordsTable').DataTable({
@@ -173,7 +168,7 @@ $(document).ready(function() {
                 className: "ps-3",
                 orderable: false,
                 searchable: false,
-                visible: false,  // toggled via API, not a CSS class
+                visible: false,
                 render: function(data, type, row) {
                     const key = `${row.type}:${row.id}`;
                     const checked = selectedIds.has(key) ? 'checked' : '';
@@ -232,13 +227,12 @@ $(document).ready(function() {
         resizeObserver.observe(tableContainer);
     }
 
-    // --- SEARCH (global or per-column, based on dropdown) ---
     $('#recordSearchInput').on('input', function() {
         const colIndex = parseInt($('#searchColumnFilter').val(), 10);
         const value = $(this).val();
 
-        table.columns().search(''); // clear any previous per-column search
-        table.search('');           // clear any previous global search
+        table.columns().search('');
+        table.search('');
 
         if (colIndex === -1) {
             table.search(value).draw();
@@ -271,11 +265,6 @@ $(document).ready(function() {
         $('#selectAllRows').prop('checked', allChecked);
     }
 
-    // --- MULTI-SELECT TOGGLE ---
-    // Uses DataTables' own column().visible() instead of a CSS class.
-    // This is what makes every other column compress/expand correctly:
-    // DataTables recalculates and resyncs the header/body widths itself
-    // whenever a column's visibility changes through this API.
     $('#btnToggleSelection').on('click', function() {
         selectionMode = !selectionMode;
         $(this).toggleClass('active', selectionMode);
@@ -373,18 +362,16 @@ $(document).ready(function() {
     }
 
     $('#btnRefreshTable').on('click', () => table.ajax.reload());
+
     $('#btnPriceFirst').on('click', function() {
-        // 1. Determine which formulas to process
         let items = [];
-        
+
         if (selectionMode && selectedIds.size > 0) {
-            // Multi-select mode
             selectedIds.forEach(key => {
-                const parts = key.split(':'); // "MB:10"
+                const parts = key.split(':');
                 items.push({ type: parts[0], id: parts[1] });
             });
         } else {
-            // Single row active mode
             const activeRow = $('#formulaRecordsTable tbody tr.table-active');
             if (activeRow.length > 0) {
                 const rowData = table.row(activeRow).data();
@@ -397,7 +384,6 @@ $(document).ready(function() {
             return;
         }
 
-        // 2. Fetch data via AJAX
         showLoader();
         fetch(`/cmf/formula-records/price-first/?items=${encodeURIComponent(JSON.stringify(items))}`)
             .then(res => res.json())
@@ -406,7 +392,7 @@ $(document).ready(function() {
                 const body = $('#priceFirstTableBody');
                 body.empty();
 
-                data.data.forEach((row, index) => {
+                data.data.forEach((row) => {
                     const tr = `
                         <tr>
                             <td class="text-center">${row.date}</td>
@@ -428,7 +414,7 @@ $(document).ready(function() {
                             <td class="text-center">${row.y}</td>
                             <td class="text-center">${row.k}</td>
                             <td class="p-0">
-                                <input type="text" class="form-control form-control-sm border-0 rounded-0 bg-warning-subtle py-1" 
+                                <input type="text" class="form-control form-control-sm border-0 rounded-0 bg-warning-subtle py-1"
                                     style="font-size: 0.7rem;" placeholder="Add remarks here...">
                             </td>
                         </tr>
@@ -440,9 +426,74 @@ $(document).ready(function() {
             })
             .catch(err => {
                 hideLoader();
-                Preline.toast('Error fetching data.', 'danger');
+                Preline.toast('Error fetching data.' + err, 'danger');
             });
     });
+
+    // --- DOWNLOAD EXCEL (server-side build, offline-safe, no CDN) ---
+    $('#btnDownloadPriceFirst').on('click', function() {
+        const rows = [];
+        $('#priceFirstTableBody tr').each(function() {
+            const cells = $(this).find('td');
+            const rowValues = [];
+            cells.each(function(i, cell) {
+                if (i === cells.length - 1) {
+                    rowValues.push($(cell).find('input').val() || '');
+                } else {
+                    rowValues.push($(cell).text().trim());
+                }
+            });
+            rows.push(rowValues);
+        });
+
+        if (rows.length === 0) {
+            Preline.toast('No data to export.', 'warning');
+            return;
+        }
+
+        showLoader();
+        fetch("{% url 'download_price_first_excel' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({ rows: rows })
+        })
+        .then(res => res.blob())
+        .then(blob => {
+            hideLoader();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'PriceFirst.xlsx';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+        })
+        .catch(err => {
+            hideLoader();
+            Preline.toast('Error downloading file.', 'danger');
+        });
+    });
+
+    // Standard Django CSRF cookie reader, needed since this POST isn't
+    // a form submission (no {% csrf_token %} field available to read from).
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
 });
 </script>
 {% endblock %}
