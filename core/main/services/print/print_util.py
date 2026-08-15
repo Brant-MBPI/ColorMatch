@@ -1,4 +1,4 @@
-import fitz  # PyMuPDF
+import pymupdf  # The new standard import
 
 def _resize_pdf_to_fixed_size(input_pdf_path, output_pdf_path, width_in=6.5, height_in=8.5):
     """
@@ -9,15 +9,15 @@ def _resize_pdf_to_fixed_size(input_pdf_path, output_pdf_path, width_in=6.5, hei
     target_w_pt = width_in * 72
     target_h_pt = height_in * 72
 
-    src = fitz.open(input_pdf_path)
-    dst = fitz.open()
+    # Use pymupdf namespace instead of fitz
+    src = pymupdf.open(input_pdf_path)
+    dst = pymupdf.open()
 
     for page in src:
         new_page = dst.new_page(width=target_w_pt, height=target_h_pt)
-        # Scale the original page's content to fill the new page exactly,
-        # no border/margin.
+        # Scale the original page's content to fill the new page exactly
         new_page.show_pdf_page(
-            fitz.Rect(0, 0, target_w_pt, target_h_pt),
+            pymupdf.Rect(0, 0, target_w_pt, target_h_pt),
             src,
             page.number,
         )
@@ -27,3 +27,4 @@ def _resize_pdf_to_fixed_size(input_pdf_path, output_pdf_path, width_in=6.5, hei
     src.close()
 
 
+    
