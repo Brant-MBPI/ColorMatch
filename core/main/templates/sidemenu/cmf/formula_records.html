@@ -438,7 +438,7 @@ $(document).ready(function() {
             const rowValues = [];
             cells.each(function(i, cell) {
                 if (i === cells.length - 1) {
-                    rowValues.push($(cell).find('input').val() || '');
+                    rowValues.push($(cell).find('input').val() || 'None');
                 } else {
                     rowValues.push($(cell).text().trim());
                 }
@@ -466,7 +466,7 @@ $(document).ready(function() {
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'PriceFirst.xlsx';
+            a.download = 'Formula.xlsx';
             document.body.appendChild(a);
             a.click();
             a.remove();
