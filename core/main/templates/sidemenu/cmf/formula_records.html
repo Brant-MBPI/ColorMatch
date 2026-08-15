@@ -114,7 +114,7 @@
         </div>
     </div>
 </div>
-
+{% include "modal/cmf-record/formula_pricefirst.html" %}
 <style>
     select.uniform-input {
         line-height: 1.5 !important;
@@ -373,6 +373,76 @@ $(document).ready(function() {
     }
 
     $('#btnRefreshTable').on('click', () => table.ajax.reload());
+    $('#btnPriceFirst').on('click', function() {
+        // 1. Determine which formulas to process
+        let items = [];
+        
+        if (selectionMode && selectedIds.size > 0) {
+            // Multi-select mode
+            selectedIds.forEach(key => {
+                const parts = key.split(':'); // "MB:10"
+                items.push({ type: parts[0], id: parts[1] });
+            });
+        } else {
+            // Single row active mode
+            const activeRow = $('#formulaRecordsTable tbody tr.table-active');
+            if (activeRow.length > 0) {
+                const rowData = table.row(activeRow).data();
+                items.push({ type: rowData.type, id: rowData.id });
+            }
+        }
+
+        if (items.length === 0) {
+            Preline.toast('Please select at least one formula first.', 'warning');
+            return;
+        }
+
+        // 2. Fetch data via AJAX
+        showLoader();
+        fetch(`/cmf/formula-records/price-first/?items=${encodeURIComponent(JSON.stringify(items))}`)
+            .then(res => res.json())
+            .then(data => {
+                hideLoader();
+                const body = $('#priceFirstTableBody');
+                body.empty();
+
+                data.data.forEach((row, index) => {
+                    const tr = `
+                        <tr>
+                            <td class="text-center">${row.date}</td>
+                            <td class="ps-2">${row.customer}</td>
+                            <td class="text-center">${row.classification}</td>
+                            <td class="text-center fw-bold text-primary">${row.prod_code}</td>
+                            <td class="ps-2">${row.resin}</td>
+                            <td class="ps-2 fw-bold">${row.mat_code}</td>
+                            <td class="text-end pe-2">${row.mat_conc}</td>
+                            <td class="text-center">${row.end_product}</td>
+                            <td class="text-center">${row.total}</td>
+                            <td class="text-center text-danger fw-bold">${row.others}</td>
+                            <td class="text-center">${row.dosage}</td>
+                            <td class="text-center">${row.salesman}</td>
+                            <td class="text-center">${row.cmf_no}</td>
+                            <td class="text-center">${row.html}</td>
+                            <td class="text-center">${row.c}</td>
+                            <td class="text-center">${row.m}</td>
+                            <td class="text-center">${row.y}</td>
+                            <td class="text-center">${row.k}</td>
+                            <td class="p-0">
+                                <input type="text" class="form-control form-control-sm border-0 rounded-0 bg-warning-subtle py-1" 
+                                    style="font-size: 0.7rem;" placeholder="Add remarks here...">
+                            </td>
+                        </tr>
+                    `;
+                    body.append(tr);
+                });
+
+                $('#priceFirstModal').modal('show');
+            })
+            .catch(err => {
+                hideLoader();
+                Preline.toast('Error fetching data.', 'danger');
+            });
+    });
 });
 </script>
 {% endblock %}

@@ -1,0 +1,48 @@
+<!-- PRICE FIRST MODAL -->
+<div class="modal fade" id="priceFirstModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen p-4"> <!-- Very large -->
+        <div class="modal-content shadow-lg border-0">
+            <div class="modal-header bg-dark text-white py-2">
+                <h6 class="modal-title extra-small fw-bold text-uppercase">
+                    <i class="bi bi-table me-2"></i> Price First Data Generation
+                </h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0 bg-secondary-subtle">
+                <div class="table-responsive h-100">
+                    <table class="table table-bordered table-sm bg-white mb-0" id="priceFirstTable" style="font-size: 0.7rem; min-width: 1800px;">
+                        <thead class="bg-light sticky-top shadow-sm">
+                            <tr class="text-center text-uppercase">
+                                <th style="width: 150px;">Date</th>
+                                <th style="width: 200px;">Customer</th>
+                                <th>Class</th>
+                                <th>Prod Code</th>
+                                <th style="width: 200px;">Resin</th>
+                                <th>Mat Code</th>
+                                <th>Mat Conc</th>
+                                <th>End Product</th>
+                                <th>Total</th>
+                                <th>Others</th>
+                                <th>Dosage</th>
+                                <th>Salesman</th>
+                                <th>CMF No</th>
+                                <th>HTML</th>
+                                <th>C</th><th>M</th><th>Y</th><th>K</th>
+                                <th style="width: 250px;" class="bg-warning-subtle">Remarks</th>
+                            </tr>
+                        </thead>
+                        <tbody id="priceFirstTableBody">
+                            <!-- JS Populated -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-secondary btn-sm px-4" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-success btn-sm px-4" id="btnDownloadPriceFirst">
+                    <i class="bi bi-file-earmark-excel"></i> Download Excel
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

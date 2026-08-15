@@ -1,16 +1,11 @@
 from django.urls import path
 
 from .services.print import print_cmf, print_mb_formula, print_dc_formula
-
-from .services.cmf_records import mb_dc_formulation_services
-
 from .services.audit import audit_services
-
-
 from .services.formula import master_formula_services, formulation_services
 
 from . import views
-from .services.cmf_records import cmf_records_services, previous_cmf_record
+from .services.cmf_records import cmf_records_services, previous_cmf_record, formula_price_first, mb_dc_formulation_services
 from .services.export import cmf_record_export
 
 urlpatterns = [
@@ -39,6 +34,8 @@ urlpatterns = [
     # ajax
     path('cmf/mb-dc-formula/', mb_dc_formulation_services.get_formulation_details, name='mb_dc_lookup_details'),
     path('cmf/formula-records/data/', cmf_records_services.formula_records_data, name='formula_records_data'),
+    path('formula-records/price-first/', formula_price_first.get_price_first_data, name='get_price_first_data'),
+    path('formula-records/price-first/download/', formula_price_first.download_price_first_excel, name='download_price_first_excel'),
     path('master-formula/lookup/', master_formula_services.master_formula_lookup, name='master_formula_lookup'),
     path('check-previous-matching/', previous_cmf_record.check_previous_matching, name='check_previous_matching'),
     path('formulation/data/', formulation_services.get_formulation_records_json, name='formulation_data'),
