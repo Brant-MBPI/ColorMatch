@@ -261,7 +261,7 @@ def master_formula_lookup(request):
     """Lookup logic. Returns EACH Trial (Version) of a DC Formula as a separate entry."""
     matching_no = request.GET.get('matching_no', '').strip()
     error, mb_list, dc_list, color = None, [], [], ''
-    parent = {'customer': '', 'resin_used': '', 'colorant_type': '', 'process': ''}
+    parent = {'customer': '', 'resin_used': '', 'colorant_type': '', 'process': '', 'dosage': ''}
 
     if not matching_no:
         error = "No matching number provided."
@@ -272,10 +272,13 @@ def master_formula_lookup(request):
         if not cmf and (not rs_records or not rs_records.exists()):
             error = f'No records found for "{matching_no}".'
         else:
-            # (Parent data extraction remains same)
             if cmf:
                 formula_info = tbl_cmf_formula.objects.filter(cm_no=cmf).first()
-                parent.update({'customer': formula_info.customer if formula_info else "", 'colorant_type': cmf.colorant_type or ""})
+                parent.update({
+                    'customer': formula_info.customer if formula_info else "",
+                    'colorant_type': cmf.colorant_type or "",
+                    'dosage': formula_info.dosage if formula_info else "",
+                })
                 parent['resin_used'] = ", ".join(tbl_resins_selected.objects.filter(cm_no=cmf).values_list('resin_no__abbreviation', flat=True))
                 parent['process'] = ", ".join(tbl_cmf_process02.objects.filter(cmf_formula_no=formula_info).values_list('process_no__name', flat=True))
                 mb_qs = tbl_mb_extruder_formula.objects.filter(cm_no=cmf).select_related('code')
@@ -284,7 +287,11 @@ def master_formula_lookup(request):
             else:
                 rs_ids = list(rs_records.values_list('id', flat=True))
                 base_rs = rs_records.first()
-                parent.update({'customer': base_rs.customer or "", 'colorant_type': base_rs.colorant_type or ""})
+                parent.update({
+                    'customer': base_rs.customer or "",
+                    'colorant_type': base_rs.colorant_type or "",
+                    'dosage': getattr(base_rs, 'dosage', '') or '',
+                })
                 parent['resin_used'] = ", ".join(tbl_resins_selected.objects.filter(rs_no_id__in=rs_ids).values_list('resin_no__abbreviation', flat=True).distinct())
                 parent['process'] = ", ".join(tbl_cmf_process02.objects.filter(rs_no_id__in=rs_ids).values_list('process_no__name', flat=True).distinct())
                 mb_qs = tbl_mb_extruder_formula.objects.filter(rs_no_id__in=rs_ids).select_related('code')

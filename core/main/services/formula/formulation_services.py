@@ -315,7 +315,7 @@ def formulation_lookup(request):
                     dc_list.append({
                         'header': f, 
                         'pk': f.pk, 
-                        'version': max_v,
+                        'version_no': max_v,
                         'ingredients': ingredients,
                         'sum_con': format(sum(item['value'] for item in ingredients), ".6f"),
                         'script_id': f'fml-ing-dc-{f.pk}'
