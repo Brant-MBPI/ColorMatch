@@ -337,4 +337,10 @@ def master_formula_lookup(request):
         'mb_formulas': mb_list, 'dc_formulas': dc_list
     })
 
-    
+def master_formula_materials_json(request, form_id):
+    """API for materials breakdown."""
+    formula = tbl_master_formula.objects.filter(pk=form_id).first()
+    if not formula: return JsonResponse({'error': 'Not found'}, status=404)
+    materials = list(tbl_master_formula_info.objects.filter(form=formula, is_deleted=False)
+                     .order_by('sequence_no').values('material_code', 'concentration'))
+    return JsonResponse({'form_id': formula.form_id, 'index_no': formula.index_no or '-', 'customer': formula.customer or '', 'materials': materials})

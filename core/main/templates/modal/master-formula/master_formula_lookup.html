@@ -9,7 +9,7 @@
                     <th style="width: 60px;"></th>
                     <th>Date</th>
                     <th>Product Code</th>
-                    <th>Lot Number / Sample</th>
+                    <th>Trial / Sample Size</th>
                     <th class="pe-4">Matched By</th>
                 </tr>
             </thead>
@@ -90,7 +90,7 @@
         <!-- DC CONTAINER -->
         <div class="mf-formula-card shadow-sm">
             <h6 class="extra-small fw-bold text-teal text-uppercase mb-3">
-                <i class="bi bi-box-seam-fill me-2"></i>DC Extruder Formulas
+                <i class="bi bi-box-seam-fill me-2"></i>DC Extruder Formulas (Trials)
             </h6>
             <div class="table-responsive">
                 <table class="table table-sm mb-0">
@@ -100,6 +100,7 @@
                             style="cursor:pointer;"
                             data-pk="{{ item.pk }}"
                             data-formula-type="DC"
+                            data-version="{{ item.version_no }}"
                             data-script-id="{{ item.script_id }}"
                             data-customer="{{ parent.customer|default:'' }}"
                             data-resin="{{ parent.resin_used|default:'' }}"
@@ -127,7 +128,10 @@
                                 {% endif %}
                             </td>
                             <td>{{ item.header.code.product_code|default:"---" }}</td>
-                            <td>{{ item.header.sample_size|default:"---" }}</td>
+                            <td>
+                                <span class="badge bg-info-subtle text-info border border-info-subtle px-2">Trial #{{ item.version_no }}</span>
+                                <span class="ms-2 text-muted extra-small">({{ item.header.sample_size|default:"N/A" }})</span>
+                            </td>
                             <td>{{ item.header.matched_by|default:"---" }}</td>
                         </tr>
                         <tr class="ingredient-sub-row d-none {% if item.header.in_master_formula %}row-already-in-mf{% endif %}">
