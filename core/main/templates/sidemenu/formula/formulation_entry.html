@@ -226,7 +226,7 @@
                                         <th class="text-end">Concentration</th>
                                     </tr>
                                 </thead>
-                                <tbody id="mfMaterialTableBody">
+                                <tbody id="formulationMaterialTable">
                                     {% for mat in form_data.materials %}
                                     <tr class="mf-material-row" data-material="{{ mat.material_code }}" data-concentration="{{ mat.concentration }}" style="cursor: pointer;">
                                         <td>{{ mat.material_code }}</td>
@@ -303,7 +303,7 @@
 
         function addMaterialRow(code, conc) {
             if (!code) return;
-            const tbody = document.getElementById('mfMaterialTableBody');
+            const tbody = document.getElementById('formulationMaterialTable');
             const row = document.createElement('tr');
             row.className = 'mf-material-row';
             row.dataset.material = code;
@@ -324,7 +324,7 @@
             const newBtn = document.querySelector('.btn-new');
             const materialCodeSelect = document.getElementById('id_mf_material_code').tomselect;
             const concentrationInput = document.getElementById('id_mf_concentration');
-            const materialTableBody = document.getElementById('mfMaterialTableBody');
+            const materialTableBody = document.getElementById('formulationMaterialTable');
 
             // --- 2. SAVE WITH PRELINE CONFIRMATION ---
             if (saveBtn && entryForm) {
@@ -446,11 +446,20 @@
                 document.getElementById('id_mf_dosage').value = ds.dosage || '';
                 document.getElementById('id_mf_mix_time').value = ds.mixingTime || '5 MIN';
                 document.getElementById('id_mf_colormatch_date').value = ds.dateMatched || '';
-                document.getElementById('id_mf_html').value = ds.html || '';
-                document.getElementById('id_mf_cyan').value = ds.cyan || '';
-                document.getElementById('id_mf_magenta').value = ds.magenta || '';
-                document.getElementById('id_mf_yellow').value = ds.yellow || '';
-                document.getElementById('id_mf_black').value = ds.black || '';
+
+                // HTML Hex / CMYK fields only exist on the Master Formula page —
+                // Formulation intentionally doesn't have them. Guard each one so
+                // this function works on both pages without throwing.
+                const htmlEl = document.getElementById('id_mf_html');
+                if (htmlEl) htmlEl.value = ds.html || '';
+                const cyanEl = document.getElementById('id_mf_cyan');
+                if (cyanEl) cyanEl.value = ds.cyan || '';
+                const magentaEl = document.getElementById('id_mf_magenta');
+                if (magentaEl) magentaEl.value = ds.magenta || '';
+                const yellowEl = document.getElementById('id_mf_yellow');
+                if (yellowEl) yellowEl.value = ds.yellow || '';
+                const blackEl = document.getElementById('id_mf_black');
+                if (blackEl) blackEl.value = ds.black || '';
                 
                 const radioId = (ds.formulaType === 'DC') ? 'typeDC' : 'typeMB';
                 const radio = document.getElementById(radioId);
