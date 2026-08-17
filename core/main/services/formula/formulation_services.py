@@ -4,7 +4,7 @@ from django.utils import timezone
 import json
 from datetime import datetime
 from django.db import transaction
-from django.http import JsonResponse
+from django.http import JsonResponse, request
 from django.db.models import Q, Max, Value
 from django.shortcuts import render
 from main.utils.log_audit_trail import log_audit
@@ -155,20 +155,19 @@ def save_formulation(request):
             
             diff_logs = []
 
-            # 1. Capture Original Data if Updating
+            # 1. Resolve Object
             if not is_new and form_id:
                 f = tbl_formula01.objects.get(pk=form_id)
                 action_type = "Updated"
                 
-                # Check Technical Field Changes
-                # POST Key -> (Model Attribute, Display Label)
+                # Check Field Changes
                 field_map = {
                     'customer': ('customer', 'Customer'),
                     'index_no': ('index_no', 'Index #'),
                     'product_code': ('prod_code', 'Product Code'),
                     'prod_color': ('prod_color', 'Color'),
-                    'sum_of_concentration': ('dosage', 'Sum of Con'),
-                    'dosage': ('ld', 'Dosage'),
+                    'sum_of_concentration': ('dosage', 'Sum of Con'), # dosage field in DB holds sum
+                    'dosage': ('ld', 'Dosage'),                       # ld field in DB holds dosage
                     'mix_time': ('mix_time', 'Mixing Time'),
                     'resin': ('resin', 'Resin'),
                     'application': ('application', 'Application'),
@@ -182,7 +181,7 @@ def save_formulation(request):
                     if old_val != new_val:
                         diff_logs.append(f"{label}: {old_val} -> {new_val}")
 
-                # Check for Material Changes
+                # Material Changes
                 old_mats = list(tbl_formula02.objects.filter(form=f).values_list('material_code', flat=True))
                 new_mats_raw = data.get('materials_data')
                 if new_mats_raw:
@@ -198,14 +197,14 @@ def save_formulation(request):
                 f.date = timezone.now().date()
                 f.date_time = None  
 
-            # 2. Map and Save Fields
+            # 2. Map & Save Fields
             f.customer = data.get('customer')
             f.index_no = data.get('index_no')
             f.prod_code = data.get('product_code')
             f.prod_color = data.get('prod_color')
             f.total_concentration = data.get('total_concentration') or 0
-            f.dosage = data.get('sum_of_concentration') or 0
-            f.ld = data.get('dosage') or 0
+            f.dosage = data.get('sum_of_concentration') or 0 # Sum goes to dosage field
+            f.ld = data.get('dosage') or 0                   # Dosage goes to ld field
             f.mix_time, f.resin, f.application, f.colormatch_no = data.get('mix_time'), data.get('resin'), data.get('application'), data.get('cm_no')
             f.notes = data.get('notes')
             
@@ -230,7 +229,9 @@ def save_formulation(request):
             encode, _ = tbl_formula_encode.objects.get_or_create(form=f)
             encode.match_by = data.get('matched_by')
             if is_new:
-                encode.encoded_by, encode.updated_by = (data.get('encoded_by') or request.user.first_name), None
+                # SAFE CHECK FOR ANONYMOUS USER
+                encode.encoded_by = request.user.first_name if request.user.is_authenticated else "System"
+                encode.updated_by = None
             else:
                 encode.updated_by = request.user.first_name if request.user.is_authenticated else "System"
             encode.save()
@@ -242,13 +243,9 @@ def save_formulation(request):
                 model.objects.filter(pk=source_pk).update(in_master_formula=True)
 
             # 6. Audit Trail Logging
-            if is_new:
-                log_message = f"New Formulation Entry: #{f.form_id}"
-            else:
-                details = ", ".join(diff_logs) if diff_logs else "No technical changes"
-                log_message = f"Formulation #{f.form_id}. Changes: {details}"
-
+            log_message = f"New Formulation Entry: #{f.form_id}" if is_new else f"Formulation #{f.form_id}. Changes: {', '.join(diff_logs) if diff_logs else 'No tech changes'}"
             log_audit(request, action_type, log_message)
+            
             cache.delete('formulation_records_list')
             return True, f.form_id
             
