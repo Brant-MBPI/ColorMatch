@@ -4,16 +4,16 @@ from main.services.legacy.formula_sync import sync_formula
 from main.services.legacy.production_sync import sync_production
 from main.services.legacy.master_formula_sync import sync_master_formula
 from main.services.legacy.rm_sync import sync_rm_list, sync_rm_incoming
-
+from main.services.legacy.customer_sync import sync_customer_list
 
 class Command(BaseCommand):
-    help = "Mirrors legacy DBF data (formula, production, raw materials) into PostgreSQL."
+    help = "Mirrors legacy DBF data (formula, production, raw materials, customers) into PostgreSQL."
 
     def add_arguments(self, parser):
         parser.add_argument(
             '--only',
-            choices=['formula', 'production', 'rm'],
-            help="Run only one sync instead of all three.",
+            choices=['formula', 'production', 'rm', 'customer'],
+            help="Run only one sync instead of all.",
         )
 
     def handle(self, *args, **options):
@@ -31,6 +31,8 @@ class Command(BaseCommand):
             if only in (None, 'rm'):
                 sync_rm_list(progress)
                 sync_rm_incoming(progress)
+            if only in (None, 'customer'):
+                sync_customer_list(progress)
 
             self.stdout.write(self.style.SUCCESS("Sync completed successfully."))
         except Exception as e:

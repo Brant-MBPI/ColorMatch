@@ -229,7 +229,7 @@ def cmf_entry(request):
                 }
 
     context = {
-        "customers": ["Masterbatch PH", "Generic Co."],
+        "customers": cmf_records_services.get_customer_list(), 
         "salesman": cmf_records_services.get_salesman_list(),
         "primary_color": cmf_records_services.get_color_list(),
         "resin": cmf_records_services.get_resin_list(),
@@ -266,7 +266,7 @@ def cmf_rs_entry(request):
                 messages.error(request, f"RS record with ID {record_id} not found.")
 
     context = {
-        "customers": ["Masterbatch PH", "Generic Co."],
+        "customers": cmf_records_services.get_customer_list(), 
         "salesman": cmf_records_services.get_salesman_list(),
         "primary_color": cmf_records_services.get_color_list(),
         "resin": cmf_records_services.get_resin_list(),

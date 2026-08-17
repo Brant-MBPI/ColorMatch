@@ -7,7 +7,7 @@ from django.http import JsonResponse
 from main.utils.log_audit_trail import log_audit
 from ...models import (
     tbl_cmf, tbl_cmf_formula, tbl_cmf_dates, 
-    tbl_cmf_pending_completed, tbl_cmf_salesman, tbl_dc_extruder_formula, tbl_dc_extruder_materials, tbl_dc_extruder_version, tbl_internal_color_code, tbl_mb_extruder_formula, tbl_mb_extruder_formula02, tbl_resin, tbl_rm_incoming, tbl_rs
+    tbl_cmf_pending_completed, tbl_cmf_salesman, tbl_customer, tbl_dc_extruder_formula, tbl_dc_extruder_materials, tbl_dc_extruder_version, tbl_internal_color_code, tbl_mb_extruder_formula, tbl_mb_extruder_formula02, tbl_resin, tbl_rm_incoming, tbl_rs
 )
 
 def get_salesman_list():
@@ -30,6 +30,22 @@ def get_resin_list():
     if not data:
         data = list(tbl_resin.objects.filter(is_deleted=False).order_by('abbreviation'))
         cache.set('resin_list', data, 86400)
+    return data
+
+def get_customer_list():
+    """
+    Fetches the list of unique customer names from tbl_customer.
+    Uses caching to avoid hitting the database on every page load.
+    """
+    data = cache.get('customer_list')
+    if not data:
+        # Fetch just the names as a list of strings, sorted alphabetically
+        data = list(
+            tbl_customer.objects.values_list('customer', flat=True)
+            .order_by('customer')
+        )
+        # Cache for 24 hours (86400 seconds)
+        cache.set('customer_list', data, 86400)
     return data
 
 def get_cmf_records():
