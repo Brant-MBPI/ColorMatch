@@ -462,15 +462,29 @@ class tbl_dc_extruder_formula(models.Model):
         return f"DC Formula #{self.dc_no}"
 
 
-class tbl_dc_extruder_formula02(models.Model):
-    id = models.AutoField(primary_key=True)
-    dc = models.ForeignKey(tbl_dc_extruder_formula, on_delete=models.CASCADE, db_column="dc_no")
+class tbl_dc_extruder_materials(models.Model):
+    material_id = models.AutoField(primary_key=True)
+    dc = models.ForeignKey(tbl_dc_extruder_formula, on_delete=models.CASCADE, db_column="dc_no", related_name="dc_materials")
     material = models.CharField(max_length=150, blank=True, null=True)
-    value = models.DecimalField(max_digits=12, decimal_places=6, null=True, blank=True)
-    weight = models.DecimalField(max_digits=12, decimal_places=7, null=True, blank=True)
 
     class Meta:
-        db_table = "tbl_dc_extruder_formula02"
+        db_table = "tbl_dc_extruder_materials"
+
+    def __str__(self):
+        return f"{self.material} (DC #{self.dc_id})"
+
+
+class tbl_dc_extruder_version(models.Model):
+    id = models.AutoField(primary_key=True)
+    version_no = models.IntegerField()
+    value = models.DecimalField(max_digits=12, decimal_places=6, null=True, blank=True)
+    material = models.ForeignKey(tbl_dc_extruder_materials, on_delete=models.CASCADE, db_column="material_id", related_name="versions")
+
+    class Meta:
+        db_table = "tbl_dc_extruder_version"
+
+    def __str__(self):
+        return f"v{self.version_no} for {self.material.material}"
 
 
 # ==========================================

@@ -20,7 +20,7 @@ Formula DC
         <div class="row g-4">
             <!-- LEFT COLUMN: Input Sections -->
             <div class="col-lg-3 col-md-4">
-                
+
                 <!-- Formulation Details -->
                 <div class="card dc-card shadow-sm mb-3">
                     <div class="card-body p-3">
@@ -38,12 +38,10 @@ Formula DC
                         <div class="col-5"><label class="extra-small fw-bold required-label">CMF Number:</label></div>
                             <div class="col-7">
                                 {% if form_data.formula_id %}
-                                    <!-- Editing Mode: Readonly Input -->
                                     <input type="text" name="cmf_number" id="id_dc_cmf_number" 
                                         value="{{ form_data.cm_form_no|default:'' }}" 
                                         class="form-control form-control-sm uniform-input readonly-gray" readonly required>
                                 {% else %}
-                                    <!-- New Mode: TomSelect Dropdown -->
                                     <select name="cmf_number" id="id_dc_cmf_number" class="form-select form-select-sm ts-select" required>
                                         <option value=""></option>
                                         {% for cm_no in cmf_list %}
@@ -152,8 +150,7 @@ Formula DC
                             <div class="col-7">
                                 <textarea name="note" id="id_dc_note" rows="1" 
                                           class="form-control form-control-sm uniform-input" 
-                                          placeholder="Add remarks here...">{{ form_data.notes|default:'' }}
-                            </textarea>
+                                          placeholder="Add remarks here...">{{ form_data.notes|default:'' }}</textarea>
                             </div>
                         </div>
                     </div>
@@ -163,7 +160,6 @@ Formula DC
                 <div class="card dc-card shadow-sm">
                     <div class="card-body p-3">
                         <h6 class="dc-section-title mb-3">Personnel</h6>
-                        <!-- Matched By -->
                         <div class="row g-2 align-items-center mb-2">
                             <div class="col-5"><label class="extra-small fw-bold required-label">Matched by:</label></div>
                             <div class="col-7">
@@ -175,8 +171,6 @@ Formula DC
                                 </select>
                             </div>
                         </div>
-
-                        <!-- Weighed By -->
                         <div class="row g-2 align-items-center mb-2">
                             <div class="col-5"><label class="extra-small fw-bold required-label">Weighed by:</label></div>
                             <div class="col-7">
@@ -200,73 +194,66 @@ Formula DC
                 </div>
             </div>
 
-            <!-- RIGHT COLUMN: Formula Composition Table -->
+            <!-- RIGHT COLUMN: Formula Composition Table (Material + 10 version columns) -->
             <div class="col-lg-9 col-md-8">
                 <div class="card border-0 shadow-sm dc-table-card rounded-3 h-100 d-flex flex-column">
                     <div class="p-3 d-flex align-items-center dark-card-header">
                         <h6 class="fw-bold text-uppercase extra-small m-0">Formula Composition</h6>
                     </div>
 
-                    <!-- Table wrapper -->
-                    <div class="mb-scroll-body flex-grow-1" style="overflow-y: auto;">
-                        <table class="table table-sm align-middle mb-0 mb-records-table js-formula-table">
+                    <div class="mb-scroll-body flex-grow-1" style="overflow: auto;">
+                        <table class="table table-sm align-middle mb-0 mb-records-table js-formula-table" style="min-width: 1100px;">
                             <thead class="bg-light sticky-top">
                                 <tr class="small text-uppercase">
-                                    <th class="ps-4 py-2" width="50%" style="border-top-left-radius: 6px;">Material</th>
-                                    <th class="text-center py-2" width="25%">Final %</th>
-                                    <th class="pe-4 text-end py-2" width="25%" style="border-top-right-radius: 6px;">Total Weight</th>
+                                    <th class="ps-4 py-2" style="min-width: 220px;">Material</th>
+                                    {% for v in "1234567890" %}
+                                        <th class="text-center py-2" style="min-width: 90px;">V{{ forloop.counter }}</th>
+                                    {% endfor %}
                                 </tr>
                             </thead>
-                            
+
                             <tbody>
-                                {% for ing in ingredients %}
+                                {% for row in material_rows %}
                                 <tr>
                                     <td class="ps-4 py-0">
-                                        <!-- Added "js-material-select" -->
                                         <select name="material_{{ forloop.counter }}" class="ts-select-table js-material-select" placeholder="Search material...">
                                             <option value=""></option>
                                             {% for material in materials %}
-                                                <option value="{{ material }}" {% if ing.material == material %}selected{% endif %}>{{ material }}</option>
+                                                <option value="{{ material }}" {% if row.material == material %}selected{% endif %}>{{ material }}</option>
                                             {% endfor %}
                                         </select>
                                     </td>
+                                    {% for val in row.versions %}
                                     <td class="py-1">
-                                        <!-- Added "js-percent-input" -->
-                                        <input type="number" step="0.0001" name="percentage_{{ forloop.counter }}" class="table-input text-center js-percent-input" placeholder="0.0000" value="{{ ing.value|default:'' }}">
+                                        <input type="number" step="0.000001"
+                                               name="value_{{ forloop.parentloop.counter }}_{{ forloop.counter }}"
+                                               class="table-input text-center js-version-value"
+                                               data-row="{{ forloop.parentloop.counter }}"
+                                               data-version="{{ forloop.counter }}"
+                                               placeholder="0.000000"
+                                               value="{{ val|default:'' }}">
                                     </td>
-                                    <td class="pe-4 py-1">
-                                        <!-- Added "js-weight-input" -->
-                                        <input type="number" step="0.0001" name="weight_{{ forloop.counter }}" class="table-input text-end weight-input js-weight-input" placeholder="0.0000" value="{{ ing.weight|default:'' }}">
-                                    </td>
+                                    {% endfor %}
                                 </tr>
                                 {% endfor %}
                             </tbody>
 
-                            <!-- NEW REUSABLE TOTALS FOOTER -->
                             <tfoot class="border-top bg-light-subtle">
                                 <tr>
-                                    <td class="ps-4 py-2 small fw-bold text-uppercase text-secondary">Summary Totals</td>
-                                    <td class="py-2">
-                                        <div class="d-flex flex-column align-items-center">
-                                            <span class="text-muted" style="font-size: 0.6rem; font-weight: 800;">TOTAL %</span>
-                                            <input type="text" class="form-control form-control-sm border-0 bg-transparent text-center fw-bold p-0 js-total-percent-summary" readonly value="0.0000">
-                                        </div>
+                                    <td class="ps-4 py-2 small fw-bold text-uppercase text-secondary">Total</td>
+                                    {% for v in "1234567890" %}
+                                    <td class="py-2 text-center">
+                                        <input type="text" class="form-control form-control-sm border-0 bg-transparent text-center fw-bold p-0 js-version-total" 
+                                               data-version="{{ forloop.counter }}" readonly value="0.000000">
                                     </td>
-                                    <td class="pe-4 py-2 text-end">
-                                        <div class="d-flex flex-column align-items-end">
-                                            <span class="text-muted" style="font-size: 0.6rem; font-weight: 800;">TOTAL WEIGHT</span>
-                                            <input type="text" class="form-control form-control-sm border-0 bg-transparent text-end fw-bold p-0 js-total-weight-summary" readonly value="0.0000">
-                                        </div>
-                                    </td>
+                                    {% endfor %}
                                 </tr>
                             </tfoot>
                         </table>
                     </div>
 
-                    <!-- Footer Total Area with Spectro Readings -->
+                    <!-- Footer: Spectro + Total Weight -->
                     <div class="px-3 pt-2 pb-2 d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-total-footer gap-3">
-                        
-                        <!-- Spectro Readings -->
                         <div class="d-flex flex-wrap align-items-center gap-2 order-2 order-md-1">
                             <span class="extra-small fw-bold text-uppercase me-1">Spectro:</span>
                             <div class="d-flex flex-wrap gap-2">
@@ -293,7 +280,6 @@ Formula DC
                             </div>
                         </div>
 
-                        <!-- Total Weight -->
                         <div class="d-flex align-items-center gap-3 order-1 order-md-2 ms-auto ms-md-0">
                             <span class="fw-bold small text-uppercase">Total Weight:</span>
                             <input type="text" name="total_weight" class="form-control total-weight-input total-weight-display" 
@@ -301,15 +287,12 @@ Formula DC
                         </div>
                     </div>
 
-                    <!-- sRGB Hex / CMYK + Color Swatch Row -->
                     <div class="px-3 pb-3 d-flex align-items-center justify-content-between mb-total-footer gap-3">
-
                         <div class="d-flex flex-wrap align-items-center gap-2">
                             <span class="extra-small fw-bold me-1">sRGB:</span>
                             <div class="d-flex align-items-center gap-1">
                                 <label class="extra-small fw-bold mb-0">Hex</label>
-                                <input type="text" name="srgb_hex" class="form-control 
-                                form-control-sm uniform-input text-center hex-input" style="width: 90px;" placeholder="#FFFFFF" maxlength="7" value="{{ form_data.srgb_hex|default:'' }}">
+                                <input type="text" name="srgb_hex" class="form-control form-control-sm uniform-input text-center hex-input" style="width: 90px;" placeholder="#FFFFFF" maxlength="7" value="{{ form_data.srgb_hex|default:'' }}">
                             </div>
                             <div class="d-flex align-items-center gap-1">
                                 <label class="extra-small fw-bold mb-0">C</label>
@@ -329,9 +312,7 @@ Formula DC
                             </div>
                         </div>
 
-                        <!-- Color Swatch Preview -->
-                        <div class="rounded shadow-sm flex-shrink-0 color-swatch" style="width: clamp(130px, 18vw, 220px); height: clamp(60px, 10vw, 110px); 
-                                ; border: 1px solid rgba(0,0,0,0.15); background-color: {{ form_data.srgb_hex|default:'#FFFFFF' }}"></div>
+                        <div class="rounded shadow-sm flex-shrink-0 color-swatch" style="width: clamp(130px, 18vw, 220px); height: clamp(60px, 10vw, 110px); border: 1px solid rgba(0,0,0,0.15); background-color: {{ form_data.srgb_hex|default:'#FFFFFF' }}"></div>
                     </div>
                 </div>
             </div>
@@ -362,9 +343,7 @@ Formula DC
             'Not a DC Formula',
             'This CMF is not registered as DC colorant type. Do you want to continue anyway?',
             'warning',
-            () => {
-                // Confirmed — stay on the page, do nothing
-            },
+            () => {},
             () => {
                 window.location.href = "{% url 'cmf_records' %}";
             }
@@ -372,6 +351,29 @@ Formula DC
     });
 </script>
 {% endif %}
+<script>
+    // Per-version column totals, recalculated on any value change.
+    // Kept inline here rather than in formula.js since that file is
+    // shared with the MB form and wasn't part of this restructure.
+    document.addEventListener('DOMContentLoaded', function () {
+        function recalcTotals() {
+            const totals = {};
+            document.querySelectorAll('.js-version-value').forEach(function (input) {
+                const v = input.dataset.version;
+                const val = parseFloat(input.value) || 0;
+                totals[v] = (totals[v] || 0) + val;
+            });
+            document.querySelectorAll('.js-version-total').forEach(function (totalInput) {
+                const v = totalInput.dataset.version;
+                totalInput.value = (totals[v] || 0).toFixed(6);
+            });
+        }
+        document.querySelectorAll('.js-version-value').forEach(function (input) {
+            input.addEventListener('input', recalcTotals);
+        });
+        recalcTotals();
+    });
+</script>
 {% endblock %}
 {% block scripts %}
 <script src="{% static 'js/cmf/formula.js' %}"></script>

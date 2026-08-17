@@ -13,7 +13,7 @@ from main.models import (
     tbl_formula01, tbl_formula02, tbl_formula_encode,
     tbl_cmf, tbl_rs, tbl_resins_selected, tbl_cmf_process02, tbl_cmf_formula,
     tbl_mb_extruder_formula, tbl_mb_extruder_formula02,
-    tbl_dc_extruder_formula, tbl_dc_extruder_formula02
+    tbl_dc_extruder_formula, tbl_dc_extruder_materials, tbl_dc_extruder_version
 )
 from django.contrib.auth import get_user_model 
 User = get_user_model()
@@ -256,7 +256,7 @@ def save_formulation(request):
         return False, str(e)
 
 def formulation_lookup(request):
-    """Lookup logic for searching CM/RS records."""
+    """Lookup logic for searching CM/RS records. Returns the LATEST Trial for DC formulas."""
     matching_no = request.GET.get('matching_no', '').strip()
     error, mb_list, dc_list, color = None, [], [], ''
     parent = {'customer': '', 'resin_used': '', 'colorant_type': '', 'process': ''}
@@ -275,7 +275,8 @@ def formulation_lookup(request):
                 parent.update({'customer': formula_info.customer if formula_info else "", 'colorant_type': cmf.colorant_type or ""})
                 parent['resin_used'] = ", ".join(tbl_resins_selected.objects.filter(cm_no=cmf).values_list('resin_no__abbreviation', flat=True))
                 parent['process'] = ", ".join(tbl_cmf_process02.objects.filter(cmf_formula_no=formula_info).values_list('process_no__name', flat=True))
-                mb_qs, dc_qs = tbl_mb_extruder_formula.objects.filter(cm_no=cmf).select_related('code'), tbl_dc_extruder_formula.objects.filter(cm_no=cmf).select_related('code')
+                mb_qs = tbl_mb_extruder_formula.objects.filter(cm_no=cmf).select_related('code')
+                dc_qs = tbl_dc_extruder_formula.objects.filter(cm_no=cmf).select_related('code')
                 color = cmf.in_code_no.color if cmf.in_code_no else (cmf.color_desc or '---')
             else:
                 rs_ids = list(rs_records.values_list('id', flat=True))
@@ -283,18 +284,44 @@ def formulation_lookup(request):
                 parent.update({'customer': base_rs.customer or "", 'colorant_type': base_rs.colorant_type or ""})
                 parent['resin_used'] = ", ".join(tbl_resins_selected.objects.filter(rs_no_id__in=rs_ids).values_list('resin_no__abbreviation', flat=True).distinct())
                 parent['process'] = ", ".join(tbl_cmf_process02.objects.filter(rs_no_id__in=rs_ids).values_list('process_no__name', flat=True).distinct())
-                mb_qs, dc_qs = tbl_mb_extruder_formula.objects.filter(rs_no_id__in=rs_ids).select_related('code'), tbl_dc_extruder_formula.objects.filter(rs_no_id__in=rs_ids).select_related('code')
+                mb_qs = tbl_mb_extruder_formula.objects.filter(rs_no_id__in=rs_ids).select_related('code')
+                dc_qs = tbl_dc_extruder_formula.objects.filter(rs_no_id__in=rs_ids).select_related('code')
                 color = base_rs.primary_color or base_rs.color_desc or '---'
 
-            for qs, target, ftype in [(mb_qs, mb_list, 'MB'), (dc_qs, dc_list, 'DC')]:
-                for f in qs:
-                    ing_model = tbl_mb_extruder_formula02 if ftype == 'MB' else tbl_dc_extruder_formula02
-                    filter_key = {'mb': f} if ftype == 'MB' else {'dc': f}
-                    ingredients = [{'material': i.material, 'value': float(i.value or 0)} for i in ing_model.objects.filter(**filter_key)]
-                    target.append({
-                        'header': f, 'pk': f.pk, 'ingredients': ingredients,
+            # PROCESS MB (Masterbatch)
+            for f in mb_qs:
+                ingredients = [{'material': i.material, 'value': float(i.value or 0)} 
+                               for i in tbl_mb_extruder_formula02.objects.filter(mb=f)]
+                mb_list.append({
+                    'header': f, 'pk': f.pk, 'ingredients': ingredients,
+                    'sum_con': format(sum(item['value'] for item in ingredients), ".6f"),
+                    'script_id': f'fml-ing-mb-{f.pk}'
+                })
+
+            # PROCESS DC (Dry Color - Pulling Latest Version Only)
+            for f in dc_qs:
+                # 1. Find the highest version number recorded for this formula
+                max_v = tbl_dc_extruder_version.objects.filter(material__dc=f).aggregate(Max('version_no'))['version_no__max']
+                
+                if max_v:
+                    # 2. Fetch all materials and their specific values for that version
+                    version_rows = tbl_dc_extruder_version.objects.filter(
+                        material__dc=f, 
+                        version_no=max_v
+                    ).select_related('material')
+
+                    ingredients = [
+                        {'material': v.material.material, 'value': float(v.value or 0)}
+                        for v in version_rows if v.value is not None
+                    ]
+
+                    dc_list.append({
+                        'header': f, 
+                        'pk': f.pk, 
+                        'version': max_v,
+                        'ingredients': ingredients,
                         'sum_con': format(sum(item['value'] for item in ingredients), ".6f"),
-                        'script_id': f'fml-ing-{ftype.lower()}-{f.pk}'
+                        'script_id': f'fml-ing-dc-{f.pk}'
                     })
 
     return render(request, "modal/master-formula/master_formula_lookup.html", {

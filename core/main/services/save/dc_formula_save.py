@@ -5,23 +5,27 @@ from django.db import IntegrityError, transaction
 from main.utils.log_audit_trail import log_audit
 from ...models import (
     tbl_cmf, tbl_rs, tbl_generated_prod_code,
-    tbl_dc_extruder_formula, tbl_dc_extruder_formula02
+    tbl_dc_extruder_formula, tbl_dc_extruder_materials, tbl_dc_extruder_version
 )
+
+MAX_MATERIAL_ROWS = 10
+MAX_VERSIONS = 10
+
 
 def save_dc_complete_formula(request):
     post_data = request.POST
     formula_id = post_data.get('formula_id')
     record_type = post_data.get('record_type', 'cmf')
 
-    # --- 1. HELPERS ---
     def clean_num(val):
-        if val is None: return None
+        if val is None:
+            return None
         v = str(val).strip()
         return v if v else None
 
     def format_val(val):
-        """Standardizes values to readable strings for audit comparison."""
-        if val is None or val == "" or val == "None": return "---"
+        if val is None or val == "" or val == "None":
+            return "---"
         if isinstance(val, (Decimal, float)):
             return format(float(val), ".4f")
         if isinstance(val, (date, datetime)):
@@ -49,7 +53,7 @@ def save_dc_complete_formula(request):
             # 2. Resolve Parent
             cmf_obj = None
             rs_obj = None
-            cm_display = "" # For Audit Log
+            cm_display = ""
 
             if record_type == 'rs':
                 rs_obj = tbl_rs.objects.get(pk=post_data.get('record_id'))
@@ -66,7 +70,7 @@ def save_dc_complete_formula(request):
             raw_date = post_data.get('date_matched')
             formatted_date = datetime.strptime(raw_date, '%m/%d/%Y').date() if raw_date else None
 
-            # 4. Header Data (Lot Number Removed)
+            # 4. Header Data
             header_params = {
                 'date': formatted_date,
                 'cm_no': cmf_obj,
@@ -92,19 +96,26 @@ def save_dc_complete_formula(request):
             }
 
             diff_logs = []
-            ingredients_changed = False
 
+            # --- Capture old materials/versions BEFORE any changes, for
+            # the audit-log diff comparison further down.
+            old_snapshot = []
             if formula_id:
                 header = tbl_dc_extruder_formula.objects.get(pk=formula_id)
+                old_snapshot = list(
+                    tbl_dc_extruder_version.objects
+                    .filter(material__dc=header)
+                    .select_related('material')
+                    .values('material__material', 'version_no', 'value')
+                )
 
-                # --- TRACK CHANGES ---
                 for field, new_val in header_params.items():
                     current_val = getattr(header, field)
-                    
                     if field == 'code':
                         curr_str = format_val(current_val.product_code if current_val else "")
                         new_str = format_val(new_val.product_code if new_val else "")
-                    elif field in ['cm_no', 'rs_no']: continue
+                    elif field in ['cm_no', 'rs_no']:
+                        continue
                     else:
                         curr_str, new_str = format_val(current_val), format_val(new_val)
 
@@ -112,49 +123,65 @@ def save_dc_complete_formula(request):
                         diff_logs.append(f"{get_pretty_name(field)} ({curr_str} -> {new_str})")
                         setattr(header, field, new_val)
                 header.save()
-
-                # --- INGREDIENTS ---
-                old_ings = list(tbl_dc_extruder_formula02.objects.filter(dc=header).values('material', 'value', 'weight'))
-                new_ings = []
-                for i in range(1, 11):
-                    mat = post_data.get(f'material_{i}', '').strip()
-                    if mat:
-                        new_ings.append({
-                            'material': mat,
-                            'value': Decimal(clean_num(post_data.get(f'percentage_{i}')) or 0),
-                            'weight': Decimal(clean_num(post_data.get(f'weight_{i}')) or 0)
-                        })
-
-                if json.dumps([(i['material'], str(i['value']), str(i['weight'])) for i in old_ings]) != \
-                   json.dumps([(i['material'], str(i['value']), str(i['weight'])) for i in new_ings]):
-                    ingredients_changed = True
-                    tbl_dc_extruder_formula02.objects.filter(dc=header).delete()
-                    for ing in new_ings: tbl_dc_extruder_formula02.objects.create(dc=header, **ing)
-
                 action_type = "Updated"
             else:
                 header = tbl_dc_extruder_formula.objects.create(**header_params)
-                for i in range(1, 11):
-                    mat = post_data.get(f'material_{i}', '').strip()
-                    if mat:
-                        tbl_dc_extruder_formula02.objects.create(
-                            dc=header, material=mat,
-                            value=clean_num(post_data.get(f'percentage_{i}')) or 0,
-                            weight=clean_num(post_data.get(f'weight_{i}')) or 0
-                        )
                 action_type = "Saved"
+
+            # --- MATERIALS & VERSIONS ---
+            # Delete-and-recreate, same pattern as the original ingredients
+            # logic: whatever grid cells were actually filled in on submit
+            # become the new source of truth. A material added only under
+            # version 3, for example, simply has no version rows for 1-2
+            # because those cells were left blank — no explicit "no
+            # relation" bookkeeping needed beyond that.
+            tbl_dc_extruder_version.objects.filter(material__dc=header).delete()
+            tbl_dc_extruder_materials.objects.filter(dc=header).delete()
+
+            new_snapshot = []
+            for row in range(1, MAX_MATERIAL_ROWS + 1):
+                mat_name = post_data.get(f'material_{row}', '').strip()
+                if not mat_name:
+                    continue
+
+                material_obj = tbl_dc_extruder_materials.objects.create(dc=header, material=mat_name)
+
+                for version_no in range(1, MAX_VERSIONS + 1):
+                    raw_val = clean_num(post_data.get(f'value_{row}_{version_no}'))
+                    if raw_val is None:
+                        continue
+                    value_decimal = Decimal(raw_val)
+                    tbl_dc_extruder_version.objects.create(
+                        material=material_obj,
+                        version_no=version_no,
+                        value=value_decimal,
+                    )
+                    new_snapshot.append({
+                        'material__material': mat_name,
+                        'version_no': version_no,
+                        'value': value_decimal,
+                    })
+
+            def _norm(snapshot):
+                return sorted(
+                    (s['material__material'], s['version_no'], str(s['value']))
+                    for s in snapshot
+                )
+
+            ingredients_changed = _norm(old_snapshot) != _norm(new_snapshot)
 
             # --- FINAL LOGGING ---
             code_display = prod_code_obj.product_code if prod_code_obj else "---"
-            
+
             if action_type == "Updated":
-                # FORMAT: Updated DC Formula (CMF: A9267a | Code: P-123 ). Changes: ...
                 msg = f"DC Formula (CMF: {cm_display} | Code: {code_display} ). "
                 if not diff_logs and not ingredients_changed:
                     msg += "No technical changes."
                 else:
-                    if diff_logs: msg += f"Changes: {', '.join(diff_logs)}. "
-                    if ingredients_changed: msg += "Material composition updated."
+                    if diff_logs:
+                        msg += f"Changes: {', '.join(diff_logs)}. "
+                    if ingredients_changed:
+                        msg += "Material composition updated."
             else:
                 msg = f"New DC Formula (CMF: {cm_display} | Code: {code_display} )."
 

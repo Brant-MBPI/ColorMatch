@@ -14,7 +14,7 @@ from django.views.decorators.clickjacking import xframe_options_exempt
 from main.utils.log_audit_trail import log_audit
 from main.services.print.print_util import _resize_pdf_to_fixed_size
 from main.models import (
-    tbl_dc_extruder_formula, tbl_dc_extruder_formula02,
+    tbl_dc_extruder_formula, tbl_dc_extruder_materials, tbl_dc_extruder_version,
     tbl_cmf_formula, tbl_resins_selected,
 )
 

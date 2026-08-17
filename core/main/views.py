@@ -21,7 +21,7 @@ from main.decorators import role_required
 from main.models import (
     tbl_audit_trail, tbl_cmf, tbl_cmf_dates, tbl_cmf_formula, tbl_cmf_pending_completed, 
     tbl_cmf_process02, tbl_cmf_process02, tbl_cmf_specification02, tbl_dc_extruder_formula, 
-    tbl_dc_extruder_formula02, tbl_feedback_details, tbl_generated_prod_code, tbl_internal_color_code, tbl_master_formula, tbl_master_formula_encode, tbl_master_formula_info, tbl_mb_extruder_formula, 
+    tbl_dc_extruder_materials, tbl_feedback_details, tbl_generated_prod_code, tbl_internal_color_code, tbl_master_formula, tbl_master_formula_encode, tbl_master_formula_info, tbl_mb_extruder_formula, 
     tbl_mb_extruder_formula02, tbl_resin, tbl_cmf_salesman, tbl_resins_selected, 
     tbl_cmf_color_req, tbl_cmf_specification, tbl_cmf_process, tbl_rs
 )
@@ -274,10 +274,32 @@ def cmf_rs_entry(request):
     }
     return render(request, "sidemenu/cmf/rs_entry.html", context)
 
+def _build_dc_formula_list(dc_qs):
+    """
+    Builds the DC formula list for a detail view: each formula's header
+    plus its materials, each material carrying a dict of {version_no: value}
+    for every version that was actually entered (missing versions simply
+    aren't in the dict, rather than being padded with blanks — detail
+    views display what exists, unlike the entry form's fixed 10-slot grid).
+    """
+    dc_list = []
+    for f in dc_qs:
+        materials = []
+        dc_materials = tbl_dc_extruder_materials.objects.filter(dc=f).order_by('material_id')
+        for m in dc_materials:
+            versions = {v.version_no: v.value for v in m.versions.all()}
+            materials.append({
+                'material': m.material,
+                'versions': versions,  # e.g. {1: Decimal('12.5'), 3: Decimal('8.0')}
+            })
+        dc_list.append({'header': f, 'materials': materials})
+    return dc_list
+
+
 def cmf_record_detail(request, cm_no):
     # Get the base number by removing the last character (e.g., 'CM24-001A' -> 'CM24-001')
-    base_no = cm_no[:-1] 
-    
+    base_no = cm_no[:-1]
+
     # Fetch all records that share this base prefix
     cmf_revisions = tbl_cmf.objects.filter(cm_no__startswith=base_no).order_by('-cm_no')
 
@@ -297,11 +319,8 @@ def cmf_record_detail(request, cm_no):
             mb_list.append({'header': f, 'ingredients': ingredients})
 
         # DC Formulas for this revision
-        dc_list = []
         dc_qs = tbl_dc_extruder_formula.objects.filter(cm_no=cmf.cm_no).select_related('code')
-        for f in dc_qs:
-            ingredients = tbl_dc_extruder_formula02.objects.filter(dc=f)
-            dc_list.append({'header': f, 'ingredients': ingredients})
+        dc_list = _build_dc_formula_list(dc_qs)
 
         revisions_data.append({
             'cmf': cmf,
@@ -315,8 +334,9 @@ def cmf_record_detail(request, cm_no):
         'revisions': revisions_data,
         'base_no': base_no
     }
-    
+
     return render(request, "modal/cmf-record/cmf_record_detail.html", context)
+
 
 def rs_record_detail(request, rs_id):
     # rs_id is the row's real primary key (unique), since rs_no can now repeat.
@@ -339,11 +359,8 @@ def rs_record_detail(request, rs_id):
             ingredients = tbl_mb_extruder_formula02.objects.filter(mb=f)
             mb_list.append({'header': f, 'ingredients': ingredients})
 
-        dc_list = []
         dc_qs = tbl_dc_extruder_formula.objects.filter(rs_no=rs).select_related('code')
-        for f in dc_qs:
-            ingredients = tbl_dc_extruder_formula02.objects.filter(dc=f)
-            dc_list.append({'header': f, 'ingredients': ingredients})
+        dc_list = _build_dc_formula_list(dc_qs)
 
         revisions_data.append({
             'rs': rs,
@@ -509,10 +526,9 @@ def cmf_mb_formula(request):
     }
     return render(request, "sidemenu/cmf/formula_mb.html", context)
 
-
 def cmf_dc_formula(request):
     form_data = {}
-    ingredients = []
+    material_rows = []
     colorant_mismatch = False
 
     if request.method == "POST":
@@ -565,7 +581,6 @@ def cmf_dc_formula(request):
             rs = tbl_rs.objects.filter(pk=record_no).first()
             if rs:
                 colorant_mismatch = rs.colorant_type != "DC"
-
 
                 # Resin — same pattern as CMF, filtered via the rs_no FK on tbl_resins_selected
                 resins_list = tbl_resins_selected.objects.filter(rs_no=rs).values_list('resin_no__abbreviation', flat=True)
@@ -627,17 +642,35 @@ def cmf_dc_formula(request):
                     'cmyk_k': header.k,
                 })
 
-                ingredients = list(
-                    tbl_dc_extruder_formula02.objects.filter(dc=header)
-                    .values('material', 'value', 'weight')
+                # Build the material_rows grid: one row per material, each
+                # holding a 10-slot list of version values (None where
+                # that material has no entry for that particular version).
+                dc_materials = list(
+                    tbl_dc_extruder_materials.objects.filter(dc=header).order_by('material_id')
                 )
-                ingredients = ingredients + [{'material': '', 'value': '', 'weight': ''}] * (10 - len(ingredients))
-                ingredients = ingredients[:10]
+                versions_by_material = {
+                    m.material_id: {v.version_no: v.value for v in m.versions.all()}
+                    for m in dc_materials
+                }
+
+                material_rows = []
+                for m in dc_materials:
+                    version_map = versions_by_material.get(m.material_id, {})
+                    material_rows.append({
+                        'material': m.material,
+                        'versions': [version_map.get(v) for v in range(1, 11)],
+                    })
+
+                # Pad to 10 rows for the fixed-size grid.
+                while len(material_rows) < 10:
+                    material_rows.append({'material': '', 'versions': [None] * 10})
+                material_rows = material_rows[:10]
             else:
                 messages.error(request, f"Formula record not found for ID {formula_id}.")
 
-    if not ingredients:
-        ingredients = [{'material': '', 'value': '', 'weight': ''}] * 10
+    if not material_rows:
+        material_rows = [{'material': '', 'versions': [None] * 10} for _ in range(10)]
+
     user_names = User.objects.filter(is_active=True).exclude(first_name="").values_list('first_name', flat=True).distinct().order_by('first_name')
 
     context = {
@@ -645,7 +678,7 @@ def cmf_dc_formula(request):
         "materials": cmf_records_services.get_raw_material_codes(),
         "users": list(user_names),
         "colorant_mismatch": colorant_mismatch,
-        "ingredients": ingredients,
+        "material_rows": material_rows,
         "cmf_list": tbl_cmf.objects.values_list('cm_no', flat=True).order_by('-cm_no'),
     }
     return render(request, "sidemenu/cmf/formula_dc.html", context)

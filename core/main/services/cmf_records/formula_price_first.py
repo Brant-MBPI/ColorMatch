@@ -10,7 +10,7 @@ import pythoncom
 from django.db.models import Max
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from main.services.cmf_records import cmf_records_services # or local check
-from main.models import tbl_cmf, tbl_cmf_formula, tbl_dc_extruder_formula, tbl_dc_extruder_formula02, tbl_mb_extruder_formula, tbl_mb_extruder_formula02, tbl_resins_selected
+from main.models import tbl_cmf, tbl_cmf_formula, tbl_dc_extruder_formula, tbl_dc_extruder_materials, tbl_dc_extruder_version, tbl_mb_extruder_formula, tbl_mb_extruder_formula02, tbl_resins_selected
 
 def get_price_first_data(request):
     # Expects a list of objects: [{"id": 1, "type": "MB"}, ...]
