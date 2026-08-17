@@ -96,6 +96,7 @@ DBF_PATHS = {
     'production_items': 'tbl_prod02.dbf',
     'rm_wh': 'tbl_rm_wh.dbf',
     'rm_incoming': 'tbl_incoming.dbf',
+    'customer': 'tbl_customer01.dbf',
 }
 
 # Database

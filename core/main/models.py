@@ -99,6 +99,16 @@ class tbl_generated_prod_code(models.Model):
 # ==========================================
 # 3. CMF (COLOR MATCHING) MODULE
 # ==========================================
+class tbl_customer(models.Model):
+    # id is automatically created as an AutoField
+    customer = models.CharField(max_length=255, unique=True)
+
+    class Meta:
+        db_table = "tbl_customer"
+
+    def __str__(self):
+        return self.customer
+        
 class tbl_coding_materials(models.Model):
     lab_material_no = models.AutoField(primary_key=True)
     name = models.CharField(max_length=16)
