@@ -18,30 +18,35 @@ from main.models import (
     tbl_cmf_formula, tbl_resins_selected,
 )
 
-# Word COM automation isn't safe to run from multiple threads/requests at
-# once, same reasoning as the Excel lock. Kept separate since Word and
-# Excel COM apps are independent processes.
 _word_lock = threading.Lock()
 
 DC_TEMPLATE_PATH = os.path.join('main', 'templates', 'print_excel', 'dc_formula_template.docx')
 
-# --- UPDATED TO LETTER LANDSCAPE ---
 DC_PDF_WIDTH_IN = 11.0   # Letter Width (Landscape)
 DC_PDF_HEIGHT_IN = 8.5   # Letter Height (Landscape)
 
-MATERIAL_START_ROW = 2   # row 1 is the header row ("MATERIAL", "1", "2", ...)
+MATERIAL_START_ROW = 2   # row 1 is the header row ("MATERIAL", "1", "2", ..., "10")
 MATERIAL_MAX_ROWS = 10
+MAX_VERSIONS = 10
+TOTAL_ROW = MATERIAL_START_ROW + MATERIAL_MAX_ROWS  # row 12 — the totals row you added, borderless except col A
 MATERIALS_TABLE_INDEX = 2  # 1-based: table 1 = header info, table 2 = materials
 
 
 def _fetch_dc_formula_data(formula_id):
-    """Pulls the header, its ingredient rows, and customer/resin/color/
-    application/finished_product from whichever parent (CMF or RS) it
-    belongs to."""
+    """Pulls the header, its materials/version values, and customer/resin/
+    color/application/finished_product/dosage from whichever parent (CMF
+    or RS) it belongs to."""
     header = tbl_dc_extruder_formula.objects.select_related('cm_no', 'rs_no', 'code').get(pk=formula_id)
-    ingredients = list(
-        tbl_dc_extruder_formula02.objects.filter(dc=header).order_by('id')[:MATERIAL_MAX_ROWS]
+
+    dc_materials = list(
+        tbl_dc_extruder_materials.objects.filter(dc=header).order_by('material_id')[:MATERIAL_MAX_ROWS]
     )
+    # Build a {material_id: {version_no: value}} lookup so the fill loop
+    # below can address any cell directly without a query per cell.
+    versions_by_material = {
+        m.material_id: {v.version_no: v.value for v in m.versions.all()}
+        for m in dc_materials
+    }
 
     customer = ""
     color = ""
@@ -80,7 +85,8 @@ def _fetch_dc_formula_data(formula_id):
 
     return {
         'header': header,
-        'ingredients': ingredients,
+        'dc_materials': dc_materials,
+        'versions_by_material': versions_by_material,
         'customer': customer,
         'color': color,
         'dosage': dosage,
@@ -121,7 +127,8 @@ def _set_bookmark(doc, name, value):
 
 def _fill_and_export_dc_formula_via_word(template_abs_path, pdf_path, data):
     header = data['header']
-    ingredients = data['ingredients']
+    dc_materials = data['dc_materials']
+    versions_by_material = data['versions_by_material']
 
     pythoncom.CoInitialize()
     word = None
@@ -132,17 +139,13 @@ def _fill_and_export_dc_formula_via_word(template_abs_path, pdf_path, data):
         word.DisplayAlerts = False
 
         doc = word.Documents.Open(template_abs_path)
-        # --- FORCE PAGE SETUP TO LANDSCAPE LETTER ---
-        # wdOrientLandscape = 1, wdPaperLetter = 1
+
         try:
             doc.PageSetup.Orientation = 1  # wdOrientLandscape
             doc.PageSetup.PageWidth = 11.0 * 72
             doc.PageSetup.PageHeight = 8.5 * 72
         except Exception as e:
-            # If the printer driver is extremely restrictive, 
-            # we log the warning but allow it to continue with the template's defaults
             print(f"Warning: Could not force PageSetup dimensions: {e}")
-
 
         # --- HEADER FIELDS (bookmarks) ---
         _set_bookmark(doc, 'code', header.code.product_code if header.code else "")
@@ -151,9 +154,8 @@ def _fill_and_export_dc_formula_via_word(template_abs_path, pdf_path, data):
         _set_bookmark(doc, 'resin', data['resin'])
         _set_bookmark(doc, 'color', data['color'])
         _set_bookmark(doc, 'date_matched', header.date.strftime('%m/%d/%Y') if header.date else "")
-        _set_bookmark(doc, 'dosage', f"{_to_num(data['dosage']):.2f}%" if 'dosage' in data else "")
+        _set_bookmark(doc, 'dosage', f"{_to_num(data['dosage']):.2f}%")
         _set_bookmark(doc, 'sample_size', header.sample_size)
-        _set_bookmark(doc, 'product_used', getattr(header, 'product_used', ''))
         _set_bookmark(doc, 'mixing_time', header.mixing_time)
         _set_bookmark(doc, 'application', data['application'])
         _set_bookmark(doc, 'product_used', data['finished_product'])
@@ -163,34 +165,52 @@ def _fill_and_export_dc_formula_via_word(template_abs_path, pdf_path, data):
         _set_bookmark(doc, 'encoded_by', header.encoded_by)
 
         # --- MATERIALS TABLE ---
-        # Only columns A (Material), B ("1" -> value), C ("2" -> weight)
-        # are touched; columns D-K are left as-is.
+        # Column A = Material, columns B-K = trials/versions 1-10.
         table = doc.Tables(MATERIALS_TABLE_INDEX)
-        total_value = Decimal('0')
+
+        # Running per-version totals, populated while filling the
+        # material rows, then written into the totals row afterward.
+        version_totals = {v: Decimal('0') for v in range(1, MAX_VERSIONS + 1)}
 
         for i in range(MATERIAL_MAX_ROWS):
             row_num = MATERIAL_START_ROW + i
-            if i < len(ingredients):
-                ing = ingredients[i]
-                table.Cell(row_num, 1).Range.Text = ing.material or ""
-                table.Cell(row_num, 2).Range.Text = f"{_to_num(ing.value):.4f}"
-                table.Cell(row_num, 3).Range.Text = f"{_to_num(ing.weight):.7f}"
-                total_value += Decimal(ing.value or 0)
+            if i < len(dc_materials):
+                m = dc_materials[i]
+                table.Cell(row_num, 1).Range.Text = m.material or ""
+
+                v_values = versions_by_material.get(m.material_id, {})
+                for v_no in range(1, MAX_VERSIONS + 1):
+                    col = 1 + v_no  # column 2 = version 1, ..., column 11 = version 10
+                    val = v_values.get(v_no)
+                    if val is not None:
+                        table.Cell(row_num, col).Range.Text = f"{_to_num(val):.4f}"
+                        version_totals[v_no] += Decimal(val)
+                    else:
+                        table.Cell(row_num, col).Range.Text = ""
             else:
                 table.Cell(row_num, 1).Range.Text = ""
-                table.Cell(row_num, 2).Range.Text = ""
-                table.Cell(row_num, 3).Range.Text = ""
+                for v_no in range(1, MAX_VERSIONS + 1):
+                    table.Cell(row_num, 1 + v_no).Range.Text = ""
 
-        # --- TOTALS (bookmarks you're adding) ---
-        _set_bookmark(doc, 'total_value', f"{_to_num(total_value):.4f}")
-        _set_bookmark(doc, 'total_weight', f"{_to_num(header.total_weight):.7f}")
+        # --- TOTALS ROW (the extra borderless row you added below the
+        # materials, one total per trial column; Material column left
+        # untouched since it's not part of the totals). ---
+        for v_no in range(1, MAX_VERSIONS + 1):
+            col = 1 + v_no
+            current_total = version_totals[v_no]
+            
+            # Only write the total if it is greater than zero
+            if current_total != 0:
+                table.Cell(TOTAL_ROW, col).Range.Text = f"{_to_num(current_total):.4f}"
+            else:
+                table.Cell(TOTAL_ROW, col).Range.Text = ""
 
         # 17 = wdFormatPDF
         doc.SaveAs(pdf_path, FileFormat=17)
 
     finally:
         if doc is not None:
-            doc.Close(SaveChanges=False)   # never overwrite the template
+            doc.Close(SaveChanges=False)
         if word is not None:
             word.Quit()
         pythoncom.CoUninitialize()
@@ -199,9 +219,10 @@ def _fill_and_export_dc_formula_via_word(template_abs_path, pdf_path, data):
 def print_dc_formula_preview(request, formula_id):
     """
     Fills the ORIGINAL DC Formula Word template via COM (bookmarks for
-    header fields, direct cell addressing for the materials table),
-    exports to PDF, resizes to a fixed page size, and serves it inline
-    for browser preview. All temp files are cleaned up before returning.
+    header fields, direct cell addressing for the materials/versions
+    table), exports to PDF, resizes to a fixed page size, and serves it
+    inline for browser preview. All temp files are cleaned up before
+    returning.
     """
     try:
         data = _fetch_dc_formula_data(formula_id)
@@ -247,10 +268,9 @@ print_dc_formula_preview = xframe_options_exempt(print_dc_formula_preview)
 
 def log_formula_print(request, formula_id):
     try:
-        
         formula = tbl_dc_extruder_formula.objects.get(pk=formula_id)
         desc = f"Printed DC Formula (Code: {formula.code.product_code if formula.code else 'N/A'})"
-            
+
         log_audit(request, "Printed", desc)
         return JsonResponse({'status': 'success'})
     except Exception as e:
