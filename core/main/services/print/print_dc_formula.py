@@ -185,6 +185,8 @@ def _fill_and_export_dc_formula_via_word(template_abs_path, pdf_path, data):
                     if val is not None:
                         table.Cell(row_num, col).Range.Text = f"{_to_num(val):.4f}"
                         version_totals[v_no] += Decimal(val)
+                        if val == 0:
+                            table.Cell(row_num, col).Range.Text = ""
                     else:
                         table.Cell(row_num, col).Range.Text = ""
             else:
