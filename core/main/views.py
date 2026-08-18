@@ -204,6 +204,8 @@ def cmf_entry(request):
                     'date_received': dates.date_received_lab if dates else "",
 
                     'matchType': cmf.matching_type,
+                    'product_status': cmf.product_status,
+                    'est_qty_order': cmf.est_qty_order,
                     'salesman': cmf.sm.name if cmf.sm else "",
                     'finished_product': formula_info.finished_product if formula_info else "",
                     'primary_color': str(cmf.in_code_no_id) if cmf.in_code_no_id else "",
