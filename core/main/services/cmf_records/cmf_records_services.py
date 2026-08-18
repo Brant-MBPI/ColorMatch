@@ -1,5 +1,5 @@
 from datetime import datetime
-from django.db.models import Q
+from django.db.models import Q, Max
 from django.views.decorators.http import require_POST
 from django.db import transaction
 from django.core.cache import cache
@@ -233,6 +233,8 @@ SEARCHABLE_COLUMNS = {
 
 
 def get_all_formula_records():
+    # This remains the same as the parent 'tbl_dc_extruder_formula' hasn't changed
+    # It still pulls code, cm_no, rs_no, and header details.
     mb_qs = tbl_mb_extruder_formula.objects.select_related('code', 'cm_no', 'rs_no')
     dc_qs = tbl_dc_extruder_formula.objects.select_related('code', 'cm_no', 'rs_no')
 
@@ -240,63 +242,41 @@ def get_all_formula_records():
 
     for f in mb_qs:
         color = f.cm_no.color_desc if f.cm_no else (f.rs_no.color_desc if f.rs_no else "---")
-
-        # Which parent type this formula belongs to, and the actual
-        # identifier the formula pages expect for the "no" GET param:
-        # cm_no's string value for CMF, the RS row's pk for RS.
         if f.cm_no:
-            record_type = 'cmf'
-            record_no = f.cm_no.cm_no
+            record_type, record_no = 'cmf', f.cm_no.cm_no
         elif f.rs_no:
-            record_type = 'rs'
-            record_no = f.rs_no.pk
+            record_type, record_no = 'rs', f.rs_no.pk
         else:
-            record_type = ''
-            record_no = ''
+            record_type, record_no = '', ''
 
         combined_results.append({
-            "id": f.mb_no,
-            "type": "MB",
-            "date": f.date,
+            "id": f.mb_no, "type": "MB", "date": f.date,
             "cmf_no": f.cm_no.cm_no if f.cm_no else (f.rs_no.rs_no if f.rs_no else "N/A"),
-            "record_type": record_type,
-            "record_no": record_no,
+            "record_type": record_type, "record_no": record_no,
             "product_code": f.code.product_code if f.code else "---",
-            "color": color,
-            "mixing": f.mixing_time or "---",
-            "matched_by": f.matched_by or "---",
-            "lot_no": f.lot_no or "N/A",
+            "color": color, "mixing": f.mixing_time or "---",
+            "matched_by": f.matched_by or "---", "lot_no": f.lot_no or "N/A",
             "html": f.html or "#ffffff"
         })
 
     for f in dc_qs:
         color = f.cm_no.color_desc if f.cm_no else (f.rs_no.color_desc if f.rs_no else "---")
-
         if f.cm_no:
-            record_type = 'cmf'
-            record_no = f.cm_no.cm_no
+            record_type, record_no = 'cmf', f.cm_no.cm_no
         elif f.rs_no:
-            record_type = 'rs'
-            record_no = f.rs_no.pk
+            record_type, record_no = 'rs', f.rs_no.pk
         else:
-            record_type = ''
-            record_no = ''
+            record_type, record_no = '', ''
 
         combined_results.append({
-            "id": f.dc_no,
-            "type": "DC",
-            "date": f.date,
+            "id": f.dc_no, "type": "DC", "date": f.date,
             "cmf_no": f.cm_no.cm_no if f.cm_no else (f.rs_no.rs_no if f.rs_no else "N/A"),
-            "record_type": record_type,
-            "record_no": record_no,
+            "record_type": record_type, "record_no": record_no,
             "product_code": f.code.product_code if f.code else "---",
-            "color": color,
-            "mixing": f.mixing_time or "---",
-            "matched_by": f.matched_by or "---",
-            "lot_no": "N/A",
+            "color": color, "mixing": f.mixing_time or "---",
+            "matched_by": f.matched_by or "---", "lot_no": "N/A",
             "html": f.html or "#ffffff"
         })
-
     return combined_results
 
 # Maps a DataTables column index to the dict key to sort/filter by.
@@ -380,11 +360,36 @@ def formula_records_data(request):
 
 
 def get_formula_materials(request, formula_type, formula_id):
-    if formula_type.upper() == 'MB':
-        materials = tbl_mb_extruder_formula02.objects.filter(mb_id=formula_id).values('material', 'value', 'weight')
-    else:
-        materials = tbl_dc_extruder_formula02.objects.filter(dc_id=formula_id).values('material', 'value', 'weight')
+    """
+    Fetches ingredients for the breakdown panel. 
+    For DC, it pulls the latest trial (highest version_no).
+    """
+    results = []
 
-    return JsonResponse({
-        'materials': list(materials)
-    })
+    if formula_type.upper() == 'MB':
+        # MB still uses the old flat structure
+        results = list(tbl_mb_extruder_formula02.objects.filter(mb_id=formula_id).values('material', 'value', 'weight'))
+    
+    else:
+        # NEW DC LOGIC: Find latest trial/version
+        # 1. Identify the highest version number recorded for this formula
+        max_v = tbl_dc_extruder_version.objects.filter(
+            material__dc_id=formula_id
+        ).aggregate(Max('version_no'))['version_no__max']
+
+        if max_v:
+            # 2. Get materials and values for that specific version
+            # select_related('material') avoids multiple DB hits for the material name
+            version_data = tbl_dc_extruder_version.objects.filter(
+                material__dc_id=formula_id, 
+                version_no=max_v
+            ).select_related('material')
+
+            for v in version_data:
+                results.append({
+                    'material': v.material.material,
+                    'value': float(v.value or 0),
+                    'weight': 0 # Weight was removed from DC database, returning 0 to keep JS happy
+                })
+
+    return JsonResponse({'materials': results})
