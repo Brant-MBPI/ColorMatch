@@ -137,6 +137,30 @@
             }
         });
     }
+    const restrictToNumbers = (e) => {
+        const charCode = (e.which) ? e.which : e.keyCode;
+        if (charCode !== 46 && charCode > 31 && (charCode < 48 || charCode > 57)) { e.preventDefault(); return false; }
+        if (charCode === 46 && e.target.value.indexOf('.') !== -1) { e.preventDefault(); return false; }
+        return true;
+    };
+
+    document.querySelectorAll('.js-mixing-time-input').forEach(input => {
+        input.addEventListener('keypress', restrictToNumbers);
+    });
+    
+    // This splits "5 MIN" -> "5" when you open an existing formula
+    document.querySelectorAll('.js-mixing-time-hidden').forEach(hidden => {
+        if (hidden.value.includes(' MIN')) {
+            const visibleInput = hidden.closest('.col-7').querySelector('.js-mixing-time-input');
+            if (visibleInput) {
+                visibleInput.value = hidden.value.replace(' MIN', '').trim();
+            }
+        } else if (hidden.value) {
+            // Fallback if data is just a number
+            const visibleInput = hidden.closest('.col-7').querySelector('.js-mixing-time-input');
+            if (visibleInput) visibleInput.value = hidden.value;
+        }
+    });
 
     // --- 4. SAVE / NEW / PRINT BUTTONS ---
     const saveBtn = document.querySelector('.btn-save-formula');
@@ -147,6 +171,13 @@
     if (saveBtn && form) {
         saveBtn.addEventListener('click', function () {
             if (!form.reportValidity()) return;
+
+            // --- CONCATENATE MIXING TIME BEFORE VALIDATION/SAVE ---
+            const mixHidden = form.querySelector('.js-mixing-time-hidden');
+            const mixVisible = form.querySelector('.js-mixing-time-input');
+            if (mixHidden && mixVisible && mixVisible.value.trim() !== '') {
+                mixHidden.value = `${mixVisible.value.trim()} MIN`;
+            }
 
             const isMB = form.classList.contains('js-mb-formula');
             const isDC = form.classList.contains('js-dc-formula');
