@@ -136,6 +136,7 @@ def _fill_and_export_via_excel(template_abs_path, pdf_path, data):
 
         # --- DOSAGE, QTY ORDER, RESIN ---
         set_cell('F34', formula_info.dosage if formula_info else "")
+        ws.Range('F36').NumberFormat = "#,##0.00 \"KG\""
         set_cell('F36', cmf.est_qty_order) # New Field
         set_cell('F38', resins)
 

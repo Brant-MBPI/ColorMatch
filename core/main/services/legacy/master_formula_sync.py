@@ -76,7 +76,7 @@ def sync_master_formula(progress_callback=None):
             "yellow": to_float(r.get('T_Y')),
             "black": to_float(r.get('T_K')),
             "matched_by": to_str(r.get('T_MATCHBY')), 
-            "encoded_by": to_str(r.get('T_ENCODEB')),
+            "encoded_by": to_str(r.get('T_ENCODEDBY')),
             "updated_by": to_str(r.get('T_UPDATEBY')),
         })
 

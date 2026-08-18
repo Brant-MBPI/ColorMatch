@@ -18,6 +18,31 @@
         });
     });
 
+    const hexInput = document.querySelector('.hex-input');
+    const swatch = document.querySelector('.color-swatch');
+
+    if (hexInput && swatch) {
+        const isValidHex = (value) => /^#([0-9A-Fa-f]{3}){1,2}$/.test(value);
+
+        hexInput.addEventListener('input', function () {
+            let value = hexInput.value.trim();
+            if (value && !value.startsWith('#')) value = '#' + value;
+            if (isValidHex(value)) swatch.style.backgroundColor = value;
+        });
+
+        hexInput.addEventListener('blur', function () {
+            let value = hexInput.value.trim();
+            if (value === "") { swatch.style.backgroundColor = "#FFFFFF"; return; }
+            if (!value.startsWith('#')) value = '#' + value;
+
+            if (!isValidHex(value)) {
+                hexInput.value = "";
+                swatch.style.backgroundColor = "#FFFFFF";
+            } else {
+                hexInput.value = value;
+            }
+        });
+    }
     function updateRowRequirement(selectEl) {
         const row = selectEl.closest('tr');
         if (!row) return;

@@ -212,7 +212,18 @@ CMF Entry
                         <div class="row g-2 mb-2">
                             <div class="col-7">
                                 <label class="fw-bold extra-small required-label">Qty Resin for Test:</label>
-                                <input type="text" name="qty_resin_test" value="{{ form_data.qty_resin_test|default:'' }}" class="form-control form-control-sm uniform-input qty-resin-input" placeholder="Enter amount" required>
+                                <!-- Hidden field that actually gets sent to the server -->
+                                 <input type="hidden" name="qty_resin_test" id="id_qty_resin_test_hidden" value="{{ form_data.qty_resin_test|default:'' }}">
+                                
+                                <div class="input-group input-group-sm">
+                                    <!-- Input for the number -->
+                                    <input type="text" id="id_qty_resin_num" class="form-control uniform-input qty-resin-input" placeholder="Amount" required>
+                                    <!-- Select for unit -->
+                                    <select id="id_qty_resin_unit" class="form-select uniform-input" style="max-width: 80px;">
+                                        <option value="KG">KG</option>
+                                        <option value="G">G</option>
+                                    </select>
+                                </div>
                             </div>
                             <div class="col-5">
                                 <label class="fw-bold extra-small d-block required-label">Customer Resin Provided:</label>

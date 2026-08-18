@@ -67,7 +67,7 @@ def sync_formula(progress_callback=None):
             "is_deleted": to_bool(r.get('T_DELETED')), 
             "is_used": to_bool(r.get('T_USED')),
             "matched_by": to_str(r.get('T_MATCHBY')), 
-            "encoded_by": to_str(r.get('T_ENCODEB')),
+            "encoded_by": to_str(r.get('T_ENCODEDBY')),
             "updated_by": to_str(r.get('T_UPDATEBY')),
         })
 

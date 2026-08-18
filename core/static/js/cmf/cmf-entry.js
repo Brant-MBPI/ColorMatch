@@ -31,12 +31,37 @@ document.addEventListener('DOMContentLoaded', function() {
         input.addEventListener('keypress', restrictToNumbers);
     });
 
+    // --- POPULATE QTY RESIN ON LOAD ---
+    const hiddenField = document.getElementById('id_qty_resin_test_hidden');
+    const numInput = document.getElementById('id_qty_resin_num');
+    const unitSelect = document.getElementById('id_qty_resin_unit');
+
+    if (hiddenField && hiddenField.value.trim() !== "") {
+        // Split the string (e.g., "3 KG" becomes ["3", "KG"])
+        const parts = hiddenField.value.trim().split(" ");
+        
+        if (parts.length === 2) {
+            numInput.value = parts[0]; // The number part
+            unitSelect.value = parts[1]; // The unit part (KG or G)
+        } else {
+            // If there's no unit found (legacy data), just put the whole value in the number box
+            numInput.value = hiddenField.value;
+        }
+    }
+
     // --- 4. BUTTON LISTENERS ---
 
     if (saveBtn && entryForm) {
         saveBtn.addEventListener('click', function() {
             // 1. Validate Form
             if (entryForm.reportValidity()) {
+                const numInput = document.getElementById('id_qty_resin_num');
+                const unitSelect = document.getElementById('id_qty_resin_unit');
+                const hiddenField = document.getElementById('id_qty_resin_test_hidden');
+                if (numInput && hiddenField) {
+                    // Combine value: e.g., "3" + " " + "KG" = "3 KG"
+                    hiddenField.value = `${numInput.value.trim()} ${unitSelect.value}`;
+                }
                 // 2. Check if updating or saving new.
                 // CMF Entry uses original_cmf_no, RS Entry uses original_rs_no,
                 // Pending/Completed uses record_no (it's update-only, no "new" state).
