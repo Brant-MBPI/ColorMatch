@@ -1,0 +1,19 @@
+install Microsoft 365 for  server
+
+add custom paper size for the printer for the clients
+
+go to printer > select printer > click preferences 
+
+> click user defined:
+
+1. change paper size name to "CMF Form"
+	paper width: 6.50
+	paper height: 8.50
+	Unit: Inch
+		> click save
+
+2. Change paper size name to "MB Formulation"
+	paper width: 8.50
+	paper height: 6.50
+	Unit: Inch
+		> click save
