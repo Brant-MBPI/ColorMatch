@@ -70,29 +70,55 @@ CMF Entry
                             </div>
                         </div>
 
-                        <div class="mb-2">
-                            <label class="fw-bold extra-small d-block mb-1 required-label">Matching Type:</label>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input visible-check" type="radio" name="matchType" value="new" id="new" {% if form_data.matchType == 'new' or not form_data.matchType %}checked{% endif %} required>
-                                <label class="form-check-label extra-small" for="new">New Matching</label>
+                        <div class="row g-2 mb-2">
+                            <div class="col-md-6">
+                                <label class="fw-bold extra-small d-block mb-1 required-label">Matching Type:</label>
+                                <div class="d-flex gap-2">
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input visible-check" type="radio" name="matchType" value="new" id="new" {% if form_data.matchType == 'new' or not form_data.matchType %}checked{% endif %} required>
+                                        <label class="form-check-label extra-small" for="new">New Matching</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input visible-check" type="radio" name="matchType" value="rematch" id="re" {% if form_data.matchType == 'rematch' %}checked{% endif %} required>
+                                        <label class="form-check-label extra-small" for="re">Re-Match</label>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input visible-check" type="radio" name="matchType" value="rematch" id="re" {% if form_data.matchType == 'rematch' %}checked{% endif %} required>
-                                <label class="form-check-label extra-small" for="re">Re-Match</label>
+                            <div class="col-md-6 border-start ps-3">
+                                <label class="fw-bold extra-small d-block mb-1 required-label">Product Status:</label>
+                                <div class="d-flex gap-2">
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input visible-check" type="radio" name="product_status" value="existing" id="ps_existing" {% if form_data.product_status == 'existing' %}checked{% endif %} required>
+                                        <label class="form-check-label extra-small" for="ps_existing">Existing</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input visible-check" type="radio" name="product_status" value="new" id="ps_new" {% if form_data.product_status == 'new' %}checked{% endif %} required>
+                                        <label class="form-check-label extra-small" for="ps_new">New Development</label>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
                         <div class="row g-2 mb-2">
-                            <div class="col-md-12">
+                            <div class="col-md-8">
                                 <label class="fw-bold extra-small required-label">Sales Person:</label>
                                 <select class="form-select form-select-sm ts-select" name="salesman" placeholder="Select sales person..." required>
                                     <option value=""></option>
                                     {% for s in salesman %}
                                         <option value="{{ s.name }}" {% if form_data.salesman == s.name %}selected{% endif %}>{{ s.name }}</option>
                                     {% endfor %}
-                                    
                                 </select>
                             </div>
+                            <div class="col-md-4">
+                                <label class="fw-bold extra-small required-label">Est. Qty Order:</label>
+                                <div class="input-group input-group-sm">
+                                    <input type="text" name="est_qty_order" value="{{ form_data.est_qty_order|default:'' }}" class="form-control uniform-input est-qty-input text-end" placeholder="0.00" required>
+                                    <span class="input-group-text extra-small fw-bold bg-light">KG</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-2 mb-2">
                             <div class="col-md-12">
                                 <label class="fw-bold extra-small required-label">Finished Product:</label>
                                 <input type="text" name="finished_product" value="{{ form_data.finished_product|default:'' }}" class="form-control form-control-sm uniform-input" required>

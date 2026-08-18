@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return true;
     };
 
-    document.querySelectorAll('.qty-resin-input, .dosage-input').forEach(input => {
+    document.querySelectorAll('.qty-resin-input, .dosage-input, .est-qty-input').forEach(input => {
         input.addEventListener('keypress', restrictToNumbers);
     });
 

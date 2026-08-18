@@ -188,6 +188,11 @@ class tbl_cmf_add_info(models.Model):
 
 
 class tbl_cmf(models.Model):
+    # Existing choices for product status
+    PRODUCT_STATUS_CHOICES = [
+        ('new', 'New'),
+        ('existing', 'Existing'),
+    ]
     id = models.AutoField(primary_key=True)
     cm_no = models.CharField(max_length=50, unique=True)
     matching_type = models.CharField(max_length=50, blank=True, null=True)
@@ -199,6 +204,21 @@ class tbl_cmf(models.Model):
         blank=True, 
         db_column="in_code_no"
     )
+    product_status = models.CharField(
+        max_length=10, 
+        choices=PRODUCT_STATUS_CHOICES, 
+        default='new',
+        blank=True, 
+        null=True
+    )
+    est_qty_order = models.DecimalField(
+        max_digits=6, 
+        decimal_places=2, 
+        blank=True, 
+        null=True,
+        help_text="Estimated quantity in KG"
+    )
+    # ----
     color_desc = models.TextField(blank=True, null=True)
     qty_resin_testing = models.CharField(max_length=100, blank=True, null=True)
     is_resin_provided = models.BooleanField(null=True, blank=True)
