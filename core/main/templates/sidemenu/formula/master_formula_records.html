@@ -249,8 +249,18 @@
         $('#mfExportExcelBtn').on('click', function() {
             const from = $('#mfExportDateFrom').val() || '';
             const to = $('#mfExportDateTo').val() || '';
-            Preline.confirm('Export to Excel?', `Range: ${from || 'All'} to ${to || 'All'}`, 'success', () => {
-                window.location.href = `/master-formula/export/?date_from=${from}&date_to=${to}`;
+            
+            let msg = "Are you sure you want to export all Master Formula records?";
+            if (from || to) {
+                msg = `Export Master Formula records from ${from || 'Start'} to ${to || 'End'}?`;
+            }
+
+            Preline.confirm('Export to Excel', msg, 'success', () => {
+                // Construct the URL with encoded parameters
+                const url = `/master-formula/export/?date_from=${encodeURIComponent(from)}&date_to=${encodeURIComponent(to)}`;
+                
+                // Trigger download
+                window.location.href = url;
             });
         });
     });

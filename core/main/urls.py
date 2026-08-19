@@ -1,6 +1,6 @@
 from django.urls import path
-\
-from .services.print import print_cmf, print_mb_formula, print_dc_formula, print_formulation
+
+from .services.print import print_cmf, print_mb_formula, print_dc_formula, print_formulation, print_master_formula
 from .services.audit import audit_services
 from .services.formula import master_formula_services, formulation_services
 
@@ -42,9 +42,8 @@ urlpatterns = [
     path('formulation/data/', formulation_services.get_formulation_records_json, name='formulation_data'),
     path('master-formula/data/', master_formula_services.get_master_formula_records_json, name='master_formula_data'),
     path('audit-trail/data/', audit_services.get_audit_trail_data, name='audit_trail_data'),
-    path('master-formula/<int:form_id>/materials/', master_formula_services.master_formula_materials_json, name='master_formula_materials_json'),
+    path('master-formula/export/', print_master_formula.export_master_formula_excel, name='export_master_formula_excel'),
     path('formulation/export/', print_formulation.export_formulation_excel, name='export_formulation_excel'),
-    path('formulation/<int:form_id>/materials/', formulation_services.formulation_materials_json, name='formulation_materials_json'),
     # with parameters
     path('cmf/records/<str:cm_no>/', views.cmf_record_detail, name='cmf_record_detail'),
     path('cmf/formula-records/materials/<str:formula_type>/<int:formula_id>/', cmf_records_services.get_formula_materials, name='get_formula_materials'),
@@ -54,6 +53,8 @@ urlpatterns = [
     path('mb-formula/print/<str:formula_id>/preview', print_mb_formula.print_mb_formula_preview, name='mb_formula_print'),
     path('dc-formula/print/<str:formula_id>/preview', print_dc_formula.print_dc_formula_preview, name='dc_formula_print'),
     path('cmf/log-print/<str:cm_no>/', print_cmf.log_cmf_print, name='log_cmf_print'),
+    path('master-formula/<int:form_id>/materials/', master_formula_services.master_formula_materials_json, name='master_formula_materials_json'),
+    path('formulation/<int:form_id>/materials/', formulation_services.formulation_materials_json, name='formulation_materials_json'),
     path('formula/log-print/mb-formula/<int:formula_id>/', print_mb_formula.log_formula_print, name='log_mb_formula_print'),
     path('formula/log-print/dc-formula/<int:formula_id>/', print_dc_formula.log_formula_print, name='log_dc_formula_print'),
 ]
