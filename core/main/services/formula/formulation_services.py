@@ -81,7 +81,7 @@ def get_formulation_context(form_id=None):
         'matching_numbers': get_all_matching_numbers(),
         'users': user_list,
         'materials': cmf_records_services.get_raw_material_codes(),
-        'customers': ["Masterbatch PH", "Generic Co."],
+        'customers': cmf_records_services.get_customer_list(),
     }
 
 # --- 2. DATA TABLES (HIGH PERFORMANCE JSON) ---

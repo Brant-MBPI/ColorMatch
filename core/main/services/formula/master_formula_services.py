@@ -93,7 +93,7 @@ def get_master_formula_context(form_id=None):
         'matching_numbers': get_all_matching_numbers(),
         'users': user_list,
         'materials': cmf_records_services.get_raw_material_codes(),
-        'customers': ["Masterbatch PH", "Generic Co."],
+        'customers': cmf_records_services.get_customer_list(),
     }
 
 # --- 2. DATA TABLES ---
@@ -142,30 +142,34 @@ def get_master_formula_records_json(request):
 # --- 3. PERSISTENCE (SAVE / AUDIT) ---
 
 def save_master_formula(request):
-    """Handles creating or updating a Master Formula with detailed Audit Trail."""
+    """
+    Handles creating or updating a Master Formula with specific field mapping 
+    and metadata persistence rules.
+    """
     try:
         with transaction.atomic():
             data = request.POST
             form_id = data.get('form_id')
             is_new = data.get('is_new_flag') == 'true'
-            current_time_str = timezone.now().strftime('%m/%d/%Y %I:%M %p')
+            
+            # Format: "08/07/26 11:28:51 AM"
+            timestamp_str = timezone.now().strftime('%m/%d/%y %I:%M:%S %p')
             
             diff_logs = []
 
-            # 1. Capture Original Data if Updating
+            # 1. RESOLVE OR CREATE HEADER (tbl_master_formula)
             if not is_new and form_id:
                 mf = tbl_master_formula.objects.get(pk=form_id)
                 action_type = "Updated"
                 
-                # Check for changes in main fields
-                # Key = POST field name, Value = (Model field, Label)
-                field_map = {
+                # --- Audit Log Diff Logic ---
+                field_map_for_logs = {
                     'customer': ('customer', 'Customer'),
                     'index_no': ('index_no', 'Index #'),
                     'product_code': ('product_code', 'Product Code'),
                     'prod_color': ('prod_color', 'Color'),
-                    'sum_of_concentration': ('dosage', 'Sum of Con'),
-                    'dosage': ('ld', 'Dosage'),
+                    'sum_of_concentration': ('dosage', 'Sum of Con'), # dosage field holds sum
+                    'dosage': ('ld', 'Dosage'),                       # ld field holds dosage
                     'mix_time': ('mix_time', 'Mixing Time'),
                     'resin': ('resin', 'Resin'),
                     'application': ('application', 'Application'),
@@ -173,38 +177,42 @@ def save_master_formula(request):
                     'html_code_hex': ('html_code_hex', 'Hex Code'),
                 }
 
-                for post_key, (model_attr, label) in field_map.items():
+                for post_key, (model_attr, label) in field_map_for_logs.items():
                     old_val = str(getattr(mf, model_attr) or '').strip()
                     new_val = str(data.get(post_key) or '').strip()
                     if old_val != new_val:
                         diff_logs.append(f"{label}: {old_val} -> {new_val}")
 
-                # Check for Material Changes (Summary compare)
-                old_mats = list(tbl_master_formula_info.objects.filter(form=mf).values_list('material_code', flat=True))
-                new_mats_raw = data.get('materials_data')
-                if new_mats_raw:
-                    new_mats = [m['material'] for m in json.loads(new_mats_raw)]
-                    if set(old_mats) != set(new_mats):
-                        diff_logs.append("Material Breakdown updated")
-
-                mf.date_modified = current_time_str
+                mf.date_modified = timestamp_str # Set specific timestamp string
             else:
                 mf = tbl_master_formula()
-                if form_id: mf.form_id = form_id 
+                if form_id: 
+                    mf.form_id = form_id 
                 action_type = "Saved"
-                mf.date = timezone.now().date()
-                mf.date_modified = None  
+                mf.date = timezone.now().date()  # Set creation date
+                mf.date_modified = "---"        # New formula gets triple dash
+                mf.is_deleted = False
+                mf.is_used = False
 
-            # 2. Map & Save Fields
-            mf.customer = data.get('customer')
+            # 2. MAP FIELDS (AS REQUESTED)
             mf.index_no = data.get('index_no')
+            mf.customer = data.get('customer')
             mf.product_code = data.get('product_code')
             mf.prod_color = data.get('prod_color')
+            
+            # Requested Mappings:
+            mf.dosage = data.get('sum_of_concentration') or 0   # Sum of Con -> dosage field
+            mf.ld = data.get('dosage') or 0                   # Dosage -> ld field
+            
             mf.total_concentration = data.get('total_concentration') or 0
-            mf.dosage = data.get('sum_of_concentration') or 0
-            mf.ld = data.get('dosage') or 0
-            mf.mix_time, mf.resin, mf.application, mf.cm_no = data.get('mix_time'), data.get('resin'), data.get('application'), data.get('cm_no')
-            mf.notes, mf.html_code_hex = data.get('notes'), data.get('html_code_hex')
+            mf.mix_time = data.get('mix_time')
+            mf.resin = data.get('resin')
+            mf.application = data.get('application')
+            mf.cm_no = data.get('cm_no')
+            mf.notes = data.get('notes')
+            mf.html_code_hex = data.get('html_code_hex')
+            
+            # CMYK Parsing
             mf.cyan = data.get('cyan') if data.get('cyan') else None
             mf.magenta = data.get('magenta') if data.get('magenta') else None
             mf.yellow = data.get('yellow') if data.get('yellow') else None
@@ -212,41 +220,53 @@ def save_master_formula(request):
             
             dt_str = data.get('colormatch_date')
             if dt_str:
-                try: mf.colormatch_date = datetime.strptime(dt_str, '%m/%d/%Y').date()
-                except: pass
+                try: 
+                    mf.colormatch_date = datetime.strptime(dt_str, '%m/%d/%Y').date()
+                except: 
+                    pass
             mf.save()
 
-            # 3. Handle Materials
+            # 3. HANDLE MATERIALS (tbl_master_formula_info)
             tbl_master_formula_info.objects.filter(form=mf).delete()
             materials_json = data.get('materials_data')
             if materials_json:
                 for i, mat in enumerate(json.loads(materials_json)):
                     tbl_master_formula_info.objects.create(
-                        form=mf, sequence_no=i+1, 
+                        form=mf, 
+                        sequence_no=i+1, 
                         material_code=mat['material'], 
                         concentration=mat['concentration']
                     )
 
-            # 4. Metadata
-            encode, _ = tbl_master_formula_encode.objects.get_or_create(form=mf)
-            encode.match_by = data.get('matched_by')
+            # 4. HANDLE METADATA (tbl_master_formula_encode)
+            encode, created = tbl_master_formula_encode.objects.get_or_create(form=mf)
+            
+            # Get User Fullname
+            user_fullname = f"{request.user.first_name} {request.user.last_name}".strip()
+            if not user_fullname:
+                user_fullname = request.user.username
+
             if is_new:
-                encode.encoded_by, encode.updated_by = (data.get('encoded_by') or request.user.first_name), None
+                # Save birth data only on new record
+                encode.match_by = data.get('matched_by')
+                encode.encoded_by = data.get('encoded_by') or user_fullname
+                encode.updated_by = "---"
             else:
-                encode.updated_by = request.user.first_name if request.user.is_authenticated else "System"
+                # On update, only update the updated_by field
+                encode.updated_by = user_fullname
             encode.save()
 
-            # 5. Update Source Formula Reference
+            # 5. UPDATE SOURCE REFERENCE
             source_pk, source_type = data.get('source_formula_pk'), data.get('source_formula_type')
             if source_pk and source_type:
                 model = tbl_mb_extruder_formula if source_type == 'MB' else tbl_dc_extruder_formula
                 model.objects.filter(pk=source_pk).update(in_master_formula=True)
 
-            # 6. Construct Final Audit Message
+            # 6. AUDIT TRAIL
             if is_new:
                 log_message = f"New Master Formula Entry: #{mf.form_id}"
             else:
-                details = ", ".join(diff_logs) if diff_logs else "No technical field changes"
+                details = ", ".join(diff_logs) if diff_logs else "No technical changes"
                 log_message = f"Master Formula #{mf.form_id}. Changes: {details}"
 
             log_audit(request, action_type, log_message)
