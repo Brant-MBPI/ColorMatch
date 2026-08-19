@@ -128,13 +128,12 @@ def get_formulation_records_json(request):
 
 def formulation_materials_json(request, form_id):
     """API for the Side-Panel Material breakdown."""
-    formula = tbl_formula01.objects.filter(pk=form_id).first()
+    formula = tbl_formula01.objects.filter(form_id=form_id).first()
     if not formula:
         return JsonResponse({'error': 'Not found'}, status=404)
     
     materials = list(tbl_formula02.objects.filter(form=formula, is_deleted=False)
                      .order_by('sequence_no').values('material_code', 'concentration'))
-    
     return JsonResponse({
         'form_id': formula.form_id,
         'index_no': formula.index_no or '-',
