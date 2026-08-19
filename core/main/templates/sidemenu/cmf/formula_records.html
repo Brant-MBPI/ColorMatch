@@ -426,7 +426,7 @@ $(document).ready(function() {
                             <td class="text-center">${row.total}</td>
                             <td class="text-center text-danger fw-bold">${row.others}</td>
                             <td class="text-center">${row.dosage}</td>
-                            <td class="text-center">${row.salesman}</td>
+                            <td class="text-center">${row.salesman_name}</td>
                             <td class="text-center">${row.cmf_no}</td>
                             <td class="text-center">${row.html}</td>
                             <td class="text-center">${row.c}</td>
@@ -448,6 +448,34 @@ $(document).ready(function() {
                 hideLoader();
                 Preline.toast('Error fetching data.' + err, 'danger');
             });
+    });
+    // --- BULK EXPORT (Direct Download) ---
+    $('#btnExport').on('click', function() {
+        const dateFrom = $('#dateFrom').val();
+        const dateTo = $('#dateTo').val();
+
+        if (!dateFrom || !dateTo) {
+            Preline.toast('Please select a valid date range first.', 'warning');
+            return;
+        }
+
+        Preline.confirm(
+            'Bulk Export Excel',
+            `Exporting all formulas from ${dateFrom} to ${dateTo}. This might take a moment.`,
+            'success',
+            () => {
+                showLoader();
+                // Construct URL with query parameters
+                const exportUrl = `{% url 'export_formula_all' %}?from=${encodeURIComponent(dateFrom)}&to=${encodeURIComponent(dateTo)}`;
+                
+                // Use window.location for direct download (it handles the response headers automatically)
+                window.location.href = exportUrl;
+                
+                // Hide loader after a delay because we can't easily track 
+                // when window.location.href finishes downloading
+                setTimeout(hideLoader, 3000);
+            }
+        );
     });
 
     // --- DOWNLOAD EXCEL (server-side build, offline-safe, no CDN) ---

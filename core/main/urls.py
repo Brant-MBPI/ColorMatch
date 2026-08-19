@@ -36,6 +36,7 @@ urlpatterns = [
     path('cmf/formula-records/data/', cmf_records_services.formula_records_data, name='formula_records_data'),
     path('cmf/formula-records/price-first/', formula_price_first.get_price_first_data, name='get_price_first_data'),
     path('cmf/formula-records/price-first/download/', formula_price_first.download_price_first_excel, name='download_price_first_excel'),
+    path('formula-records/export-all/', formula_price_first.export_formula_by_date, name='export_formula_all'),
     path('master-formula/lookup/', master_formula_services.master_formula_lookup, name='master_formula_lookup'),
     path('check-previous-matching/', previous_cmf_record.check_previous_matching, name='check_previous_matching'),
     path('formulation/data/', formulation_services.get_formulation_records_json, name='formulation_data'),

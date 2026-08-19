@@ -13,91 +13,53 @@ from django.db.models import Max
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from main.models import tbl_cmf, tbl_cmf_formula, tbl_dc_extruder_formula, tbl_dc_extruder_materials, tbl_dc_extruder_version, tbl_mb_extruder_formula, tbl_mb_extruder_formula02, tbl_resins_selected
 
-def get_price_first_data(request):
+def _build_price_first_row_list(items):
     """
-    Fetches data for the Price First modal. 
-    For DC formulas, it automatically selects the latest Trial (highest version_no).
+    Shared helper to build the list of dictionaries for both 
+    the Modal Preview and the Bulk Export.
     """
-    try:
-        selected_items = json.loads(request.GET.get('items', '[]'))
-    except (json.JSONDecodeError, TypeError):
-        return HttpResponseBadRequest("Invalid items parameter.")
-
     results = []
-
-    for item in selected_items:
+    for item in items:
         f_id = item['id']
         f_type = item['type']
         
-        # 1. Fetch Header and Ingredients based on Type
         if f_type == 'MB':
             header = tbl_mb_extruder_formula.objects.select_related('code', 'cm_no', 'rs_no').get(pk=f_id)
-            ingredients_list = []
             qs = tbl_mb_extruder_formula02.objects.filter(mb=header).order_by('id')
-            for ing in qs:
-                ingredients_list.append({
-                    'material': ing.material,
-                    'value': float(ing.value or 0)
-                })
+            ingredients_list = [{'material': ing.material, 'value': float(ing.value or 0)} for ing in qs]
         else:
-            # NEW DC LOGIC: Find latest trial (version)
             header = tbl_dc_extruder_formula.objects.select_related('code', 'cm_no', 'rs_no').get(pk=f_id)
-            
-            # Find the max version number for this formula
-            max_v = tbl_dc_extruder_version.objects.filter(
-                material__dc=header
-            ).aggregate(Max('version_no'))['version_no__max']
-
+            max_v = tbl_dc_extruder_version.objects.filter(material__dc=header).aggregate(Max('version_no'))['version_no__max']
             ingredients_list = []
             if max_v:
-                # Fetch ingredients only for that specific version
-                version_data = tbl_dc_extruder_version.objects.filter(
-                    material__dc=header,
-                    version_no=max_v
-                ).select_related('material')
-                
-                for v in version_data:
-                    ingredients_list.append({
-                        'material': v.material.material,
-                        'value': float(v.value or 0)
-                    })
+                version_data = tbl_dc_extruder_version.objects.filter(material__dc=header, version_no=max_v).select_related('material')
+                ingredients_list = [{'material': v.material.material, 'value': float(v.value or 0)} for v in version_data]
 
-        # 2. Extract Parent Data (CMF/RS)
         parent = header.cm_no or header.rs_no
-        customer = ""
-        dosage = ""
-        end_product = ""
-        salesman = ""
-        matching_type = ""
+        customer, dosage, end_product, salesman, matching_type = "", 0, "", "", ""
         
         if header.cm_no:
             formula_info = tbl_cmf_formula.objects.filter(cm_no=header.cm_no).first()
-            customer = formula_info.customer if formula_info else ""
-            dosage = formula_info.dosage if formula_info else ""
-            end_product = formula_info.finished_product if formula_info else ""
+            if formula_info:
+                customer, dosage, end_product = formula_info.customer, formula_info.dosage, formula_info.finished_product
             salesman = header.cm_no.sm.name if header.cm_no.sm else ""
             matching_type = header.cm_no.matching_type
         elif header.rs_no:
-            customer = header.rs_no.customer
-            dosage = header.rs_no.dosage
-            end_product = header.rs_no.finished_product
-            salesman = "" # Adjust based on your RS model
+            customer, dosage, end_product = header.rs_no.customer, header.rs_no.dosage, header.rs_no.finished_product
+            salesman = header.rs_no.sm_no.name if header.rs_no.sm_no else ""
             matching_type = header.rs_no.matching_type
 
-        # 3. Format Resins ("A, B, and C")
+        # Resin formatting
         resins_list = list(tbl_resins_selected.objects.filter(
             cm_no=header.cm_no if header.cm_no else None,
             rs_no=header.rs_no if header.rs_no else None
         ).values_list('resin_no__abbreviation', flat=True))
         
-        if len(resins_list) == 0:
-            resin_str = ""
-        elif len(resins_list) == 1:
-            resin_str = resins_list[0]
-        else:
-            resin_str = ", ".join(resins_list[:-1]) + " and " + resins_list[-1]
+        if not resins_list: resin_str = ""
+        elif len(resins_list) == 1: resin_str = resins_list[0]
+        else: resin_str = ", ".join(resins_list[:-1]) + " and " + resins_list[-1]
 
-        # 4. "Others" (Rematch Logic)
+        # Rematch logic
         others_val = "new matching"
         if matching_type == 'rematch' and header.cm_no:
             curr_cm = header.cm_no.cm_no
@@ -106,18 +68,11 @@ def get_price_first_data(request):
                 base_code = match.group(1)
                 prev_cmf = tbl_cmf.objects.filter(cm_no__startswith=base_code).exclude(cm_no=curr_cm).order_by('-cm_no').first()
                 if prev_cmf:
-                    prev_pc = "Unknown"
-                    # Check both MB and DC for final product code
-                    pc_check = tbl_mb_extruder_formula.objects.filter(cm_no=prev_cmf, is_final=True).select_related('code').first()
-                    if not pc_check:
-                        pc_check = tbl_dc_extruder_formula.objects.filter(cm_no=prev_cmf, is_final=True).select_related('code').first()
-                    if pc_check and pc_check.code:
-                        prev_pc = pc_check.code.product_code
-                    others_val = f"rematch of {prev_pc}"
-        elif matching_type == 'request':
-            others_val = "request"
+                    pc_check = tbl_mb_extruder_formula.objects.filter(cm_no=prev_cmf, is_final=True).select_related('code').first() or \
+                               tbl_dc_extruder_formula.objects.filter(cm_no=prev_cmf, is_final=True).select_related('code').first()
+                    others_val = f"rematch of {pc_check.code.product_code if pc_check and pc_check.code else 'Unknown'}"
+        elif matching_type == 'request': others_val = "request"
 
-        # 5. Build Result Rows
         total_conc = sum([i['value'] for i in ingredients_list])
         
         for ing in ingredients_list:
@@ -133,16 +88,64 @@ def get_price_first_data(request):
                 'total': f"{total_conc:.2f}",
                 'others': others_val,
                 'dosage': f"{float(dosage or 0):.2f}",
-                'salesman_name': salesman, # Matches COLUMN_ORDER key
+                'salesman_name': salesman,
                 'cmf_no': header.cm_no.cm_no if header.cm_no else (header.rs_no.rs_no if header.rs_no else "none"),
                 'html': (header.html or "no data").replace('#', ''),
                 'c': int(header.c) if header.c is not None else "no data",
                 'm': int(header.m) if header.m is not None else "no data",
                 'y': int(header.y) if header.y is not None else "no data",
                 'k': int(header.k) if header.k is not None else "no data",
+                'remarks': '' # Blank for bulk export
             })
+    return results
 
-    return JsonResponse({'data': results})
+def get_price_first_data(request):
+    """View for the Modal Preview."""
+    try:
+        items = json.loads(request.GET.get('items', '[]'))
+        data = _build_price_first_row_list(items)
+        return JsonResponse({'data': data})
+    except Exception as e:
+        return HttpResponseBadRequest(str(e))
+
+def export_formula_by_date(request):
+    """View for the Bulk Export button (Direct download)."""
+    date_from_str = request.GET.get('from')
+    date_to_str = request.GET.get('to')
+
+    try:
+        # Convert strings to date objects
+        date_from = datetime.strptime(date_from_str, '%m/%d/%Y').date()
+        date_to = datetime.strptime(date_to_str, '%m/%d/%Y').date()
+        
+        # Query headers in range
+        mb_ids = tbl_mb_extruder_formula.objects.filter(date__range=[date_from, date_to]).values_list('mb_no', flat=True)
+        dc_ids = tbl_dc_extruder_formula.objects.filter(date__range=[date_from, date_to]).values_list('dc_no', flat=True)
+        
+        items = [{'type': 'MB', 'id': i} for i in mb_ids] + [{'type': 'DC', 'id': i} for i in dc_ids]
+        
+        if not items:
+            return HttpResponseBadRequest("No records found in this date range.")
+
+        # Build Data
+        row_dicts = _build_price_first_row_list(items)
+        
+        # Generate Excel via COM
+        template_abs_path = os.path.abspath(FORMULA_TEMPLATE_PATH)
+        with tempfile.TemporaryDirectory() as tmpdir:
+            output_path = os.path.join(tmpdir, "Formula_Export.xlsx")
+            with _excel_lock:
+                _fill_formula_sheet_via_excel(template_abs_path, output_path, row_dicts)
+            
+            with open(output_path, 'rb') as f:
+                file_bytes = f.read()
+
+        response = HttpResponse(file_bytes, content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = f'attachment; filename="Formula_Export_{date_from_str.replace("/","-")}_to_{date_to_str.replace("/","-")}.xlsx"'
+        return response
+
+    except Exception as e:
+        return HttpResponseBadRequest(f"Export failed: {str(e)}")
 
 
 # Same reasoning as the Excel print exports — one COM instance at a time.
