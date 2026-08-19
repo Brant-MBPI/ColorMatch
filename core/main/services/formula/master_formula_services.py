@@ -256,7 +256,6 @@ def save_master_formula(request):
         return False, str(e)
 
 # --- 4. LOOKUP ---
-
 def master_formula_lookup(request):
     """Lookup logic. Returns MB formulas and only the LATEST Trial (Version) for each DC record."""
     matching_no = request.GET.get('matching_no', '').strip()
@@ -343,6 +342,93 @@ def master_formula_lookup(request):
         'matching_no': matching_no, 'error': error, 'color': color, 'parent': parent,
         'mb_formulas': mb_list, 'dc_formulas': dc_list
     })
+# lookup all the trials
+# def master_formula_lookup(request):
+#     """Lookup logic. Returns EACH Trial (Version) of a DC Formula as a separate entry."""
+#     matching_no = request.GET.get('matching_no', '').strip()
+#     error, mb_list, dc_list, color = None, [], [], ''
+#     parent = {'customer': '', 'resin_used': '', 'colorant_type': '', 'process': '', 'dosage': ''}
+
+#     if not matching_no:
+#         error = "No matching number provided."
+#     else:
+#         cmf = tbl_cmf.objects.filter(cm_no=matching_no).first()
+#         rs_records = tbl_rs.objects.filter(rs_no=matching_no) if not cmf else None
+
+#         if not cmf and (not rs_records or not rs_records.exists()):
+#             error = f'No records found for "{matching_no}".'
+#         else:
+#             if cmf:
+#                 formula_info = tbl_cmf_formula.objects.filter(cm_no=cmf).first()
+#                 parent.update({
+#                     'customer': formula_info.customer if formula_info else "",
+#                     'colorant_type': cmf.colorant_type or "",
+#                     'dosage': formula_info.dosage if formula_info else "",
+#                 })
+#                 parent['resin_used'] = ", ".join(tbl_resins_selected.objects.filter(cm_no=cmf).values_list('resin_no__abbreviation', flat=True))
+#                 parent['process'] = ", ".join(tbl_cmf_process02.objects.filter(cmf_formula_no=formula_info).values_list('process_no__name', flat=True))
+#                 mb_qs = tbl_mb_extruder_formula.objects.filter(cm_no=cmf).select_related('code')
+#                 dc_qs = tbl_dc_extruder_formula.objects.filter(cm_no=cmf).select_related('code')
+#                 color = cmf.in_code_no.color if cmf.in_code_no else (cmf.color_desc or '---')
+#             else:
+#                 rs_ids = list(rs_records.values_list('id', flat=True))
+#                 base_rs = rs_records.first()
+#                 parent.update({
+#                     'customer': base_rs.customer or "",
+#                     'colorant_type': base_rs.colorant_type or "",
+#                     'dosage': getattr(base_rs, 'dosage', '') or '',
+#                 })
+#                 parent['resin_used'] = ", ".join(tbl_resins_selected.objects.filter(rs_no_id__in=rs_ids).values_list('resin_no__abbreviation', flat=True).distinct())
+#                 parent['process'] = ", ".join(tbl_cmf_process02.objects.filter(rs_no_id__in=rs_ids).values_list('process_no__name', flat=True).distinct())
+#                 mb_qs = tbl_mb_extruder_formula.objects.filter(rs_no_id__in=rs_ids).select_related('code')
+#                 dc_qs = tbl_dc_extruder_formula.objects.filter(rs_no_id__in=rs_ids).select_related('code')
+#                 color = base_rs.primary_color or base_rs.color_desc or '---'
+
+#             # PROCESS MB
+#             for f in mb_qs:
+#                 ingredients = [{'material': i.material, 'value': float(i.value or 0)} 
+#                                for i in tbl_mb_extruder_formula02.objects.filter(mb=f)]
+#                 mb_list.append({
+#                     'header': f, 'pk': f.pk, 'ingredients': ingredients,
+#                     'sum_con': format(sum(item['value'] for item in ingredients), ".6f"),
+#                     'script_id': f'mf-ing-mb-{f.pk}',
+#                     'cm_no': matching_no
+#                 })
+
+#             # PROCESS DC (Treating each version as a separate record)
+#             for f in dc_qs:
+#                 # 1. Identify all unique version numbers that have data for this formula
+#                 existing_v = tbl_dc_extruder_version.objects.filter(
+#                     material__dc=f
+#                 ).values_list('version_no', flat=True).distinct().order_by('version_no')
+
+#                 for v_no in existing_v:
+#                     # 2. Get ingredients for this specific version iteration
+#                     version_rows = tbl_dc_extruder_version.objects.filter(
+#                         material__dc=f, 
+#                         version_no=v_no
+#                     ).select_related('material')
+
+#                     ingredients = [
+#                         {'material': v.material.material, 'value': float(v.value or 0)}
+#                         for v in version_rows if v.value is not None
+#                     ]
+
+#                     if ingredients:
+#                         dc_list.append({
+#                             'header': f, 
+#                             'pk': f.pk, 
+#                             'version_no': v_no, # Used in the template to show "Trial #1"
+#                             'ingredients': ingredients,
+#                             'sum_con': format(sum(item['value'] for item in ingredients), ".6f"),
+#                             'script_id': f'mf-ing-dc-{f.pk}-v{v_no}', # Unique ID for JS
+#                             'cm_no': matching_no
+#                         })
+
+#     return render(request, "modal/master-formula/master_formula_lookup.html", {
+#         'matching_no': matching_no, 'error': error, 'color': color, 'parent': parent,
+#         'mb_formulas': mb_list, 'dc_formulas': dc_list
+#     })
 
 def master_formula_materials_json(request, form_id):
     """API for materials breakdown."""
