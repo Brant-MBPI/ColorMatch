@@ -7,29 +7,60 @@ import win32com.client as win32
 import tempfile
 import uuid
 import pythoncom
+from decimal import Decimal
+from datetime import datetime, date
 from django.db.models import Max
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
-from main.services.cmf_records import cmf_records_services # or local check
 from main.models import tbl_cmf, tbl_cmf_formula, tbl_dc_extruder_formula, tbl_dc_extruder_materials, tbl_dc_extruder_version, tbl_mb_extruder_formula, tbl_mb_extruder_formula02, tbl_resins_selected
 
 def get_price_first_data(request):
-    # Expects a list of objects: [{"id": 1, "type": "MB"}, ...]
-    import json
-    selected_items = json.loads(request.GET.get('items', '[]'))
-    
+    """
+    Fetches data for the Price First modal. 
+    For DC formulas, it automatically selects the latest Trial (highest version_no).
+    """
+    try:
+        selected_items = json.loads(request.GET.get('items', '[]'))
+    except (json.JSONDecodeError, TypeError):
+        return HttpResponseBadRequest("Invalid items parameter.")
+
     results = []
-    
+
     for item in selected_items:
         f_id = item['id']
         f_type = item['type']
         
-        # 1. Get Header and Ingredients
+        # 1. Fetch Header and Ingredients based on Type
         if f_type == 'MB':
             header = tbl_mb_extruder_formula.objects.select_related('code', 'cm_no', 'rs_no').get(pk=f_id)
-            ingredients = tbl_mb_extruder_formula02.objects.filter(mb=header).order_by('id')
+            ingredients_list = []
+            qs = tbl_mb_extruder_formula02.objects.filter(mb=header).order_by('id')
+            for ing in qs:
+                ingredients_list.append({
+                    'material': ing.material,
+                    'value': float(ing.value or 0)
+                })
         else:
+            # NEW DC LOGIC: Find latest trial (version)
             header = tbl_dc_extruder_formula.objects.select_related('code', 'cm_no', 'rs_no').get(pk=f_id)
-            ingredients = tbl_dc_extruder_formula02.objects.filter(dc=header).order_by('id')
+            
+            # Find the max version number for this formula
+            max_v = tbl_dc_extruder_version.objects.filter(
+                material__dc=header
+            ).aggregate(Max('version_no'))['version_no__max']
+
+            ingredients_list = []
+            if max_v:
+                # Fetch ingredients only for that specific version
+                version_data = tbl_dc_extruder_version.objects.filter(
+                    material__dc=header,
+                    version_no=max_v
+                ).select_related('material')
+                
+                for v in version_data:
+                    ingredients_list.append({
+                        'material': v.material.material,
+                        'value': float(v.value or 0)
+                    })
 
         # 2. Extract Parent Data (CMF/RS)
         parent = header.cm_no or header.rs_no
@@ -66,55 +97,49 @@ def get_price_first_data(request):
         else:
             resin_str = ", ".join(resins_list[:-1]) + " and " + resins_list[-1]
 
-        # 4. "Others" (Matching Logic)
+        # 4. "Others" (Rematch Logic)
         others_val = "new matching"
         if matching_type == 'rematch' and header.cm_no:
-            curr_cm = header.cm_no.cm_no # e.g. A9128b
-            # Split: find the trailing letters
+            curr_cm = header.cm_no.cm_no
             match = re.match(r"([A-Z0-9]+)([a-z]+)", curr_cm)
             if match:
-                base_code = match.group(1) # A9128
-                # Find the latest CMF with this base code excluding current
+                base_code = match.group(1)
                 prev_cmf = tbl_cmf.objects.filter(cm_no__startswith=base_code).exclude(cm_no=curr_cm).order_by('-cm_no').first()
                 if prev_cmf:
-                    # Find product code for that CMF
-                    
                     prev_pc = "Unknown"
-                    # Check MB table first
+                    # Check both MB and DC for final product code
                     pc_check = tbl_mb_extruder_formula.objects.filter(cm_no=prev_cmf, is_final=True).select_related('code').first()
                     if not pc_check:
                         pc_check = tbl_dc_extruder_formula.objects.filter(cm_no=prev_cmf, is_final=True).select_related('code').first()
-                    
                     if pc_check and pc_check.code:
                         prev_pc = pc_check.code.product_code
-                    
                     others_val = f"rematch of {prev_pc}"
         elif matching_type == 'request':
             others_val = "request"
 
-        # 5. Build row for each ingredient
-        total_conc = sum([float(i.value or 0) for i in ingredients])
+        # 5. Build Result Rows
+        total_conc = sum([i['value'] for i in ingredients_list])
         
-        for ing in ingredients:
+        for ing in ingredients_list:
             results.append({
-                'date': header.date.strftime('%B %d, %Y') if header.date else "",
+                'date': header.date.strftime('%B %d, %Y') if header.date else "no data",
                 'customer': customer,
                 'classification': f_type.lower(),
-                'prod_code': header.code.product_code if header.code else "",
+                'prod_code': header.code.product_code if header.code else "no data",
                 'resin': resin_str,
-                'mat_code': ing.material,
-                'mat_conc': f"{float(ing.value or 0):.6f}",
+                'mat_code': ing['material'],
+                'mat_conc': f"{ing['value']:.6f}",
                 'end_product': end_product,
                 'total': f"{total_conc:.2f}",
                 'others': others_val,
                 'dosage': f"{float(dosage or 0):.2f}",
-                'salesman': salesman,
+                'salesman_name': salesman, # Matches COLUMN_ORDER key
                 'cmf_no': header.cm_no.cm_no if header.cm_no else (header.rs_no.rs_no if header.rs_no else "none"),
-                'html': (header.html or "").replace('#', ''),
-                'c': int(header.c or 0),
-                'm': int(header.m or 0),
-                'y': int(header.y or 0),
-                'k': int(header.k or 0),
+                'html': (header.html or "no data").replace('#', ''),
+                'c': int(header.c) if header.c is not None else "no data",
+                'm': int(header.m) if header.m is not None else "no data",
+                'y': int(header.y) if header.y is not None else "no data",
+                'k': int(header.k) if header.k is not None else "no data",
             })
 
     return JsonResponse({'data': results})
@@ -165,13 +190,21 @@ def _fill_formula_sheet_via_excel(template_abs_path, output_path, rows):
             FORMULA_TEMPLATE_PASSWORD,  # Password
         )
         ws = wb.Worksheets("Formula")
-
+        last_row = DATA_START_ROW
         for r_idx, row in enumerate(rows):
             excel_row = DATA_START_ROW + r_idx
+            last_row = excel_row
             for c_idx, field in enumerate(COLUMN_ORDER):
                 col_letter = chr(ord('A') + c_idx)
                 ws.Range(f"{col_letter}{excel_row}").Value = row.get(field, "")
 
+        if rows:
+            last_col_letter = chr(ord('A') + len(COLUMN_ORDER) - 1)
+            data_range = f"A{DATA_START_ROW}:{last_col_letter}{last_row}"
+            
+            ws.Range(data_range).Font.Bold = True
+            ws.Rows(1).Font.Bold = True
+            
         ws.Columns.AutoFit()
 
         # SaveAs positional signature: (Filename, FileFormat, Password, ...)
