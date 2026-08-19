@@ -144,29 +144,34 @@ def formulation_materials_json(request, form_id):
 # --- 3. SAVE AND LOOKUP ---
 
 def save_formulation(request):
-    """Handles creating or updating a Formulation record with detailed Audit Trail."""
+    """
+    Handles creating or updating a Formulation record with specific field mapping 
+    and metadata persistence rules.
+    """
     try:
         with transaction.atomic():
             data = request.POST
             form_id = data.get('form_id')
             is_new = data.get('is_new_flag') == 'true'
-            current_time_str = timezone.now().strftime('%m/%d/%Y %I:%M %p')
+            
+            # Format: "08/07/26 11:28:51 AM"
+            timestamp_str = timezone.now().strftime('%m/%d/%y %I:%M:%S %p')
             
             diff_logs = []
 
-            # 1. Resolve Object
+            # 1. RESOLVE OR CREATE HEADER (tbl_formula01)
             if not is_new and form_id:
                 f = tbl_formula01.objects.get(pk=form_id)
                 action_type = "Updated"
                 
-                # Check Field Changes
-                field_map = {
+                # --- Audit Log Diff Logic ---
+                field_map_for_logs = {
                     'customer': ('customer', 'Customer'),
                     'index_no': ('index_no', 'Index #'),
                     'product_code': ('prod_code', 'Product Code'),
                     'prod_color': ('prod_color', 'Color'),
-                    'sum_of_concentration': ('dosage', 'Sum of Con'), # dosage field in DB holds sum
-                    'dosage': ('ld', 'Dosage'),                       # ld field in DB holds dosage
+                    'sum_of_concentration': ('dosage', 'Sum of Con'), # dosage field holds sum
+                    'dosage': ('ld', 'Dosage'),                       # ld field holds dosage
                     'mix_time': ('mix_time', 'Mixing Time'),
                     'resin': ('resin', 'Resin'),
                     'application': ('application', 'Application'),
@@ -174,80 +179,99 @@ def save_formulation(request):
                     'cm_no': ('colormatch_no', 'CM Form #'),
                 }
 
-                for post_key, (model_attr, label) in field_map.items():
+                for post_key, (model_attr, label) in field_map_for_logs.items():
                     old_val = str(getattr(f, model_attr) or '').strip()
                     new_val = str(data.get(post_key) or '').strip()
                     if old_val != new_val:
                         diff_logs.append(f"{label}: {old_val} -> {new_val}")
 
-                # Material Changes
-                old_mats = list(tbl_formula02.objects.filter(form=f).values_list('material_code', flat=True))
-                new_mats_raw = data.get('materials_data')
-                if new_mats_raw:
-                    new_mats = [m['material'] for m in json.loads(new_mats_raw)]
-                    if set(old_mats) != set(new_mats):
-                        diff_logs.append("Material Breakdown updated")
-
-                f.date_time = current_time_str
+                # Update the varchar timestamp for existing records
+                f.date_time = timestamp_str 
             else:
                 f = tbl_formula01()
-                if form_id: f.form_id = form_id 
+                if form_id: 
+                    f.form_id = form_id 
                 action_type = "Saved"
-                f.date = timezone.now().date()
-                f.date_time = None  
+                f.date = timezone.now().date()  # Set creation date
+                f.date_time = "---"             # New formula gets triple dash
+                f.is_deleted = False
+                f.is_used = False
 
-            # 2. Map & Save Fields
-            f.customer = data.get('customer')
+            # 2. MAP FIELDS (AS REQUESTED)
             f.index_no = data.get('index_no')
-            f.prod_code = data.get('product_code')
+            f.customer = data.get('customer')
+            f.prod_code = data.get('product_code') # Input 'product_code' maps to 'prod_code'
             f.prod_color = data.get('prod_color')
+            
+            # Requested Mappings:
+            f.dosage = data.get('sum_of_concentration') or 0   # Sum of Con -> dosage field
+            f.ld = data.get('dosage') or 0                   # Dosage -> ld field
+            
             f.total_concentration = data.get('total_concentration') or 0
-            f.dosage = data.get('sum_of_concentration') or 0 # Sum goes to dosage field
-            f.ld = data.get('dosage') or 0                   # Dosage goes to ld field
-            f.mix_time, f.resin, f.application, f.colormatch_no = data.get('mix_time'), data.get('resin'), data.get('application'), data.get('cm_no')
+            f.mix_time = data.get('mix_time')
+            f.resin = data.get('resin')
+            f.application = data.get('application')
+            f.colormatch_no = data.get('cm_no')
             f.notes = data.get('notes')
             
+            # Date Matched Parsing
             dt_str = data.get('colormatch_date')
             if dt_str:
-                try: f.colormatch_date = datetime.strptime(dt_str, '%m/%d/%Y').date()
-                except: pass
+                try: 
+                    f.colormatch_date = datetime.strptime(dt_str, '%m/%d/%Y').date()
+                except: 
+                    pass
             f.save()
 
-            # 3. Handle Materials
+            # 3. HANDLE MATERIALS (tbl_formula02)
             tbl_formula02.objects.filter(form=f).delete()
             materials_json = data.get('materials_data')
             if materials_json:
                 for i, mat in enumerate(json.loads(materials_json)):
                     tbl_formula02.objects.create(
-                        form=f, sequence_no=i+1, 
+                        form=f, 
+                        sequence_no=i+1, 
                         material_code=mat['material'], 
-                        concentration=mat['concentration']
+                        concentration=mat['concentration'],
+                        is_deleted=False
                     )
 
-            # 4. Metadata
-            encode, _ = tbl_formula_encode.objects.get_or_create(form=f)
-            encode.match_by = data.get('matched_by')
+            # 4. HANDLE METADATA (tbl_formula_encode)
+            encode, created = tbl_formula_encode.objects.get_or_create(form=f)
+            
+            # Get User Fullname for updated_by
+            user_fullname = f"{request.user.first_name} {request.user.last_name}".strip()
+            if not user_fullname:
+                user_fullname = request.user.username
+
             if is_new:
-                # SAFE CHECK FOR ANONYMOUS USER
-                encode.encoded_by = request.user.first_name if request.user.is_authenticated else "System"
-                encode.updated_by = None
+                # Save initial personnel data only on new record
+                encode.match_by = data.get('matched_by')
+                encode.encoded_by = data.get('encoded_by') or user_fullname
+                encode.updated_by = "---"
             else:
-                encode.updated_by = request.user.first_name if request.user.is_authenticated else "System"
+                # On update, only the updated_by field changes
+                encode.updated_by = user_fullname
             encode.save()
 
-            # 5. Update Source Formula Reference
+            # 5. UPDATE SOURCE REFERENCE (If promoted from MB/DC)
             source_pk, source_type = data.get('source_formula_pk'), data.get('source_formula_type')
             if source_pk and source_type:
                 model = tbl_mb_extruder_formula if source_type == 'MB' else tbl_dc_extruder_formula
                 model.objects.filter(pk=source_pk).update(in_master_formula=True)
 
-            # 6. Audit Trail Logging
-            log_message = f"New Formulation Entry: #{f.form_id}" if is_new else f"Formulation #{f.form_id}. Changes: {', '.join(diff_logs) if diff_logs else 'No tech changes'}"
+            # 6. AUDIT TRAIL
+            if is_new:
+                log_message = f"New Formulation Entry: #{f.form_id}"
+            else:
+                details = ", ".join(diff_logs) if diff_logs else "No technical changes"
+                log_message = f"Formulation #{f.form_id}. Changes: {details}"
+
             log_audit(request, action_type, log_message)
             
             cache.delete('formulation_records_list')
             return True, f.form_id
-            
+
     except Exception as e:
         return False, str(e)
 
