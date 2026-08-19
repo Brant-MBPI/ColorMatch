@@ -258,7 +258,7 @@ def save_master_formula(request):
 # --- 4. LOOKUP ---
 
 def master_formula_lookup(request):
-    """Lookup logic. Returns EACH Trial (Version) of a DC Formula as a separate entry."""
+    """Lookup logic. Returns MB formulas and only the LATEST Trial (Version) for each DC record."""
     matching_no = request.GET.get('matching_no', '').strip()
     error, mb_list, dc_list, color = None, [], [], ''
     parent = {'customer': '', 'resin_used': '', 'colorant_type': '', 'process': '', 'dosage': ''}
@@ -309,18 +309,18 @@ def master_formula_lookup(request):
                     'cm_no': matching_no
                 })
 
-            # PROCESS DC (Treating each version as a separate record)
+            # PROCESS DC (Only the Latest/Final Version per record)
             for f in dc_qs:
-                # 1. Identify all unique version numbers that have data for this formula
-                existing_v = tbl_dc_extruder_version.objects.filter(
+                # 1. Find the maximum version number that has data for this specific formula record
+                max_v = tbl_dc_extruder_version.objects.filter(
                     material__dc=f
-                ).values_list('version_no', flat=True).distinct().order_by('version_no')
+                ).aggregate(Max('version_no'))['version_no__max']
 
-                for v_no in existing_v:
-                    # 2. Get ingredients for this specific version iteration
+                if max_v is not None:
+                    # 2. Get ingredients only for that specific highest version
                     version_rows = tbl_dc_extruder_version.objects.filter(
                         material__dc=f, 
-                        version_no=v_no
+                        version_no=max_v
                     ).select_related('material')
 
                     ingredients = [
@@ -332,10 +332,10 @@ def master_formula_lookup(request):
                         dc_list.append({
                             'header': f, 
                             'pk': f.pk, 
-                            'version_no': v_no, # Used in the template to show "Trial #1"
+                            'version_no': max_v, # Pass the version number to show "Trial #X" in UI
                             'ingredients': ingredients,
                             'sum_con': format(sum(item['value'] for item in ingredients), ".6f"),
-                            'script_id': f'mf-ing-dc-{f.pk}-v{v_no}', # Unique ID for JS
+                            'script_id': f'mf-ing-dc-{f.pk}', # Simplified ID as it's 1-to-1 with header now
                             'cm_no': matching_no
                         })
 
