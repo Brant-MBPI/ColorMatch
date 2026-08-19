@@ -1,6 +1,6 @@
 from django.urls import path
-
-from .services.print import print_cmf, print_mb_formula, print_dc_formula
+\
+from .services.print import print_cmf, print_mb_formula, print_dc_formula, print_formulation
 from .services.audit import audit_services
 from .services.formula import master_formula_services, formulation_services
 
@@ -43,6 +43,7 @@ urlpatterns = [
     path('master-formula/data/', master_formula_services.get_master_formula_records_json, name='master_formula_data'),
     path('audit-trail/data/', audit_services.get_audit_trail_data, name='audit_trail_data'),
     path('master-formula/<int:form_id>/materials/', master_formula_services.master_formula_materials_json, name='master_formula_materials_json'),
+    path('formulation/export/', print_formulation.export_formulation_excel, name='export_formulation_excel'),
     path('formulation/<int:form_id>/materials/', formulation_services.formulation_materials_json, name='formulation_materials_json'),
     # with parameters
     path('cmf/records/<str:cm_no>/', views.cmf_record_detail, name='cmf_record_detail'),

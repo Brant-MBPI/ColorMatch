@@ -92,24 +92,33 @@
             </div>
 
             <div class="d-flex align-items-center gap-2 position-relative">
-                <!-- Export Filter Toggle -->
-                <button class="btn btn-sm btn-outline-secondary px-2" id="mfExportFilterBtn" type="button" title="Export filters">
+                <button class="btn btn-sm btn-outline-secondary px-2" id="mfExportFilterBtn" type="button">
                     <i class="bi bi-sliders"></i>
                 </button>
-
-                <!-- Export Filter Popover Panel -->
+                
                 <div id="mfExportFilterPanel" class="mf-export-filter-panel shadow-lg border rounded-3 bg-white p-3 d-none">
                     <label class="extra-small fw-bold d-block mb-1">Date Range</label>
                     <div class="d-flex align-items-center gap-2">
-                        <input type="text" id="mfExportDateFrom" class="form-control form-control-sm date-picker-single" placeholder="From">
-                        <span class="extra-small text-muted">to</span>
-                        <input type="text" id="mfExportDateTo" class="form-control form-control-sm date-picker-single" placeholder="To">
+                        
+                        <!-- START DATE CONTAINER -->
+                        <div class="flatpickr-container input-group input-group-sm" data-wrap="true">
+                            <input type="text" id="mfExportDateFrom" class="form-control date-picker-single" data-input placeholder="MM/DD/YYYY">
+                            <span class="input-group-text" data-toggle><i class="bi bi-calendar3"></i></span>
+                        </div>
+
+                        <span class="extra-small">to</span>
+
+                        <!-- END DATE CONTAINER -->
+                        <div class="flatpickr-container input-group input-group-sm" data-wrap="true">
+                            <input type="text" id="mfExportDateTo" class="form-control date-picker-single" data-input placeholder="MM/DD/YYYY">
+                            <span class="input-group-text" data-toggle><i class="bi bi-calendar3"></i></span>
+                        </div>
+
                     </div>
                 </div>
-
+                
                 <button class="btn btn-success btn-sm px-4" id="mfExportExcelBtn" type="button">
-                    <i class="bi bi-file-earmark-excel"></i>
-                    Export to Excel
+                    <i class="bi bi-file-earmark-excel"></i> Export Excel
                 </button>
             </div>
         </div>
@@ -239,16 +248,51 @@
         $('#btnRefreshTable').on('click', function() {
             table.ajax.reload(null, false);
         });
+        
+        const exportFilterBtn = document.getElementById('mfExportFilterBtn');
+        const exportFilterPanel = document.getElementById('mfExportFilterPanel');
+        if (exportFilterBtn) {
+            exportFilterBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                exportFilterPanel.classList.toggle('d-none');
+            });
+            document.addEventListener('click', (e) => {
+                if (!exportFilterPanel.contains(e.target) && e.target !== exportFilterBtn) {
+                    exportFilterPanel.classList.add('d-none');
+                }
+            });
+        }
 
         // --- 7. EXPORT ---
         $('#mfExportExcelBtn').on('click', function() {
+            // 1. Get values from the filter panel
             const from = $('#mfExportDateFrom').val() || '';
             const to = $('#mfExportDateTo').val() || '';
-            
-            // Standard JS Confirmation (since we know it works)
-            if(confirm(`Export records to Excel?\nRange: ${from || 'All'} to ${to || 'All'}`)) {
-                window.location.href = `/formulation/export/?date_from=${from}&date_to=${to}`;
+
+            // 2. Format the message for the confirmation dialog
+            let dateRangeMsg = "Exporting all records.";
+            if (from || to) {
+                dateRangeMsg = `Exporting records from ${from || 'Start'} to ${to || 'End'}.`;
             }
+
+            // 3. Trigger Preline Confirmation
+            Preline.confirm(
+                'Export to Excel',             // Title
+                dateRangeMsg,                  // Message
+                'success',                     // Type (green icon)
+                () => {
+                    // CONFIRMED ACTION:
+                    // Construct the URL with query parameters
+                    const exportUrl = `/formulation/export/?date_from=${encodeURIComponent(from)}&date_to=${encodeURIComponent(to)}`;
+                    
+                    // Redirect the browser to trigger the download
+                    window.location.href = exportUrl;
+                },
+                () => {
+                    // CANCELLED ACTION:
+                    console.log("Export cancelled by user.");
+                }
+            );
         });
     });
 </script>
