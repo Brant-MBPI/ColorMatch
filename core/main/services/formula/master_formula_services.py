@@ -27,6 +27,13 @@ def get_master_formula_details(form_id):
     if not formula:
         return None
 
+    is_locked = False
+    if formula.date:
+        # If the record is more than 3 days old, lock it
+        # .days > 3 means on the 4th day it becomes read-only
+        if (timezone.now().date() - formula.date).days > 3:
+            is_locked = True
+
     encode = tbl_master_formula_encode.objects.filter(form=formula).first()
     materials = list(
         tbl_master_formula_info.objects.filter(form=formula, is_deleted=False)
@@ -37,6 +44,7 @@ def get_master_formula_details(form_id):
     return {
         'form_id': formula.form_id,
         'index_no': formula.index_no or '',
+        'is_locked': is_locked,
         'customer': formula.customer or '',
         'product_code': formula.product_code or '',
         'prod_color': formula.prod_color or '',
