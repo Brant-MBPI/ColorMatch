@@ -96,13 +96,28 @@ def export_master_formula_excel(request):
         if date_to_raw:
             date_to = datetime.strptime(date_to_raw, '%m/%d/%Y').date()
     except ValueError:
-        pass # If date format is invalid, we just don't filter
+        pass
+
+    # --- DYNAMIC FILENAME LOGIC ---
+    base_name = "Master_Formula_Export"
+    
+    if date_from and date_to:
+        # e.g., Master_Formula_Export_01-01-2026_to_01-31-2026.xlsx
+        filename = f"{base_name}_{date_from.strftime('%m-%d-%Y')}_to_{date_to.strftime('%m-%d-%Y')}.xlsx"
+    elif date_from:
+        # e.g., Master_Formula_Export_From_01-01-2026.xlsx
+        filename = f"{base_name}_From_{date_from.strftime('%m-%d-%Y')}.xlsx"
+    elif date_to:
+        # e.g., Master_Formula_Export_Until_01-31-2026.xlsx
+        filename = f"{base_name}_Until_{date_to.strftime('%m-%d-%Y')}.xlsx"
+    else:
+        # Exported All - use current date (e.g., Master_Formula_Export_August_19_2026.xlsx)
+        filename = f"{base_name}_{datetime.now().strftime('%B_%d_%Y')}.xlsx"
 
     # Generate WB
     wb = generate_master_formula_excel(date_from, date_to)
 
     # Prepare response
-    filename = f"Master_Formula_Export_{datetime.now().strftime('%Y%m%d')}.xlsx"
     response = HttpResponse(
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )

@@ -107,11 +107,26 @@ def export_formulation_excel(request):
     except ValueError:
         pass # Fallback to no filter if date format is wrong
 
+    # --- DYNAMIC FILENAME LOGIC ---
+    base_name = "Formulation_Export"
+    
+    if date_from and date_to:
+        # e.g., Formulation_Export_01-01-2026_to_01-31-2026.xlsx
+        filename = f"{base_name}_{date_from.strftime('%m-%d-%Y')}_to_{date_to.strftime('%m-%d-%Y')}.xlsx"
+    elif date_from:
+        # e.g., Formulation_Export_From_01-01-2026.xlsx
+        filename = f"{base_name}_From_{date_from.strftime('%m-%d-%Y')}.xlsx"
+    elif date_to:
+        # e.g., Formulation_Export_Until_01-31-2026.xlsx
+        filename = f"{base_name}_Until_{date_to.strftime('%m-%d-%Y')}.xlsx"
+    else:
+        # Exported All - use current date (e.g., Formulation_Export_August_19_2026.xlsx)
+        filename = f"{base_name}_{datetime.now().strftime('%B_%d_%Y')}.xlsx"
+
     # Generate the workbook
     wb = generate_formulation_excel(date_from, date_to)
 
     # Prepare Response
-    filename = f"Formulation_Export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
     response = HttpResponse(
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
