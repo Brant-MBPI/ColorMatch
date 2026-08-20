@@ -1,5 +1,7 @@
 from django.urls import path
 
+from .services.save import cmf_entry_save
+
 from .services.print import print_cmf, print_mb_formula, print_dc_formula, print_formulation, print_master_formula
 from .services.audit import audit_services
 from .services.formula import master_formula_services, formulation_services
@@ -46,6 +48,7 @@ urlpatterns = [
     path('formulation/export/', print_formulation.export_formulation_excel, name='export_formulation_excel'),
     # with parameters
     path('cmf/records/<str:cm_no>/', views.cmf_record_detail, name='cmf_record_detail'),
+    path('cmf/attachment/<int:attachment_id>/download/', cmf_entry_save.download_cmf_attachment, name='download_cmf_attachment'),
     path('cmf/formula-records/materials/<str:formula_type>/<int:formula_id>/', cmf_records_services.get_formula_materials, name='get_formula_materials'),
     path('cmf/formula/<str:formula_type>/<int:formula_id>/toggle-final/', cmf_records_services.toggle_final_formula, name='toggle_final_formula'),
     path('cmf/rs-records/<int:rs_id>/', views.rs_record_detail, name='rs_record_detail'),

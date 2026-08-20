@@ -3,6 +3,8 @@ import json
 from django.core.cache import cache
 from django.db import transaction
 from datetime import datetime, date
+
+from django.http import Http404, HttpResponse
 from main.services.save.utils import to_bool, format_date, clean_numeric
 from main.utils.log_audit_trail import log_audit
 from main.models import (
@@ -305,7 +307,7 @@ def update_cmf_complete_entry(request, original_cmf_no):
         num_files = _handle_file_uploads(request, cmf_main)
         if num_files > 0:
             diff_logs.append(f"Added {num_files} attachments")
-            
+
         # --- 4. LOGGING ---
         log_msg = f"CMF: {original_cmf_no}"
         if renaming: log_msg += f" (Renamed to {new_cmf_no})"
@@ -315,3 +317,13 @@ def update_cmf_complete_entry(request, original_cmf_no):
         log_audit(request, "Updated", log_msg)
 
     return cmf_main
+
+
+def download_cmf_attachment(request, attachment_id):
+    attachment = tbl_cmf_scanned.objects.filter(pk=attachment_id).first()
+    if not attachment:
+        raise Http404("Attachment not found.")
+
+    response = HttpResponse(attachment.file_content, content_type=attachment.file_type or 'application/octet-stream')
+    response['Content-Disposition'] = f'attachment; filename="{attachment.file_name}"'
+    return response

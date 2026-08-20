@@ -18,7 +18,7 @@ from main.services.save import mb_formula_save, dc_formula_save, rs_entry_save
 from main.decorators import role_required
 from main.models import (
     tbl_audit_trail, tbl_cmf, tbl_cmf_dates, tbl_cmf_formula, tbl_cmf_pending_completed, 
-    tbl_cmf_process02, tbl_cmf_process02, tbl_cmf_specification02, tbl_dc_extruder_formula, 
+    tbl_cmf_process02, tbl_cmf_process02, tbl_cmf_scanned, tbl_cmf_specification02, tbl_dc_extruder_formula, 
     tbl_dc_extruder_materials, tbl_feedback_details, tbl_generated_prod_code, tbl_internal_color_code, tbl_master_formula, tbl_master_formula_encode, tbl_master_formula_info, tbl_mb_extruder_formula, 
     tbl_mb_extruder_formula02, tbl_resin, tbl_cmf_salesman, tbl_resins_selected, 
     tbl_cmf_color_req, tbl_cmf_specification, tbl_cmf_process, tbl_rs
@@ -139,6 +139,7 @@ def formula_records(request):
 @role_required
 def cmf_entry(request):
     form_data = {}
+    attachments = []
     if request.method == "POST":
         original_cmf_no = request.POST.get('original_cmf_no', '').strip()
         try:
@@ -229,13 +230,19 @@ def cmf_entry(request):
                     'process': process_names,
                     'specification': spec_names,
                 }
-
+                # show the "View Files" button, and to populate its modal.
+                attachments = list(
+                    tbl_cmf_scanned.objects.filter(cm=cmf).order_by('-file_id').values(
+                        'file_id', 'file_name', 'file_type'
+                    )
+                )
     context = {
         "customers": cmf_records_services.get_customer_list(), 
         "salesman": cmf_records_services.get_salesman_list(),
         "primary_color": cmf_records_services.get_color_list(),
         "resin": cmf_records_services.get_resin_list(),
-        "form_data": form_data
+        "form_data": form_data,
+        "attachments": attachments,
     }
     return render(request, "sidemenu/cmf/cmf_entry.html", context)
 

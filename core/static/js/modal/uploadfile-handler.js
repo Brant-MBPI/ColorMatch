@@ -12,40 +12,40 @@ document.addEventListener('DOMContentLoaded', function() {
 <a class="cz-remove" href="javascript:void(0);" data-dz-remove>Remove</a>
 </div>`.trim();
 
-        const myDropzone = new Dropzone("#dropzone-upload", {
-            url: "/upload-endpoint/",
+        // Exposed on window so entry.js can read its accepted files at
+        // save-time — Dropzone no longer POSTs anywhere itself; we just
+        // use it as a drag-and-drop file picker with previews.
+        window.myDropzone = new Dropzone("#dropzone-upload", {
+            url: "/upload-endpoint/",   // unused now — no processQueue() call happens anymore
             autoProcessQueue: false,
             uploadMultiple: true,
             parallelUploads: 10,
             maxFiles: 10,
-            addRemoveLinks: false, // our template already has its own remove link
+            addRemoveLinks: false,
             previewTemplate: previewTemplate,
             thumbnailWidth: 100,
             thumbnailHeight: 48,
 
             init: function() {
-                const submitBtn = document.querySelector("#btn-upload-submit");
                 const dzInstance = this;
 
-                submitBtn.addEventListener("click", function() {
-                    dzInstance.processQueue();
-                });
+                // Removed: the old submitBtn -> processQueue() wiring.
+                // Saving now happens through the main entry form's Save
+                // button (entry.js), which pulls files from this
+                // Dropzone instance directly instead of triggering a
+                // separate upload request.
 
                 this.on("addedfile", function(file) {
-                    // Tooltip for full filename
                     if (file.previewElement) {
                         const nameEl = file.previewElement.querySelector(".cz-filename");
                         if (nameEl) nameEl.setAttribute("title", file.name);
                     }
 
-                    // filesize() returns an HTML string like "<strong>73.8</strong> KB"
-                    // so it must be rendered with innerHTML, not textContent
                     const sizeEl = file.previewElement.querySelector(".cz-size");
                     if (sizeEl) {
                         sizeEl.innerHTML = dzInstance.filesize(file.size);
                     }
 
-                    // Bootstrap Icon Injection for non-image files
                     if (!file.type.match(/image.*/)) {
                         const imageContainer = file.previewElement.querySelector(".cz-image");
                         imageContainer.innerHTML = '';

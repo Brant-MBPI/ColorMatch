@@ -1,3 +1,4 @@
+
 document.addEventListener('DOMContentLoaded', function() {
 
     // --- 2. DOM ELEMENTS ---
@@ -18,82 +19,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('recordSearchInput');
     const searchFieldSelect = document.getElementById('searchFieldSelect');
     const recordsTbody = document.getElementById('recordsTbody');
-
-
-    const dropzoneEl = document.getElementById('dropzone-upload');
-    let myDropzone = null;
-
-    if (dropzoneEl) {
-        const previewTemplate = `<div class="cz-preview"><div class="cz-image"><img data-dz-thumbnail></div><div class="cz-details"><div class="cz-filename" data-dz-name></div><div class="cz-size" data-dz-size></div></div><a class="cz-remove" href="javascript:void(0);" data-dz-remove>Remove</a></div>`.trim();
-
-        myDropzone = new Dropzone("#dropzone-upload", {
-            url: entryForm ? entryForm.action : "/upload-endpoint/",
-            autoProcessQueue: false,
-            uploadMultiple: true,
-            parallelUploads: 20,
-            maxFiles: 10,
-            paramName: "file",
-            previewTemplate: previewTemplate,
-            headers: {
-                "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value
-            },
-            init: function() {
-                const dz = this;
-
-                // Success Handling (AJAX Redirect)
-                this.on("successmultiple", function() {
-                    window.location.href = window.location.pathname;
-                });
-
-                // Error Handling
-                this.on("errormultiple", function(files, response) {
-                    hideLoader();
-                    const msg = typeof response === 'string' ? response : (response.error || "Error saving record.");
-                    Preline.toast(msg, "error");
-                    // Reset file status so user can try again
-                    files.forEach(f => f.status = Dropzone.QUEUED);
-                });
-
-                // Bundle all form fields into the Dropzone request
-                this.on("sendingmultiple", function(data, xhr, formData) {
-                    const elements = entryForm.elements;
-                    for (let i = 0; i < elements.length; i++) {
-                        const el = elements[i];
-                        if (!el.name || el.type === 'file') continue;
-                        if ((el.type === 'radio' || el.type === 'checkbox') && !el.checked) continue;
-
-                        // Support Multi-Selects (like Resins)
-                        if (el.tagName === 'SELECT' && el.multiple) {
-                            const vals = Array.from(el.selectedOptions).map(o => o.value);
-                            vals.forEach(v => formData.append(el.name, v));
-                        } else {
-                            formData.append(el.name, el.value);
-                        }
-                    }
-                });
-
-                // Non-image icon logic
-                this.on("addedfile", function(file) {
-                    if (file.previewElement) {
-                        const sizeEl = file.previewElement.querySelector(".cz-size");
-                        if (sizeEl) sizeEl.innerHTML = dz.filesize(file.size);
-                    }
-                    if (!file.type.match(/image.*/)) {
-                        const imgCont = file.previewElement.querySelector(".cz-image");
-                        imgCont.innerHTML = '';
-                        let icon = "bi-file-earmark-text";
-                        if (file.name.endsWith('.pdf')) icon = "bi-file-earmark-pdf";
-                        else if (file.name.match(/\.(xlsx|xls)$/)) icon = "bi-file-earmark-excel";
-                        else if (file.name.match(/\.(docx|doc)$/)) icon = "bi-file-earmark-word";
-                        const i = document.createElement('i');
-                        i.className = `bi ${icon}`;
-                        imgCont.appendChild(i);
-                    }
-                });
-            }
-        });
-    }
-
 
     // --- 3. NUMERIC INPUT FORMATTING LOGIC ---
     const restrictToNumbers = (e) => {
@@ -128,45 +53,46 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- 4. BUTTON LISTENERS ---
 
     if (saveBtn && entryForm) {
-        saveBtn.addEventListener('click', function() {
-            // 1. Validate Form
-            if (entryForm.reportValidity()) {
-                const numInput = document.getElementById('id_qty_resin_num');
-                const unitSelect = document.getElementById('id_qty_resin_unit');
-                const hiddenField = document.getElementById('id_qty_resin_test_hidden');
-                if (numInput && hiddenField) {
-                    // Combine value: e.g., "3" + " " + "KG" = "3 KG"
-                    hiddenField.value = `${numInput.value.trim()} ${unitSelect.value}`;
-                }
-                // 2. Check if updating or saving new.
-                // CMF Entry uses original_cmf_no, RS Entry uses original_rs_no,
-                // Pending/Completed uses record_no (it's update-only, no "new" state).
-                const hiddenInput = entryForm.querySelector(
-                    '[name="original_cmf_no"], [name="original_rs_no"], [name="record_no"]'
-                );
-                const isUpdate = hiddenInput && hiddenInput.value.trim() !== '';
+    saveBtn.addEventListener('click', function() {
+        if (entryForm.reportValidity()) {
+            const numInput = document.getElementById('id_qty_resin_num');
+            const unitSelect = document.getElementById('id_qty_resin_unit');
+            const hiddenField = document.getElementById('id_qty_resin_test_hidden');
+            if (numInput && hiddenField) {
+                hiddenField.value = `${numInput.value.trim()} ${unitSelect.value}`;
+            }
 
-                // 3. Trigger Confirmation
-                Preline.confirm(
-                    isUpdate ? 'Update Entry?' : 'Save Entry?',
-                    isUpdate
-                        ? 'Are you sure you want to update this entry? Existing records will be modified.'
-                        : 'Are you sure you want to save this new entry? Please verify all technical specs before confirming.',
-                    'success',
-                    () => {
-                        showLoader();
-                        // If there are files, use Dropzone to handle the POST
-                        if (myDropzone && myDropzone.getQueuedFiles().length > 0) {
-                            myDropzone.processQueue();
-                        } else {
-                            // Otherwise, perform a standard form submission
-                            entryForm.submit();
+            const hiddenInput = entryForm.querySelector(
+                '[name="original_cmf_no"], [name="original_rs_no"], [name="record_no"]'
+            );
+            const isUpdate = hiddenInput && hiddenInput.value.trim() !== '';
+
+            Preline.confirm(
+                isUpdate ? 'Update Entry?' : 'Save Entry?',
+                isUpdate
+                    ? 'Are you sure you want to update this entry? Existing records will be modified.'
+                    : 'Are you sure you want to save this new entry? Please verify all technical specs before confirming.',
+                'success',
+                () => {
+                    showLoader();
+                    if (window.myDropzone && window.myDropzone.files.length > 0) {
+                        const dataTransfer = new DataTransfer();
+                        window.myDropzone.files.forEach(function(file) {
+                            dataTransfer.items.add(file);
+                        });
+
+                        const hiddenFileInput = document.getElementById('hidden-file-input');
+                        if (hiddenFileInput) {
+                            hiddenFileInput.files = dataTransfer.files;
                         }
                     }
-                );
-            }
-        });
-    }
+
+                    entryForm.submit();
+                }
+            );
+        }
+    });
+}
 
     if (newBtn) {
         newBtn.addEventListener('click', function() {

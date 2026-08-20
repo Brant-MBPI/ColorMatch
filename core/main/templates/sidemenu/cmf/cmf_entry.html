@@ -7,9 +7,10 @@ CMF Entry
 
 {% block content %}
 <div class="container-fluid p-0">
-    <form class="cmf-entry-form" method="POST" action="{% url 'cmf_entry' %}">
+    <form class="cmf-entry-form" method="POST" action="{% url 'cmf_entry' %}" enctype="multipart/form-data">
     {% csrf_token %}
         <input type="hidden" name="original_cmf_no" value="{{ form_data.cmf_no|default:'' }}">
+        <input type="file" name="file" id="hidden-file-input" multiple style="display:none;">
         <div class="row g-2">
             
             <!-- LEFT COLUMN -->
@@ -344,9 +345,17 @@ CMF Entry
 
         <!-- ACTION BUTTONS -->
         <div class="d-flex justify-content-between align-items-center mt-3 mb-5 px-1">
-            <button type="button" class="btn btn-sm btn-teal px-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#uploadModal">
-                <i class="bi bi-upload"></i> Upload
-            </button>
+            <div class="d-flex gap-1">
+                <button type="button" class="btn btn-sm btn-teal px-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#uploadModal">
+                    <i class="bi bi-upload"></i> Upload
+                </button>
+
+                {% if attachments %}
+                <button type="button" class="btn btn-sm btn-outline-teal px-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#viewFilesModal">
+                    <i class="bi bi-paperclip"></i> View Files ({{ attachments|length }})
+                </button>
+                {% endif %}
+            </div>
             <div class="d-flex gap-1">
                 <button type="button" class="btn btn-sm btn-dark-teal px-3 text-white shadow-sm btn-cmf-print">
                     <i class="bi bi-printer"></i> Print
@@ -365,5 +374,36 @@ CMF Entry
         </div>
     </form>
 </div>
+{% if attachments %}
+<div class="modal fade" id="viewFilesModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header text-white" style="background: var(--sidebar-header-bg);">
+                <h6 class="modal-title extra-small fw-bold text-uppercase">
+                    <i class="bi bi-paperclip me-2"></i>Attached Files
+                </h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-3">
+                <ul class="list-group">
+                    {% for file in attachments %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span class="extra-small">
+                            <i class="bi bi-file-earmark-text me-2"></i>{{ file.file_name }}
+                        </span>
+                        <a href="{% url 'download_cmf_attachment' file.file_id %}" class="btn btn-sm btn-outline-teal" download>
+                            <i class="bi bi-download"></i>
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            <div class="modal-footer p-2 bg-light-subtle">
+                <button type="button" class="btn btn-sm btn-secondary extra-small px-4" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
 {% include "modal/upload-file/dropzone.html" %}
 {% endblock %}
