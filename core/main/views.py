@@ -114,12 +114,14 @@ def otherPage(request):
     return render(request, "sidemenu/other.html")
 
 
+@role_required
 def cmf_records(request):
     all_records = cmf_records_services.get_all_records_combined()
     return render(request, "sidemenu/cmf/cmf_records.html", {
         "records": all_records,
     })
 
+@role_required
 def formula_records(request):
     mb_dates = tbl_mb_extruder_formula.objects.aggregate(Min('date'), Max('date'))
     dc_dates = tbl_dc_extruder_formula.objects.aggregate(Min('date'), Max('date'))
@@ -136,7 +138,7 @@ def formula_records(request):
         "default_to": latest
     })
 
-
+@role_required
 def cmf_entry(request):
     form_data = {}
     if request.method == "POST":
@@ -239,6 +241,7 @@ def cmf_entry(request):
     }
     return render(request, "sidemenu/cmf/cmf_entry.html", context)
 
+@role_required
 def cmf_rs_entry(request):
     form_data = {}
 
@@ -276,6 +279,7 @@ def cmf_rs_entry(request):
     }
     return render(request, "sidemenu/cmf/rs_entry.html", context)
 
+@role_required
 def _build_dc_formula_list(dc_qs):
     """
     Builds the DC formula list for a detail view: each formula's header
@@ -297,7 +301,7 @@ def _build_dc_formula_list(dc_qs):
         dc_list.append({'header': f, 'materials': materials})
     return dc_list
 
-
+@role_required
 def cmf_record_detail(request, cm_no):
     # Get the base number by removing the last character (e.g., 'CM24-001A' -> 'CM24-001')
     base_no = cm_no[:-1]
@@ -339,7 +343,7 @@ def cmf_record_detail(request, cm_no):
 
     return render(request, "modal/cmf-record/cmf_record_detail.html", context)
 
-
+@role_required
 def rs_record_detail(request, rs_id):
     # rs_id is the row's real primary key (unique), since rs_no can now repeat.
     rs_instance = tbl_rs.objects.filter(pk=rs_id).first()
@@ -378,6 +382,7 @@ def rs_record_detail(request, rs_id):
 
     return render(request, "modal/cmf-record/rs_record_detail.html", context)
 
+@role_required
 def cmf_mb_formula(request):
     form_data = {}
     ingredients = []
@@ -528,6 +533,7 @@ def cmf_mb_formula(request):
     }
     return render(request, "sidemenu/cmf/formula_mb.html", context)
 
+@role_required
 def cmf_dc_formula(request):
     form_data = {}
     material_rows = []
@@ -685,6 +691,7 @@ def cmf_dc_formula(request):
     }
     return render(request, "sidemenu/cmf/formula_dc.html", context)
 
+@role_required
 def cmf_pending_completed(request):
     form_data = {}
     record_no = request.POST.get('record_no') or request.GET.get('no')
@@ -895,6 +902,7 @@ def cmf_pending_completed(request):
 
     return render(request, "sidemenu/cmf/pending_completed.html", {"form_data": form_data})
 
+@role_required
 def master_formula(request):
     form_id = request.GET.get('form_id')
     
@@ -913,6 +921,7 @@ def master_formula(request):
     context = master_formula_services.get_master_formula_context(form_id)
     return render(request, "sidemenu/formula/master_formula.html", context)
 
+@role_required
 def formulation(request):
     form_id = request.GET.get('form_id')
     
@@ -931,6 +940,7 @@ def formulation(request):
     context = formulation_services.get_formulation_context(form_id)
     return render(request, "sidemenu/formula/formulation.html", context)
 
+@role_required
 def feedback(request):
     form_data = {}
     feedback_no = request.GET.get('feedback_no') or request.POST.get('feedback_no')
