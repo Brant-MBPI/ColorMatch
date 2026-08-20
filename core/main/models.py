@@ -259,7 +259,7 @@ class tbl_cmf_scanned(models.Model):
     file_type = models.CharField(max_length=50, blank=True, null=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(tbl_user, on_delete=models.SET_NULL, null=True, blank=True, db_column="user_id")
-
+    file_content = models.BinaryField(null=True, blank=True)
     class Meta:
         db_table = "tbl_cmf_scanned"
 

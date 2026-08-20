@@ -19,6 +19,82 @@ document.addEventListener('DOMContentLoaded', function() {
     const searchFieldSelect = document.getElementById('searchFieldSelect');
     const recordsTbody = document.getElementById('recordsTbody');
 
+
+    const dropzoneEl = document.getElementById('dropzone-upload');
+    let myDropzone = null;
+
+    if (dropzoneEl) {
+        const previewTemplate = `<div class="cz-preview"><div class="cz-image"><img data-dz-thumbnail></div><div class="cz-details"><div class="cz-filename" data-dz-name></div><div class="cz-size" data-dz-size></div></div><a class="cz-remove" href="javascript:void(0);" data-dz-remove>Remove</a></div>`.trim();
+
+        myDropzone = new Dropzone("#dropzone-upload", {
+            url: entryForm ? entryForm.action : "/upload-endpoint/",
+            autoProcessQueue: false,
+            uploadMultiple: true,
+            parallelUploads: 20,
+            maxFiles: 10,
+            paramName: "file",
+            previewTemplate: previewTemplate,
+            headers: {
+                "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            init: function() {
+                const dz = this;
+
+                // Success Handling (AJAX Redirect)
+                this.on("successmultiple", function() {
+                    window.location.href = window.location.pathname;
+                });
+
+                // Error Handling
+                this.on("errormultiple", function(files, response) {
+                    hideLoader();
+                    const msg = typeof response === 'string' ? response : (response.error || "Error saving record.");
+                    Preline.toast(msg, "error");
+                    // Reset file status so user can try again
+                    files.forEach(f => f.status = Dropzone.QUEUED);
+                });
+
+                // Bundle all form fields into the Dropzone request
+                this.on("sendingmultiple", function(data, xhr, formData) {
+                    const elements = entryForm.elements;
+                    for (let i = 0; i < elements.length; i++) {
+                        const el = elements[i];
+                        if (!el.name || el.type === 'file') continue;
+                        if ((el.type === 'radio' || el.type === 'checkbox') && !el.checked) continue;
+
+                        // Support Multi-Selects (like Resins)
+                        if (el.tagName === 'SELECT' && el.multiple) {
+                            const vals = Array.from(el.selectedOptions).map(o => o.value);
+                            vals.forEach(v => formData.append(el.name, v));
+                        } else {
+                            formData.append(el.name, el.value);
+                        }
+                    }
+                });
+
+                // Non-image icon logic
+                this.on("addedfile", function(file) {
+                    if (file.previewElement) {
+                        const sizeEl = file.previewElement.querySelector(".cz-size");
+                        if (sizeEl) sizeEl.innerHTML = dz.filesize(file.size);
+                    }
+                    if (!file.type.match(/image.*/)) {
+                        const imgCont = file.previewElement.querySelector(".cz-image");
+                        imgCont.innerHTML = '';
+                        let icon = "bi-file-earmark-text";
+                        if (file.name.endsWith('.pdf')) icon = "bi-file-earmark-pdf";
+                        else if (file.name.match(/\.(xlsx|xls)$/)) icon = "bi-file-earmark-excel";
+                        else if (file.name.match(/\.(docx|doc)$/)) icon = "bi-file-earmark-word";
+                        const i = document.createElement('i');
+                        i.className = `bi ${icon}`;
+                        imgCont.appendChild(i);
+                    }
+                });
+            }
+        });
+    }
+
+
     // --- 3. NUMERIC INPUT FORMATTING LOGIC ---
     const restrictToNumbers = (e) => {
         const charCode = (e.which) ? e.which : e.keyCode;
@@ -78,7 +154,14 @@ document.addEventListener('DOMContentLoaded', function() {
                         : 'Are you sure you want to save this new entry? Please verify all technical specs before confirming.',
                     'success',
                     () => {
-                        entryForm.submit();
+                        showLoader();
+                        // If there are files, use Dropzone to handle the POST
+                        if (myDropzone && myDropzone.getQueuedFiles().length > 0) {
+                            myDropzone.processQueue();
+                        } else {
+                            // Otherwise, perform a standard form submission
+                            entryForm.submit();
+                        }
                     }
                 );
             }

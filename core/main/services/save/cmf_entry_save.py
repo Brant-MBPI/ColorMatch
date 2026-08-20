@@ -7,10 +7,23 @@ from main.services.save.utils import to_bool, format_date, clean_numeric
 from main.utils.log_audit_trail import log_audit
 from main.models import (
     tbl_cmf, tbl_cmf_color_req, tbl_cmf_dates, tbl_cmf_formula, 
-    tbl_cmf_process, tbl_cmf_process02, tbl_resin, tbl_resins_selected,
+    tbl_cmf_process, tbl_cmf_process02, tbl_cmf_scanned, tbl_resin, tbl_resins_selected,
     tbl_cmf_specification, tbl_cmf_specification02, tbl_cmf_salesman,
     tbl_cmf_pending_completed, tbl_feedback_details
 )
+
+def _handle_file_uploads(request, cmf_instance):
+    """Reads files from request.FILES and saves them as binary to the database."""
+    files = request.FILES.getlist('file')
+    for f in files:
+        tbl_cmf_scanned.objects.create(
+            cm=cmf_instance,
+            file_name=f.name,
+            file_type=f.content_type,
+            file_content=f.read(), # Stores the actual bytes in the BinaryField
+            user=request.user
+        )
+    return len(files)
 
 def save_cmf_complete_entry(request):
     data = request.POST
@@ -96,9 +109,11 @@ def save_cmf_complete_entry(request):
         
         tbl_cmf_pending_completed.objects.create(cm_no=cmf_main)
         tbl_feedback_details.objects.create(cm_no=cmf_main)
+
+        num_files = _handle_file_uploads(request, cmf_main)
         
         cache.delete('cmf_records_list')
-        log_audit(request, "Saved", f"New CMF Entry: {cmf_main.cm_no}")
+        log_audit(request, "Saved", f"New CMF Entry: {cmf_main.cm_no} ({num_files} attachments)")
     return cmf_main
 
 def update_cmf_complete_entry(request, original_cmf_no):
@@ -287,6 +302,10 @@ def update_cmf_complete_entry(request, original_cmf_no):
             s_ref, _ = tbl_cmf_specification.objects.get_or_create(name=name)
             tbl_cmf_specification02.objects.create(cm_no=cmf_main, spec_no=s_ref)
 
+        num_files = _handle_file_uploads(request, cmf_main)
+        if num_files > 0:
+            diff_logs.append(f"Added {num_files} attachments")
+            
         # --- 4. LOGGING ---
         log_msg = f"CMF: {original_cmf_no}"
         if renaming: log_msg += f" (Renamed to {new_cmf_no})"

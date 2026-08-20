@@ -1,6 +1,4 @@
 from decimal import Decimal
-from urllib import request
-
 import base64
 from django.core.cache import cache
 from django.core.management import call_command
@@ -279,7 +277,6 @@ def cmf_rs_entry(request):
     }
     return render(request, "sidemenu/cmf/rs_entry.html", context)
 
-@role_required
 def _build_dc_formula_list(dc_qs):
     """
     Builds the DC formula list for a detail view: each formula's header
