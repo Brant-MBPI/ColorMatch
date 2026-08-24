@@ -98,13 +98,41 @@ jQuery(document).ready(function($) {
 
     // 4. Export
     $('#btnExportAudit').on('click', function() {
-        const params = $.param({
-            department: $('#filterDept').val(),
-            column_choice: $('#filterCol').val(),
-            date_from: $('#dateFrom').val(),
-            date_to: $('#dateTo').val(),
-            search: $('#auditSearch').val()
-        });
-        window.location.href = `/audit-trail/export/?${params}`;
+        const dateFrom = $('#dateFrom').val();
+        const dateTo = $('#dateTo').val();
+        const dept = $('#filterDept').val();
+
+        // Determine the confirmation message
+        let rangeMsg = `Export records from ${dateFrom} to ${dateTo}?`;
+        if (dept !== 'all') {
+            rangeMsg += `Filtering by Department: ${dept}`;
+        }
+
+        Preline.confirm(
+            'Confirm Excel Export',
+            rangeMsg,
+            'success',
+            () => {
+                // This runs if the user clicks "Confirm"
+                const params = $.param({
+                    department: $('#filterDept').val(),
+                    column_choice: $('#filterCol').val(),
+                    date_from: dateFrom,
+                    date_to: dateTo,
+                    search: $('#auditSearch').val()
+                });
+
+                // Show global loader if available
+                if (typeof showLoader === "function") showLoader();
+
+                // Trigger download
+                window.location.href = `/audit-trail/export/?${params}`;
+
+                // Hide loader after a delay
+                setTimeout(() => {
+                    if (typeof hideLoader === "function") hideLoader();
+                }, 3000);
+            }
+        );
     });
 });
