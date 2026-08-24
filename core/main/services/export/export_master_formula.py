@@ -116,7 +116,7 @@ def export_master_formula_excel(request):
 
     # Generate WB
     wb = generate_master_formula_excel(date_from, date_to)
-
+    
     # Prepare response
     response = HttpResponse(
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'

@@ -51,6 +51,7 @@ urlpatterns = [
     path('audit-trail/export/', export_audit_trail.export_audit_trail_excel, name='export_audit_trail_csv'),
     # with parameters
     path('cmf/records/<str:cm_no>/', views.cmf_record_detail, name='cmf_record_detail'),
+    path('cmf/log-export-download/',cmf_record_export.log_cmf_export_action, name='log_cmf_export_download'),
     path('cmf/attachment/<int:attachment_id>/download/', cmf_entry_save.download_cmf_attachment, name='download_cmf_attachment'),
     path('cmf/formula-records/materials/<str:formula_type>/<int:formula_id>/', cmf_records_services.get_formula_materials, name='get_formula_materials'),
     path('cmf/formula/<str:formula_type>/<int:formula_id>/toggle-final/', cmf_records_services.toggle_final_formula, name='toggle_final_formula'),

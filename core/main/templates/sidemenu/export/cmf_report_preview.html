@@ -154,9 +154,23 @@ Export Preview
         a.remove();
         window.URL.revokeObjectURL(blobUrl);
 
-        // The file is fully in the browser's hands the moment the blob
-        // was created — safe to redirect immediately, no delay needed.
-        window.location.href = "{% url 'cmf_records' %}";
+         // Prepare the details (you can customize this based on context)
+        const logDetails = `Downloaded Excel Export: ${filename}`;
+        
+        const formData = new FormData();
+        formData.append('details', logDetails);
+        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+
+        fetch("{% url 'log_cmf_export_download' %}", {
+            method: 'POST',
+            body: formData
+        }).then(() => {
+            // 3. Finally, redirect back to records
+            window.location.href = "{% url 'cmf_records' %}";
+        }).catch(err => {
+            console.error("Audit log failed", err);
+            window.location.href = "{% url 'cmf_records' %}";
+        });
     });
 </script>
 {% endblock %}

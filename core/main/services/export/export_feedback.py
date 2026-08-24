@@ -3,6 +3,7 @@ from openpyxl.styles import Font, PatternFill, Alignment
 from django.db.models import Q
 from django.http import HttpResponse
 from datetime import datetime, date
+from main.utils.log_audit_trail import log_audit
 from main.models import (
     tbl_feedback_details, tbl_cmf, tbl_rs, tbl_cmf_dates, 
     tbl_cmf_formula, tbl_cmf_pending_completed, tbl_resins_selected,
@@ -192,6 +193,12 @@ def export_feedback_excel(request):
         f_range = "Empty"
 
     filename = f"Feedback_Report_{f_range}.xlsx"
+     # --- 8. LOG AUDIT ACTION ---
+    range_desc = f"{from_date_str} to {to_date_str}" if from_date_str and to_date_str else "All Records"
+    total_count = len(sorted_data)
+    audit_details = f"Exported Feedback Records to Excel. Range: {range_desc}. Total: {total_count} records."
+
+    log_audit(request, "Exported", audit_details)
     
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     response['Content-Disposition'] = f'attachment; filename="{filename}"'

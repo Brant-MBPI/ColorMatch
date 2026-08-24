@@ -1175,9 +1175,6 @@ def cmf_records_export_preview(request):
     }
     return render(request, "sidemenu/export/cmf_report_preview.html", context)
 
-def cmf_records_export_download(request):
-    # Placeholder — real Excel generation still needs to be built.
-    return HttpResponse("Export download not yet implemented.")
 
 
 
