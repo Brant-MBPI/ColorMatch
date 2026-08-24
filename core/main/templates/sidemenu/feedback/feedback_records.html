@@ -147,15 +147,45 @@
 
     // Trigger Export
     exportBtn.addEventListener('click', function() {
-        const fromDate = document.getElementById('exportDateFrom').value;
-        const toDate = document.getElementById('exportDateTo').value;
+        const fromDate = document.getElementById('exportDateFrom').value.trim();
+        const toDate = document.getElementById('exportDateTo').value.trim();
 
-        // Redirect to the export view with query params
-        let url = "{% url 'export_feedback_excel' %}";
-        const params = new URLSearchParams();
-        if (fromDate) params.append('from', fromDate);
-        if (toDate) params.append('to', toDate);
-        
-        window.location.href = url + '?' + params.toString();
+        // 1. Determine the confirmation message
+        let confirmTitle = 'Export Feedback';
+        let confirmMsg = 'Are you sure you want to export all feedback records?';
+
+        // If both dates are present, change the message to show the range
+        if (fromDate && toDate) {
+            confirmMsg = `Are you sure you want to export feedback records from ${fromDate} to ${toDate}?`;
+        }
+
+        // 2. Trigger Preline Confirmation
+        Preline.confirm(
+            confirmTitle,
+            confirmMsg,
+            'success',
+            () => {
+                // 3. Show global loader
+                if (typeof showLoader === "function") showLoader();
+
+                // 4. Construct URL
+                const baseUrl = "{% url 'export_feedback_excel' %}";
+                const params = new URLSearchParams();
+                
+                // Only add parameters if they actually have values
+                if (fromDate) params.append('from', fromDate);
+                if (toDate) params.append('to', toDate);
+                
+                const exportUrl = params.toString() ? `${baseUrl}?${params.toString()}` : baseUrl;
+
+                // 5. Trigger download
+                window.location.href = exportUrl;
+
+                // 6. Hide loader after a delay
+                setTimeout(() => {
+                    if (typeof hideLoader === "function") hideLoader();
+                }, 3000);
+            }
+        );
     });
 </script>

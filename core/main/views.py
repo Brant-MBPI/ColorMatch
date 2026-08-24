@@ -712,7 +712,6 @@ def cmf_pending_completed(request):
         if isinstance(val, (Decimal, float)):
             return format(float(val), ".2f")
         return str(val).strip()
-
     def parse_date(d_str):
         if not d_str: return None
         try: return datetime.strptime(d_str.strip(), '%m/%d/%Y').date()
@@ -903,7 +902,7 @@ def cmf_pending_completed(request):
                     'record_no': rs.id,
                     'record_type': 'rs',
                 }
-
+                print(tracking.date_submitted)
     return render(request, "sidemenu/cmf/pending_completed.html", {"form_data": form_data})
 
 @role_required
