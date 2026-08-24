@@ -25,7 +25,7 @@ def generate_feedback_excel(date_from=None, date_to=None):
         "Primary Color", "Color Description", "End Product", "Matching Type", "Salesman",
         "Color Req.", "Resin", "Process", "Type of Colorant", "Date Given Sample",
         "Set/PC", "Quantity Given", "Code Submitted", "Dosage", "Lot #", "AR #",
-        "Date Standard & Result", "Comment", "Storage Details"
+        "Status","Date Standard & Result", "Comment", "Storage Details"
     ]
 
     # 2. Styles
@@ -137,6 +137,7 @@ def generate_feedback_excel(date_from=None, date_to=None):
             dosage,
             lot_no,
             pending.ar_no if pending else "",
+            fb.status or "",
             fb.date_sample_received.strftime('%m/%d/%Y') if fb.date_sample_received else "",
             fb.comment or "",
             fb.storage_details or ""
