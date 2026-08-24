@@ -41,6 +41,9 @@ jQuery(document).ready(function($) {
                         // Using Info (Cyan) which looks professional for document actions
                         cls = "bg-info-subtle text-info border-info-subtle"; 
                     }
+                    else if (data === 'Exported') {
+                        cls = "bg-purple-subtle text-purple border-purple-subtle";
+                    }
                     
                     return `<span class="badge ${cls} border px-2">${data}</span>`;
                 }

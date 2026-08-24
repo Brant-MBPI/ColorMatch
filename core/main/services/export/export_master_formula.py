@@ -2,6 +2,8 @@ from datetime import datetime
 from django.http import HttpResponse
 import openpyxl
 from openpyxl.styles import Font
+
+from main.utils.log_audit_trail import log_audit
 from ...models import tbl_master_formula, tbl_master_formula_info
 
 def generate_master_formula_excel(date_from=None, date_to=None):
@@ -116,7 +118,15 @@ def export_master_formula_excel(request):
 
     # Generate WB
     wb = generate_master_formula_excel(date_from, date_to)
+
+# --- LOG TO AUDIT TRAIL ---
+    # Construct the descriptive message
+    date_range_str = f"from {date_from_raw} to {date_to_raw}" if date_from and date_to else "for All Dates"
+    audit_details = f"Exported Master Formula Records to Excel {date_range_str}. Filename: {filename}"
     
+    # Record the action
+    log_audit(request, "Exported", audit_details)
+
     # Prepare response
     response = HttpResponse(
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'

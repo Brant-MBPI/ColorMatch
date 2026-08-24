@@ -3,6 +3,8 @@ from datetime import datetime
 import openpyxl
 from openpyxl.styles import Font
 from django.http import HttpResponse
+
+from main.utils.log_audit_trail import log_audit
 from ...models import tbl_formula01, tbl_formula02
 
 def generate_formulation_excel(date_from=None, date_to=None):
@@ -126,6 +128,14 @@ def export_formulation_excel(request):
     # Generate the workbook
     wb = generate_formulation_excel(date_from, date_to)
 
+    # --- LOG TO AUDIT TRAIL ---
+    # Construct the descriptive message for the admin/audit logs
+    date_range_str = f"from {date_from_raw} to {date_to_raw}" if date_from and date_to else "for All Dates"
+    audit_details = f"Exported Formulation Records to Excel {date_range_str}. Filename: {filename}"
+    
+    # Record the action
+    log_audit(request, "Exported", audit_details)
+    
     # Prepare Response
     response = HttpResponse(
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
