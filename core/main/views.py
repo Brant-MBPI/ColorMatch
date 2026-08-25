@@ -527,13 +527,22 @@ def cmf_mb_formula(request):
         ingredients = [{'material': '', 'value': '', 'weight': ''}] * 10
     user_names = User.objects.filter(is_active=True).exclude(first_name="").values_list('first_name', flat=True).distinct().order_by('first_name')
 
+    # 1. Get CMF numbers
+    cmf_nos = list(tbl_cmf.objects.exclude(cm_no__isnull=True).exclude(cm_no='').values_list('cm_no', flat=True))
+    
+    # 2. Get RS numbers
+    rs_nos = list(tbl_rs.objects.exclude(rs_no__isnull=True).exclude(rs_no='').values_list('rs_no', flat=True))
+    
+    # 3. Combine, unique (set), and sort descending
+    combined_list = sorted(list(set(cmf_nos + rs_nos)), reverse=True)
+
     context = {
         "form_data": form_data,
         "materials": cmf_records_services.get_raw_material_codes(),
         "users": list(user_names),
         "colorant_mismatch": colorant_mismatch,
         "ingredients": ingredients,
-        "cmf_list": tbl_cmf.objects.values_list('cm_no', flat=True).order_by('-cm_no'),
+        "cmf_list": combined_list,
     }
     return render(request, "sidemenu/cmf/formula_mb.html", context)
 
@@ -685,13 +694,22 @@ def cmf_dc_formula(request):
 
     user_names = User.objects.filter(is_active=True).exclude(first_name="").values_list('first_name', flat=True).distinct().order_by('first_name')
 
+    # 1. Get CMF numbers
+    cmf_nos = list(tbl_cmf.objects.exclude(cm_no__isnull=True).exclude(cm_no='').values_list('cm_no', flat=True))
+    
+    # 2. Get RS numbers
+    rs_nos = list(tbl_rs.objects.exclude(rs_no__isnull=True).exclude(rs_no='').values_list('rs_no', flat=True))
+    
+    # 3. Combine, unique (set), and sort descending
+    combined_list = sorted(list(set(cmf_nos + rs_nos)), reverse=True)
+
     context = {
         "form_data": form_data,
         "materials": cmf_records_services.get_raw_material_codes(),
         "users": list(user_names),
         "colorant_mismatch": colorant_mismatch,
         "material_rows": material_rows,
-        "cmf_list": tbl_cmf.objects.values_list('cm_no', flat=True).order_by('-cm_no'),
+        "cmf_list": combined_list,
     }
     return render(request, "sidemenu/cmf/formula_dc.html", context)
 
