@@ -696,7 +696,7 @@ def cmf_dc_formula(request):
     user_names = User.objects.filter(is_active=True).exclude(first_name="").values_list('first_name', flat=True).distinct().order_by('first_name')
 
     # 1. Get CMF numbers
-    cmf_nos = list(tbl_cmf.objects.exclude(cm_no__isnull=True).exclude(cm_no='').values_list('cm_no', flat=True))
+    cmf_nos = list(tbl_cmf.objects.exclude(cm_no__isnull=True).exclude(cm_no='', colorant_type='MB').values_list('cm_no', flat=True))
     
     # 2. Get RS numbers
     rs_nos = list(tbl_rs.objects.exclude(rs_no__isnull=True).exclude(rs_no='').values_list('rs_no', flat=True))

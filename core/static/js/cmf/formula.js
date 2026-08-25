@@ -301,8 +301,7 @@
     const isDC = !!cmfSelectDC;
     const cmfSelectEl = cmfSelectMB || cmfSelectDC;
 
-    async function fetchCmfDetails(cmfNo) {
-        // Map IDs based on which page is active
+    async function fetchCmfDetails(cmfNo, matId = null) {
         const fields = {
             customer: isDC ? 'id_dc_customer' : 'id_customer',
             resin: isDC ? 'id_dc_resin' : 'id_resin_used',
@@ -314,7 +313,11 @@
         };
 
         try {
-            const response = await fetch(`/cmf/mb-dc-formula/?cm_no=${encodeURIComponent(cmfNo)}`);
+            // Pass matId as an extra parameter
+            let url = `/cmf/mb-dc-formula/?cm_no=${encodeURIComponent(cmfNo)}`;
+            if (matId) url += `&mat_id=${encodeURIComponent(matId)}`;
+
+            const response = await fetch(url);
             if (!response.ok) throw new Error('Network response was not ok');
             const data = await response.json();
 
@@ -328,18 +331,45 @@
             setVal(fields.color, data.color);
             setVal(fields.application, data.application);
             setVal(fields.finished_product, data.finished_product);
-            setVal(fields.product, data.product || data.product_code);
+            setVal(fields.product, data.product_code); // Priority to generated code
             setVal(fields.dosage, data.dosage);
 
-            Preline.toast(`Details for ${cmfNo} loaded.`, 'success');
+            if (data.product_code === "(Select Material)") {
+                Preline.toast("CMF details loaded. Please select a Material Code to generate the Product Code.", "info");
+            } else {
+                Preline.toast(`Details for ${cmfNo} loaded.`, 'success');
+            }
             
         } catch (error) {
-            console.error('Error fetching CMF details:', error);
-            
-            Preline.toast('Error fetching details from server.', 'danger');
-            
+            console.error('Error:', error);
+            Preline.toast('Error fetching details.', 'danger');
         }
     }
+    
+    // Add this inside your (function () { ... })(); wrapper
+    const matSelectDC = document.getElementById('id_dc_material_code');
+
+    const initDcMaterialPop = () => {
+        if (matSelectDC && matSelectDC.tagName === 'SELECT') {
+            let tsAttempts = 0;
+            const pollTomSelect = setInterval(() => {
+                tsAttempts++;
+                if (matSelectDC.tomselect) {
+                    clearInterval(pollTomSelect);
+                    
+                    matSelectDC.tomselect.on('change', function(value) {
+                        const cmfNo = cmfSelectEl.value; // Get the currently selected CMF No
+                        if (!value || !cmfNo) return;
+
+                        // Call the same function, but the backend will now have the matId
+                        fetchCmfDetails(cmfNo, value);
+                    });
+                } else if (tsAttempts > 50) {
+                    clearInterval(pollTomSelect);
+                }
+            }, 100);
+        }
+    };
 
     const initAutoPop = () => {
         if (cmfSelectEl && cmfSelectEl.tagName === 'SELECT') {
@@ -369,5 +399,5 @@
     };
 
     initAutoPop();
-
+    initDcMaterialPop();
 })();
