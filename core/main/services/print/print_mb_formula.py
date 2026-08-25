@@ -123,20 +123,20 @@ def _fill_and_export_mb_formula_via_excel(template_abs_path, pdf_path, data):
                 rng.NumberFormat = number_format
 
         # --- HEADER (left block) ---
-        set_cell('B6', header.date.strftime('%m/%d/%Y') if header.date else "")
-        set_cell('B7', header.code.product_code if header.code else "")
-        set_cell('B8', data['customer'])
-        set_cell('B9', header.lot_no)
-        set_cell('B10', data['color'])
+        set_cell('C6', header.date.strftime('%m/%d/%Y') if header.date else "")
+        set_cell('C7', header.code.product_code if header.code else "")
+        set_cell('C8', data['customer'])
+        set_cell('C9', header.lot_no)
+        set_cell('C10', data['color'])
 
         # --- HEADER (right block) ---
-        set_cell('F6', data['parent_no'])
-        set_cell('F7', data['resin'])
+        set_cell('G6', data['parent_no'])
+        set_cell('G7', data['resin'])
         # Dosage: numeric value, 2 decimals + literal "%" suffix, no
         # currency formatting and no x100 percentage conversion.
-        set_cell('F8', _to_num(data['dosage']), number_format=FMT_DOSAGE_PCT)
-        set_cell('F9', header.mixing_time)
-        set_cell('F10', data['application'])
+        set_cell('G8', _to_num(data['dosage']), number_format=FMT_DOSAGE_PCT)
+        set_cell('G9', header.mixing_time)
+        set_cell('G10', data['application'])
 
         # --- MATERIALS (row 1 -> sheet row 13, up to 10 rows) ---
         for i in range(MATERIAL_MAX_ROWS):
@@ -144,27 +144,27 @@ def _fill_and_export_mb_formula_via_excel(template_abs_path, pdf_path, data):
             if i < len(ingredients):
                 ing = ingredients[i]
                 set_cell(f'A{row_num}', ing.material)
-                set_cell(f'B{row_num}', _to_num(ing.value), number_format=FMT_PERCENT_4DP)
-                set_cell(f'F{row_num}', _to_num(ing.weight), number_format=FMT_WEIGHT_7DP_G)
+                set_cell(f'C{row_num}', _to_num(ing.value), number_format=FMT_PERCENT_4DP)
+                set_cell(f'G{row_num}', _to_num(ing.weight), number_format=FMT_WEIGHT_7DP_G)
             else:
                 set_cell(f'A{row_num}', "")
-                set_cell(f'B{row_num}', "", number_format=FMT_PERCENT_4DP)
-                set_cell(f'F{row_num}', "", number_format=FMT_WEIGHT_7DP_G)
+                set_cell(f'C{row_num}', "", number_format=FMT_PERCENT_4DP)
+                set_cell(f'G{row_num}', "", number_format=FMT_WEIGHT_7DP_G)
 
         # --- TOTALS ---
         # "Value" total still summed from ingredient rows.
         total_value = sum((Decimal(ing.value or 0) for ing in ingredients), Decimal('0'))
-        set_cell('B23', _to_num(total_value), number_format=FMT_PERCENT_4DP)
+        set_cell('C23', _to_num(total_value), number_format=FMT_PERCENT_4DP)
 
         # Total Weight comes directly from the saved header field, not
         # summed from ingredient rows.
-        set_cell('F23', _to_num(header.total_weight), number_format=FMT_WEIGHT_7DP_G)
+        set_cell('G23', _to_num(header.total_weight), number_format=FMT_WEIGHT_7DP_G)
 
         # --- PERSONNEL / NOTES ---
         set_cell('B24', header.matched_by)
         set_cell('B25', header.weighted_by)
-        set_cell('C24', header.notes)
-        set_cell('F24', header.encoded_by)
+        set_cell('D24', header.notes)
+        set_cell('G24', header.encoded_by)
 
         # --- PAGE SETUP: zero margins, fit print area to one page ---
         ps = ws.PageSetup
