@@ -309,7 +309,8 @@
             product: isDC ? 'id_dc_product_code' : 'id_product',
             dosage: isDC ? 'id_dc_dosage' : 'id_dosage',
             application: isDC ? 'id_dc_application' : 'id_application',
-            finished_product: isDC ? 'id_dc_finished_product' : 'id_finished_product'
+            finished_product: isDC ? 'id_dc_finished_product' : 'id_finished_product',
+            lot_no: 'id_lot_number' 
         };
         const setVal = (id, val) => {
             const el = document.getElementById(id);
@@ -331,6 +332,7 @@
             setVal(fields.finished_product, data.finished_product);
             setVal(fields.product, data.product_code); // Priority to generated code
             setVal(fields.dosage, data.dosage);
+            setVal(fields.lot_no, data.lot_no);
 
             if (data.product_code === "(Select Material)") {
                 Preline.toast("CMF details loaded. Please select a Material Code to generate the Product Code.", "info");

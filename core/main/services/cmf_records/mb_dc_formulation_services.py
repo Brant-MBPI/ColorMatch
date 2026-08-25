@@ -2,7 +2,7 @@ import re
 from django.http import JsonResponse
 from django.db.models import Max
 from main.models import (
-    tbl_cmf, tbl_cmf_formula, tbl_coding_materials, tbl_resins_selected, 
+    tbl_cmf, tbl_cmf_formula, tbl_coding_materials, tbl_mb_extruder_formula, tbl_resins_selected, 
     tbl_cmf_process02, tbl_master_formula, tbl_generated_prod_code
 )
 
@@ -26,7 +26,7 @@ def get_formulation_details(request):
 
     # 2. Product Code Generation
     generated_code = ""
-    
+    generated_lot = ""
     if colorant_type == 'MB':
         # Get the prefix letter (e.g., 'G')
         prefix = cmf.in_code_no.code if cmf.in_code_no else ""
@@ -60,6 +60,25 @@ def get_formulation_details(request):
             # Format back to string: Prefix + A + 5-digit zero-padded number + E
             # Example: G + A + 32213 + E = GA32213E
             generated_code = f"{prefix}A{str(new_num).zfill(5)}E"
+
+            # --- LOT NUMBER LOGIC (NEW) ---
+        lot_prefix = "CMA-"
+        # Fetch all lots starting with CMA-
+        existing_lots = tbl_mb_extruder_formula.objects.filter(lot_no__startswith=lot_prefix).values_list('lot_no', flat=True)
+        
+        lot_nums = []
+        for lot in existing_lots:
+            # Extract digits after "CMA-"
+            match = re.search(r'CMA-(\d+)', str(lot))
+            if match:
+                lot_nums.append(int(match.group(1)))
+        
+        if lot_nums:
+            next_lot_val = max(lot_nums) + 1
+            generated_lot = f"CMA-{next_lot_val}"
+        else:
+            # Default starting point if no records exist
+            generated_lot = "CMA-10001"
     
     elif colorant_type == 'DC':
         if not mat_id:
@@ -107,6 +126,7 @@ def get_formulation_details(request):
         'color': cmf.in_code_no.color if cmf.in_code_no else (cmf.color_desc or ""),
         'product_code': generated_code if generated_code else (cmf.in_code_no.code if cmf.in_code_no else ""),
         'dosage': formula_info.dosage if formula_info else "",
+        'lot_no': generated_lot,
         'application': app_str,
         'finished_product': formula_info.finished_product if formula_info else "",
         'colorant_type': colorant_type,
