@@ -25,14 +25,8 @@ am5.ready(function() {
     }));
 
     // === DATA (Full Year) ===
-    let data = [
-        { month: "Feb", matches: 55, rematches: 15 },
-        { month: "Mar", matches: 80, rematches: 25 },
-        { month: "Apr", matches: 45, rematches: 12 },
-        { month: "May", matches: 60, rematches: 20 },
-        { month: "Jun", matches: 70, rematches: 22 },
-        { month: "Jul", matches: 85, rematches: 30 }
-    ];
+    let dataEl = document.getElementById("monthly-chart-data");
+    let data = dataEl ? JSON.parse(dataEl.textContent) : [];
 
     // === COLOR PALETTE (theme-aware) ===
     function getThemeColors() {
@@ -157,8 +151,12 @@ am5.ready(function() {
 
     // === FORCED ZOOM TO BOTTOM 5 (LARGE BARS) ===
     // We use ready event to ensure the chart is fully calculated before zooming
+    // chart.events.on("ready", function() {
+    //     yAxis.zoomToIndexes(data.length - 5, data.length);
+    // });
     chart.events.on("ready", function() {
-        yAxis.zoomToIndexes(data.length - 5, data.length);
+        let startIndex = Math.max(0, data.length - 5);
+        yAxis.zoomToIndexes(startIndex, data.length);
     });
 
     // === LEGEND ===

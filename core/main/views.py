@@ -1,3 +1,4 @@
+from collections import defaultdict
 from decimal import Decimal
 import base64
 from django.core.cache import cache
@@ -10,7 +11,7 @@ from django.db.models.functions import Concat
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib import messages
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from django.utils import timezone
 
 from main.utils.log_audit_trail import log_audit
@@ -106,7 +107,76 @@ def signout(request):
 
 @role_required # This now handles both login AND role check
 def dashboard(request):
-    return render(request, "sidemenu/dashboard/dashboard.html")
+    today = timezone.localdate()
+
+    # --- Week boundaries: week runs Sunday -> Saturday ---
+    # Python weekday(): Mon=0 ... Sun=6. Convert so Sunday=0 days-since-Sunday.
+    days_since_sunday = (today.weekday() + 1) % 7
+    start_this_week = today - timedelta(days=days_since_sunday)      # this week's Sunday
+    start_last_week = start_this_week - timedelta(days=7)            # last week's Sunday
+    end_last_week = start_this_week - timedelta(days=1)               # last week's Saturday
+
+    completed_marker = "Status (Pending -> Completed)"
+
+    completed_this_week = tbl_audit_trail.objects.filter(
+        details__icontains=completed_marker,
+        timestamp__date__gte=start_this_week,
+        timestamp__date__lte=today,
+    ).count()
+
+    completed_last_week = tbl_audit_trail.objects.filter(
+        details__icontains=completed_marker,
+        timestamp__date__gte=start_last_week,
+        timestamp__date__lte=end_last_week,
+    ).count()
+
+    if completed_last_week == 0:
+        percent_change = 100 if completed_this_week > 0 else 0
+    else:
+        percent_change = round(
+            ((completed_this_week - completed_last_week) / completed_last_week) * 100
+        )
+
+    trend = "up" if completed_this_week >= completed_last_week else "down"
+
+    # --- Monthly matches / rematches from the two formula tables ---
+    monthly = defaultdict(lambda: {"matches": 0, "rematches": 0})
+
+    formula_rows = list(
+        tbl_mb_extruder_formula.objects
+        .exclude(date__isnull=True)
+        .values("date", "cm_no_id")          # cm_no_id = raw cm_no string (to_field FK)
+    ) + list(
+        tbl_dc_extruder_formula.objects
+        .exclude(date__isnull=True)
+        .values("date", "cm_no_id")
+    )
+
+    for row in formula_rows:
+        record_date = row["date"]
+        cm_no = (row["cm_no_id"] or "").strip()
+
+        sort_key = record_date.strftime("%Y-%m")   # for chronological ordering
+        label = record_date.strftime("%b")          # 3-letter month, e.g. "Aug"
+
+        bucket = monthly[(sort_key, label)]
+        if not cm_no or cm_no[-1].lower() == "a":
+            bucket["matches"] += 1
+        else:
+            bucket["rematches"] += 1
+
+    monthly_chart_data = [
+        {"month": label, "matches": vals["matches"], "rematches": vals["rematches"]}
+        for (sort_key, label), vals in sorted(monthly.items(), key=lambda item: item[0][0])
+    ]
+
+    context = {
+        "completed_this_week": completed_this_week,
+        "percent_change": abs(percent_change),
+        "trend": trend,
+        "monthly_chart_data": monthly_chart_data,  # pass the raw list, not json.dumps'd
+    }
+    return render(request, "sidemenu/dashboard/dashboard.html", context)
 
 
 def otherPage(request):
