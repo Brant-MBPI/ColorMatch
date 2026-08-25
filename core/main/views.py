@@ -528,10 +528,20 @@ def cmf_mb_formula(request):
     user_names = User.objects.filter(is_active=True).exclude(first_name="").values_list('first_name', flat=True).distinct().order_by('first_name')
 
     # 1. Get CMF numbers
-    cmf_nos = list(tbl_cmf.objects.exclude(cm_no__isnull=True).exclude(cm_no='').values_list('cm_no', flat=True))
+    cmf_nos = list(
+        tbl_cmf.objects.filter(colorant_type='MB')
+        .exclude(cm_no__isnull=True)
+        .exclude(cm_no='')
+        .values_list('cm_no', flat=True)
+    )
     
-    # 2. Get RS numbers
-    rs_nos = list(tbl_rs.objects.exclude(rs_no__isnull=True).exclude(rs_no='').values_list('rs_no', flat=True))
+    # 2. Get RS numbers where colorant_type is MB
+    rs_nos = list(
+        tbl_rs.objects.filter(colorant_type='MB')
+        .exclude(rs_no__isnull=True)
+        .exclude(rs_no='')
+        .values_list('rs_no', flat=True)
+    )
     
     # 3. Combine, unique (set), and sort descending
     combined_list = sorted(list(set(cmf_nos + rs_nos)), reverse=True)
@@ -696,10 +706,20 @@ def cmf_dc_formula(request):
     user_names = User.objects.filter(is_active=True).exclude(first_name="").values_list('first_name', flat=True).distinct().order_by('first_name')
 
     # 1. Get CMF numbers
-    cmf_nos = list(tbl_cmf.objects.exclude(cm_no__isnull=True).exclude(cm_no='', colorant_type='MB').values_list('cm_no', flat=True))
+    cmf_nos = list(
+        tbl_cmf.objects.filter(colorant_type='DC')
+        .exclude(cm_no__isnull=True)
+        .exclude(cm_no='')
+        .values_list('cm_no', flat=True)
+    )
     
-    # 2. Get RS numbers
-    rs_nos = list(tbl_rs.objects.exclude(rs_no__isnull=True).exclude(rs_no='').values_list('rs_no', flat=True))
+    # 2. Get RS numbers where colorant_type is DC
+    rs_nos = list(
+        tbl_rs.objects.filter(colorant_type='DC')
+        .exclude(rs_no__isnull=True)
+        .exclude(rs_no='')
+        .values_list('rs_no', flat=True)
+    )
     
     # 3. Combine, unique (set), and sort descending
     combined_list = sorted(list(set(cmf_nos + rs_nos)), reverse=True)

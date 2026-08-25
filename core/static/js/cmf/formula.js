@@ -311,7 +311,10 @@
             application: isDC ? 'id_dc_application' : 'id_application',
             finished_product: isDC ? 'id_dc_finished_product' : 'id_finished_product'
         };
-
+        const setVal = (id, val) => {
+            const el = document.getElementById(id);
+            if (el) el.value = val || '';
+        };
         try {
             // Pass matId as an extra parameter
             let url = `/cmf/mb-dc-formula/?cm_no=${encodeURIComponent(cmfNo)}`;
@@ -320,11 +323,6 @@
             const response = await fetch(url);
             if (!response.ok) throw new Error('Network response was not ok');
             const data = await response.json();
-
-            const setVal = (id, val) => {
-                const el = document.getElementById(id);
-                if (el) el.value = val || '';
-            };
 
             setVal(fields.customer, data.customer);
             setVal(fields.resin, data.resin_used || data.resin);
@@ -341,7 +339,7 @@
             }
             
         } catch (error) {
-            console.error('Error:', error);
+            Object.values(fields).forEach(id => setVal(id, ''));
             Preline.toast('Error fetching details.', 'danger');
         }
     }
