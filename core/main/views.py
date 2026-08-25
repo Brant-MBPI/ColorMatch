@@ -5,7 +5,8 @@ from django.core.management import call_command
 from django.contrib.auth import authenticate, login, logout, get_user_model 
 from django.contrib.auth.models import User
 from django.db import transaction
-from django.db.models import Max, Min
+from django.db.models import Max, Min, Value
+from django.db.models.functions import Concat
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib import messages
@@ -525,7 +526,14 @@ def cmf_mb_formula(request):
 
     if not ingredients:
         ingredients = [{'material': '', 'value': '', 'weight': ''}] * 10
-    user_names = User.objects.filter(is_active=True).exclude(first_name="").values_list('first_name', flat=True).distinct().order_by('first_name')
+    user_names = (
+        User.objects.filter(is_active=True)
+        .exclude(first_name="")
+        .annotate(full_name=Concat('first_name', Value(' '), 'last_name'))
+        .values_list('full_name', flat=True)
+        .distinct()
+        .order_by('full_name')
+    )
 
     # 1. Get CMF numbers
     cmf_nos = list(
@@ -703,7 +711,14 @@ def cmf_dc_formula(request):
     if not material_rows:
         material_rows = [{'material': '', 'versions': [None] * 10} for _ in range(10)]
 
-    user_names = User.objects.filter(is_active=True).exclude(first_name="").values_list('first_name', flat=True).distinct().order_by('first_name')
+    user_names = (
+        User.objects.filter(is_active=True)
+        .exclude(first_name="")
+        .annotate(full_name=Concat('first_name', Value(' '), 'last_name'))
+        .values_list('full_name', flat=True)
+        .distinct()
+        .order_by('full_name')
+    )
 
     # 1. Get CMF numbers
     cmf_nos = list(
