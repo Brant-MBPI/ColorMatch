@@ -398,4 +398,58 @@
 
     initAutoPop();
     initDcMaterialPop();
+
+    const init = () => {
+        if (!cmfSelectEl) return;
+
+        // 1. Handle URL Redirects (Automatic Load)
+        const params = new URLSearchParams(window.location.search);
+        const recordNo = params.get('no');
+        const recordType = params.get('type');
+        const formulaId = params.get('formula_id');
+
+        // Only auto-trigger if type is 'cmf' and it's not a saved formula edit
+        if (recordNo && recordType === 'cmf' && !formulaId) {
+            // Wait for TomSelect to be ready
+            const checkTS = setInterval(() => {
+                if (cmfSelectEl.tomselect) {
+                    clearInterval(checkTS);
+                    // Set value visually in dropdown
+                    cmfSelectEl.tomselect.setValue(recordNo, true); // 'true' silent mode
+                    // Call AJAX immediately for CMF
+                    fetchCmfDetails(recordNo);
+                }
+            }, 100);
+        }
+
+        // 2. Handle Manual Selection Changes
+        if (cmfSelectEl.tagName === 'SELECT') {
+            const checkTSManual = setInterval(() => {
+                if (cmfSelectEl.tomselect) {
+                    clearInterval(checkTSManual);
+                    
+                    cmfSelectEl.tomselect.on('change', function(value) {
+                        if (!value) return;
+
+                        // Check if value was already populated by Django (for RS)
+                        // If it's a manual change by user, we always show confirmation
+                        if (window.Preline && typeof Preline.confirm === 'function') {
+                            Preline.confirm(
+                                'Load Record Details?',
+                                `Do you want to automatically fill the form with details from CMF #${value}?`,
+                                'info',
+                                () => fetchCmfDetails(value),
+                                () => {}
+                            );
+                        } else {
+                            if (confirm(`Load details for ${value}?`)) fetchCmfDetails(value);
+                        }
+                    });
+                }
+            }, 100);
+        }
+    };
+
+    // Run when page is ready
+    window.addEventListener('load', init);
 })();
