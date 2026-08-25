@@ -111,21 +111,36 @@ def get_master_formula_records_json(request):
     draw = int(request.GET.get('draw', 1))
     start = int(request.GET.get('start', 0))
     length = int(request.GET.get('length', 1000))
+    
     search_value = request.GET.get('search[value]', '').strip()
+    search_col = request.GET.get('search_column', 'all') # New parameter
     
     queryset = tbl_master_formula.objects.filter(is_deleted=False)
     total_records = queryset.count()
 
+    # Apply Column-Specific Search
     if search_value:
-        queryset = queryset.filter(
-            Q(form_id__icontains=search_value) |
-            Q(index_no__icontains=search_value) |
-            Q(customer__icontains=search_value) |
-            Q(product_code__icontains=search_value) |
-            Q(prod_color__icontains=search_value)
-        )
+        if search_col == 'form_id':
+            queryset = queryset.filter(form_id__icontains=search_value)
+        elif search_col == 'index_no':
+            queryset = queryset.filter(index_no__icontains=search_value)
+        elif search_col == 'customer':
+            queryset = queryset.filter(customer__icontains=search_value)
+        elif search_col == 'product_code':
+            queryset = queryset.filter(product_code__icontains=search_value)
+        elif search_col == 'prod_color':
+            queryset = queryset.filter(prod_color__icontains=search_value)
+        else:
+            # "All Fields" search (Default)
+            queryset = queryset.filter(
+                Q(form_id__icontains=search_value) |
+                Q(index_no__icontains=search_value) |
+                Q(customer__icontains=search_value) |
+                Q(product_code__icontains=search_value) |
+                Q(prod_color__icontains=search_value)
+            )
 
-    # Column Ordering
+    # Column Ordering (Kept Same)
     order_col = request.GET.get('order[0][column]', '0')
     order_dir = request.GET.get('order[0][dir]', 'desc')
     mapping = {'0': 'form_id', '1': 'index_no', '2': 'customer', '3': 'product_code', '4': 'prod_color'}

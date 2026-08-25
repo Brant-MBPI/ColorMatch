@@ -5,6 +5,17 @@
             <h5 class="fw-bold m-0 mf-title text-uppercase">Formulation Records</h5>
             <small id="mfSelectedRecordLabel" class="text-muted"></small>
         </div>
+         <!-- NEW: Column Selection Dropdown -->
+        <div class="col-md-2">
+            <select id="searchCol" class="form-select form-select-sm uniform-input">
+                <option value="all" selected>All Fields</option>
+                <option value="form_id">Form ID</option>
+                <option value="index_no">Index #</option>
+                <option value="customer">Customer</option>
+                <option value="prod_code">Product Code</option>
+                <option value="prod_color">Product Color</option>
+            </select>
+        </div>
         <div class="col-md-4">
             <div class="input-group input-group-sm">
                 <input type="text" id="formulaRecordSearch" class="form-control uniform-input ps-2 border-end-0" placeholder="Search records...">
@@ -160,6 +171,7 @@
                 type: "GET",
                 data: function(d) {
                     d.length = $('#mfTableLength').val() || 1000; 
+                    d.search_column = $('#searchCol').val();
                 }
             },
             columns: [

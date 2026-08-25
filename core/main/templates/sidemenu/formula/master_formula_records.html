@@ -5,6 +5,16 @@
             <h5 class="fw-bold m-0 mf-title text-uppercase">Master Formula Records</h5>
             <small id="mfSelectedRecordLabel" class="text-muted"></small>
         </div>
+        <div class="col-md-2">
+            <select id="searchColMaster" class="form-select form-select-sm uniform-input">
+                <option value="all" selected>All Fields</option>
+                <option value="form_id">Form ID</option>
+                <option value="index_no">Index #</option>
+                <option value="customer">Customer</option>
+                <option value="product_code">Product Code</option>
+                <option value="prod_color">Product Color</option>
+            </select>
+        </div>
         <div class="col-md-4">
             <div class="input-group input-group-sm">
                 <input type="text" id="mfRecordSearch" class="form-control uniform-input ps-2 border-end-0" placeholder="Search records...">
@@ -151,6 +161,7 @@
                 type: "GET",
                 data: function(d) {
                     d.length = $('#mfTableLength').val(); 
+                    d.search_column = $('#searchColMaster').val();
                 }
             },
             columns: [
