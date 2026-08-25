@@ -22,7 +22,7 @@
 
         if (masterWeight > 0 && percent >= 0) {
             const calculatedWeight = masterWeight * (percent / 100);
-            weightInput.value = calculatedWeight.toFixed(4);
+            weightInput.value = calculatedWeight.toFixed(6);
         } else if (percent === 0) {
             weightInput.value = "";
         }
@@ -45,13 +45,13 @@
 
         // Update Footer UI
         if (summaryTotalPercent) {
-            summaryTotalPercent.value = totalPct.toFixed(4);
+            summaryTotalPercent.value = totalPct.toFixed(6);
             // Visual Validation: Red if not 100%
             summaryTotalPercent.style.color = (totalPct.toFixed(2) !== "100.00") ? "#dc3545" : "#198754";
         }
 
         if (summaryTotalWeight) {
-            summaryTotalWeight.value = totalWgt.toFixed(4);
+            summaryTotalWeight.value = totalWgt.toFixed(6);
             // Visual Validation: Red if doesn't match supposed weight
             const masterWgt = parseFloat(supposedWeightInput.value) || 0;
             summaryTotalWeight.style.color = (totalWgt.toFixed(2) !== masterWgt.toFixed(2)) ? "#dc3545" : "#198754";

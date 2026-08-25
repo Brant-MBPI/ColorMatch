@@ -482,6 +482,39 @@ def cmf_mb_formula(request):
         cmf = None  # only set when record_type == 'cmf'
         rs = None   # only set when record_type == 'rs'
 
+        if record_no and record_type == 'cmf':
+            cmf = tbl_cmf.objects.filter(cm_no=record_no).first()
+            if cmf:
+                colorant_mismatch = cmf.colorant_type != "MB"
+
+                formula_info = tbl_cmf_formula.objects.filter(cm_no=record_no).first()
+
+                resins_list = tbl_resins_selected.objects.filter(
+                    cm_no=record_no
+                ).values_list('resin_no__abbreviation', flat=True)
+                resin_used_str = ", ".join(resins_list)
+
+                processes = tbl_cmf_process02.objects.filter(
+                    cmf_formula_no__cm_no=record_no
+                ).values_list('process_no__name', flat=True)
+                application_str = ", ".join(processes)
+
+                form_data = {
+                    'cm_form_no': record_no,
+                    'record_id': record_no,
+                    'customer': formula_info.customer if formula_info else "",
+                    'resin_used': resin_used_str,
+                    'dosage': formula_info.dosage if formula_info else "",
+                    'finished_product': formula_info.finished_product if formula_info else "",
+                    'notes': formula_info.finished_product if formula_info else "",
+                    'color': cmf.in_code_no.color if cmf.in_code_no else "",
+                    'product': cmf.in_code_no.code if cmf.in_code_no else "",
+                    'application': application_str,
+                    'record_type': 'cmf',
+                }
+            else:
+                messages.error(request, f"CMF No. {record_no} not found.")
+
         if record_no and record_type == 'rs':
             rs = tbl_rs.objects.filter(id=record_no).first()
             if rs:
@@ -626,34 +659,34 @@ def cmf_dc_formula(request):
         cmf = None  # only set when record_type == 'cmf'
         rs = None   # only set when record_type == 'rs'
 
-        # if record_no and record_type == 'cmf':
-        #     cmf = tbl_cmf.objects.filter(cm_no=record_no).first()
-        #     if cmf:
-        #         colorant_mismatch = cmf.colorant_type != "DC"
+        if record_no and record_type == 'cmf':
+            cmf = tbl_cmf.objects.filter(cm_no=record_no).first()
+            if cmf:
+                colorant_mismatch = cmf.colorant_type != "DC"
 
-        #         formula_info = tbl_cmf_formula.objects.filter(cm_no=record_no).first()
+                formula_info = tbl_cmf_formula.objects.filter(cm_no=record_no).first()
 
-        #         resins_list = tbl_resins_selected.objects.filter(cm_no=record_no).values_list('resin_no__abbreviation', flat=True)
-        #         resin_str = ", ".join(resins_list)
+                resins_list = tbl_resins_selected.objects.filter(cm_no=record_no).values_list('resin_no__abbreviation', flat=True)
+                resin_str = ", ".join(resins_list)
 
-        #         processes = tbl_cmf_process02.objects.filter(cmf_formula_no__cm_no=record_no).values_list('process_no__name', flat=True)
-        #         app_str = ", ".join(processes)
+                processes = tbl_cmf_process02.objects.filter(cmf_formula_no__cm_no=record_no).values_list('process_no__name', flat=True)
+                app_str = ", ".join(processes)
 
-        #         form_data = {
-        #             'cm_form_no': record_no,
-        #             'record_id': record_no,
-        #             'customer': formula_info.customer if formula_info else "",
-        #             'resin': resin_str,
-        #             'dosage': formula_info.dosage if formula_info else "",
-        #             'finished_product': formula_info.finished_product if formula_info else "",
-        #             'color': cmf.in_code_no.color if cmf.in_code_no else "",
-        #             'application': app_str,
-        #             'record_type': 'cmf',
-        #         }
-        #     else:
-        #         messages.error(request, f"CMF No. {record_no} not found.")
+                form_data = {
+                    'cm_form_no': record_no,
+                    'record_id': record_no,
+                    'customer': formula_info.customer if formula_info else "",
+                    'resin': resin_str,
+                    'dosage': formula_info.dosage if formula_info else "",
+                    'finished_product': formula_info.finished_product if formula_info else "",
+                    'color': cmf.in_code_no.color if cmf.in_code_no else "",
+                    'application': app_str,
+                    'record_type': 'cmf',
+                }
+            else:
+                messages.error(request, f"CMF No. {record_no} not found.")
 
-        if record_no and record_type == 'rs':
+        elif record_no and record_type == 'rs':
             rs = tbl_rs.objects.filter(pk=record_no).first()
             if rs:
                 colorant_mismatch = rs.colorant_type != "DC"

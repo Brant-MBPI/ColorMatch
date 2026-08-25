@@ -23,7 +23,7 @@ def save_mb_complete_formula(request):
         """Standardizes values to readable strings for audit comparison."""
         if val is None or val == "" or val == "None": return "---"
         if isinstance(val, (Decimal, float)):
-            return format(float(val), ".4f")
+            return format(float(val), ".6f")
         if isinstance(val, (date, datetime)):
             return val.strftime('%m/%d/%Y')
         return str(val).strip()

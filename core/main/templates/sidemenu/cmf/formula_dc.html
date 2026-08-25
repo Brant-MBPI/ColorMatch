@@ -243,7 +243,7 @@ Formula DC
                                     </td>
                                     {% for val in row.versions %}
                                     <td class="py-1">
-                                        <input type="number" step="0.000001"
+                                        <input type="number" step="any"
                                                name="value_{{ forloop.parentloop.counter }}_{{ forloop.counter }}"
                                                class="table-input text-center js-version-value"
                                                data-row="{{ forloop.parentloop.counter }}"
