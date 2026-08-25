@@ -170,11 +170,14 @@ def dashboard(request):
         for (sort_key, label), vals in sorted(monthly.items(), key=lambda item: item[0][0])
     ]
 
+    pending_count = tbl_cmf_pending_completed.objects.filter(is_completed=False).count()
+
     context = {
         "completed_this_week": completed_this_week,
         "percent_change": abs(percent_change),
         "trend": trend,
         "monthly_chart_data": monthly_chart_data,  # pass the raw list, not json.dumps'd
+        "pending_count": pending_count,
     }
     return render(request, "sidemenu/dashboard/dashboard.html", context)
 
