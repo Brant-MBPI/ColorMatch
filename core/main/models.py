@@ -475,6 +475,7 @@ class tbl_dc_extruder_formula(models.Model):
     is_final = models.BooleanField(default=False)
     in_master_formula = models.BooleanField(default=False)
     rs_no = models.ForeignKey('tbl_rs', on_delete=models.SET_NULL, blank=True, null=True, db_column='rs_id')
+    material_code = models.ForeignKey(tbl_coding_materials, on_delete=models.SET_NULL, null=True, blank=True, db_column="lab_material_no")
     L = models.DecimalField(max_digits=10, decimal_places=3, blank=True, null=True)
     A = models.DecimalField(max_digits=10, decimal_places=3, blank=True, null=True)
     B = models.DecimalField(max_digits=10, decimal_places=3, blank=True, null=True)

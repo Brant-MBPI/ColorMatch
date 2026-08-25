@@ -5,7 +5,8 @@ from django.db import IntegrityError, transaction
 from main.utils.log_audit_trail import log_audit
 from ...models import (
     tbl_cmf, tbl_rs, tbl_generated_prod_code,
-    tbl_dc_extruder_formula, tbl_dc_extruder_materials, tbl_dc_extruder_version
+    tbl_dc_extruder_formula, tbl_dc_extruder_materials, tbl_dc_extruder_version,
+    tbl_coding_materials
 )
 
 MAX_MATERIAL_ROWS = 10
@@ -40,7 +41,7 @@ def save_dc_complete_formula(request):
             'total_weight': 'Total Weight', 'html': 'sRGB Hex',
             'L': 'Spectro L', 'A': 'Spectro A', 'B': 'Spectro B',
             'C': 'Spectro C', 'H': 'Spectro H', 'notes': 'Note',
-            'code': 'Product Code'
+            'code': 'Product Code', 'material_code': 'Material Code'
         }
         return mapping.get(field, field.replace('_', ' ').title())
 
@@ -49,6 +50,10 @@ def save_dc_complete_formula(request):
             # 1. Resolve Product Code
             prod_code_str = post_data.get('product_code', '').strip()
             prod_code_obj, _ = tbl_generated_prod_code.objects.get_or_create(product_code=prod_code_str) if prod_code_str else (None, False)
+
+            # Resolve Material Code Instance
+            mat_code_id = post_data.get('material_code_id')
+            mat_code_obj = tbl_coding_materials.objects.filter(pk=mat_code_id).first() if mat_code_id else None
 
             # 2. Resolve Parent
             cmf_obj = None
@@ -76,6 +81,7 @@ def save_dc_complete_formula(request):
                 'cm_no': cmf_obj,
                 'rs_no': rs_obj,
                 'code': prod_code_obj,
+                'material_code': mat_code_obj,
                 'sample_size': post_data.get('sample_size'),
                 'mixing_time': post_data.get('mixing_time'),
                 'notes': post_data.get('note'),
@@ -96,6 +102,7 @@ def save_dc_complete_formula(request):
             }
 
             diff_logs = []
+            
 
             # --- Capture old materials/versions BEFORE any changes, for
             # the audit-log diff comparison further down.
@@ -114,6 +121,9 @@ def save_dc_complete_formula(request):
                     if field == 'code':
                         curr_str = format_val(current_val.product_code if current_val else "")
                         new_str = format_val(new_val.product_code if new_val else "")
+                    elif field == 'material_code':
+                        curr_str = format_val(current_val.name if current_val else "")
+                        new_str = format_val(new_val.name if new_val else "")
                     elif field in ['cm_no', 'rs_no']:
                         continue
                     else:
@@ -161,7 +171,7 @@ def save_dc_complete_formula(request):
                         'version_no': version_no,
                         'value': value_decimal,
                     })
-
+            # Audit Diff Comparison
             def _norm(snapshot):
                 return sorted(
                     (s['material__material'], s['version_no'], str(s['value']))

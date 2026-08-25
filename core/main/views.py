@@ -18,7 +18,7 @@ from main.services.save import mb_formula_save, dc_formula_save, rs_entry_save
 from main.decorators import role_required
 from main.models import (
     tbl_audit_trail, tbl_cmf, tbl_cmf_dates, tbl_cmf_formula, tbl_cmf_pending_completed, 
-    tbl_cmf_process02, tbl_cmf_process02, tbl_cmf_scanned, tbl_cmf_specification02, tbl_dc_extruder_formula, 
+    tbl_cmf_process02, tbl_cmf_process02, tbl_cmf_scanned, tbl_cmf_specification02, tbl_coding_materials, tbl_dc_extruder_formula, 
     tbl_dc_extruder_materials, tbl_feedback_details, tbl_generated_prod_code, tbl_internal_color_code, tbl_master_formula, tbl_master_formula_encode, tbl_master_formula_info, tbl_mb_extruder_formula, 
     tbl_mb_extruder_formula02, tbl_resin, tbl_cmf_salesman, tbl_resins_selected, 
     tbl_cmf_color_req, tbl_cmf_specification, tbl_cmf_process, tbl_rs
@@ -644,6 +644,7 @@ def cmf_dc_formula(request):
                     'formula_id': header.pk,
                     'date_matched': header.date.strftime('%m/%d/%Y') if header.date else "",
                     'product_code': header.code.product_code if header.code else "",
+                    'material_code_id': header.material_code_id or "",
                     'sample_size': header.sample_size or "",
                     'mixing_time': header.mixing_time or "",
                     'note': header.notes or "",
@@ -702,7 +703,7 @@ def cmf_dc_formula(request):
     
     # 3. Combine, unique (set), and sort descending
     combined_list = sorted(list(set(cmf_nos + rs_nos)), reverse=True)
-
+    coding_materials = tbl_coding_materials.objects.filter(is_deleted=False).order_by('name')
     context = {
         "form_data": form_data,
         "materials": cmf_records_services.get_raw_material_codes(),
@@ -710,6 +711,7 @@ def cmf_dc_formula(request):
         "colorant_mismatch": colorant_mismatch,
         "material_rows": material_rows,
         "cmf_list": combined_list,
+        "coding_materials": coding_materials,
     }
     return render(request, "sidemenu/cmf/formula_dc.html", context)
 
