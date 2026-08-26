@@ -113,8 +113,8 @@ def dashboard(request):
     return render(request, "sidemenu/dashboard/dashboard.html", context)
 
 
-def otherPage(request):
-    return render(request, "sidemenu/other.html")
+def homepage(request):
+    return render(request, "sidemenu/homepage.html")
 
 
 @role_required

@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block navigation %} Home {% endblock navigation %}
+
+{% block content %}
+<style>
+    .welcome-hero {
+        position: relative;
+        min-height: 70vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        overflow: hidden;
+        border-radius: 1rem;
+        background: #0f1115;
+        color: #fff;
+        padding: 3rem 1.5rem;
+    }
+
+    .welcome-hero .glow-blob {
+        position: absolute;
+        width: 380px;
+        height: 380px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(40,167,69,0.35) 0%, rgba(40,167,69,0) 70%);
+        top: -120px;
+        left: -100px;
+        filter: blur(10px);
+        pointer-events: none;
+    }
+
+    .welcome-hero .glow-blob-secondary {
+        position: absolute;
+        width: 320px;
+        height: 320px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(13,110,253,0.30) 0%, rgba(13,110,253,0) 70%);
+        bottom: -100px;
+        right: -80px;
+        filter: blur(10px);
+        pointer-events: none;
+    }
+
+    .welcome-hero .logo-box {
+        width: 56px;
+        height: 56px;
+        border-radius: 0.75rem;
+        background: linear-gradient(135deg, #28a745, #0d6efd);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1.5rem;
+        margin-bottom: 1.25rem;
+        z-index: 1;
+    }
+
+    .welcome-hero .eyebrow {
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        color: rgba(255,255,255,0.55);
+        z-index: 1;
+    }
+
+    .welcome-hero h1 {
+        font-weight: 700;
+        font-size: 2.25rem;
+        margin: 0.5rem 0 0.75rem;
+        z-index: 1;
+    }
+
+    .welcome-hero h1 span {
+        color: #28a745;
+    }
+
+    .welcome-hero p.desc {
+        max-width: 480px;
+        color: rgba(255,255,255,0.65);
+        z-index: 1;
+        margin-bottom: 2rem;
+    }
+
+    .welcome-hero .info-row {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        justify-content: center;
+        z-index: 1;
+    }
+
+    .welcome-hero .info-pill {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(255,255,255,0.06);
+        border: 1px solid rgba(255,255,255,0.1);
+        padding: 0.6rem 1rem;
+        border-radius: 2rem;
+        font-size: 0.875rem;
+        color: rgba(255,255,255,0.75);
+    }
+
+    .welcome-hero .info-pill i {
+        color: #28a745;
+    }
+</style>
+
+<div class="welcome-hero">
+    <div class="glow-blob"></div>
+    <div class="glow-blob-secondary"></div>
+
+    <div class="logo-box">M</div>
+    <div class="eyebrow">MBPI Systems</div>
+    <h1>Welcome, {{ user.first_name|default:"User" }}<span>.</span></h1>
+    <p class="desc">
+        You're signed in to the MBPI internal system. This page is your homepage —
+        head over to the sidebar to access the tools available to your department.
+    </p>
+
+    <div class="info-row">
+        <div class="info-pill">
+            <i class="bi bi-building"></i> {{ user.role.department|default:"Department not set" }}
+        </div>
+        <div class="info-pill">
+            <i class="bi bi-clock-history"></i> Last login: {{ user.last_login|date:"M d, Y - h:i A" }}
+        </div>
+    </div>
+</div>
+{% endblock content %}

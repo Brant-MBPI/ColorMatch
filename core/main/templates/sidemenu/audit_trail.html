@@ -19,10 +19,17 @@ Audit Trail
                 <!-- Department Filter -->
                 <div class="col-md-2">
                     <select class="form-select form-select-sm uniform-input" id="filterDept">
-                        <option value="all">All Department</option>
-                        <option value="Information Technology">Information Technology</option>
-                        <option value="Sales">Sales</option>
-                        <option value="Laboratory">Laboratory</option>
+                        {% if user.role.department == "Information Technology" %}
+                            <!-- IT View: Full access to all filters -->
+                            <option value="all" selected>All Department</option>
+                            <option value="Information Technology">Information Technology</option>
+                            <option value="Sales">Sales</option>
+                            <option value="Laboratory">Laboratory</option>
+                            <option value="Production">Production</option>
+                        {% else %}
+                            <!-- Other Departments: Locked to their own data only -->
+                            <option value="{{ user.role.department }}" selected>{{ user.role.department }}</option>
+                        {% endif %}
                     </select>
                 </div>
 

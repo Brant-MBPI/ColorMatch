@@ -40,12 +40,12 @@ def permission_required(allowed_roles=None, allowed_departments=None):
             user_dept = request.user.role.department
 
             if allowed_roles and user_role.upper() not in [r.upper() for r in allowed_roles]:
-                messages.error(request, "Access Denied: Restricted Rank.")
+                messages.error(request, "Access Denied: Restricted Role.")
                 return redirect('index')
 
             if allowed_departments and user_dept not in allowed_departments:
                 messages.error(request, "Access Denied: Restricted Department.")
-                return redirect('index')
+                return redirect('homepage')
 
             return view_func(request, *args, **kwargs)
         return _wrapped_view
