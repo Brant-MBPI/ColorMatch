@@ -12,6 +12,7 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.contrib import messages
 from datetime import date, datetime, timedelta
+from django.urls import reverse
 from django.utils import timezone
 
 from main.services.dashboard.dashboard_services import get_dashboard_context
@@ -112,10 +113,14 @@ def dashboard(request):
     context = get_dashboard_context()
     return render(request, "sidemenu/dashboard/dashboard.html", context)
 
-
+@role_required
 def homepage(request):
     return render(request, "sidemenu/homepage.html")
 
+@role_required
+def maintenance(request):
+    feature_name = request.GET.get('feature', 'This page')
+    return render(request, 'maintenance/maintenance.html', {'feature_name': feature_name})
 
 @role_required
 def cmf_records(request):
@@ -1203,6 +1208,11 @@ def audit_trail(request):
     }
     return render(request, "sidemenu/audit_trail.html", context)
 
+@role_required
+def settings(request):
+    # maintenance message for page
+    return redirect(f"{reverse('maintenance')}?feature=Settings")
+    # return render(request, 'settings/settings.html')
 
 
 
