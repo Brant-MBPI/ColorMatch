@@ -79,30 +79,20 @@ Dashboard
                             </tr>
                         </thead>
                         <tbody class="small">
+                            {% for emp in employee_stats %}
                             <tr>
-                                <td class="ps-3 fw-bold theme-text-main">Person 1</td>
-                                <td class="theme-text-main">60</td>
-                                <td class="theme-text-main">15</td>
+                                <td class="ps-3 fw-bold theme-text-main">{{ emp.name }}</td>
+                                <td class="theme-text-main">{{ emp.matched }}</td>
+                                <td class="theme-text-main">{{ emp.rematches }}</td>
                                 <td class="pe-3">
-                                    <span class="badge bg-primary-subtle text-primary border border-primary">75%</span>
+                                    <span class="badge {{ emp.badge_class }}">{{ emp.success_pct }}%</span>
                                 </td>
                             </tr>
+                            {% empty %}
                             <tr>
-                                <td class="ps-3 fw-bold theme-text-main">Person 2</td>
-                                <td class="theme-text-main">45</td>
-                                <td class="theme-text-main">5</td>
-                                <td class="pe-3">
-                                    <span class="badge bg-success-subtle text-success border border-success">88%</span>
-                                </td>
+                                <td colspan="4" class="text-center text-muted py-3">No records yet</td>
                             </tr>
-                            <tr>
-                                <td class="ps-3 fw-bold theme-text-main">Person 3</td>
-                                <td class="theme-text-main">30</td>
-                                <td class="theme-text-main">12</td>
-                                <td class="pe-3">
-                                    <span class="badge bg-warning-subtle text-warning border border-warning">60%</span>
-                                </td>
-                            </tr>
+                            {% endfor %}
                         </tbody>
                     </table>
                 </div>
