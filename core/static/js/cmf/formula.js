@@ -444,7 +444,6 @@
                                 () => {}
                             );
                         } else {
-                            if (confirm(`Load details for ${value}?`)) fetchCmfDetails(value);
                         }
                     });
                 }

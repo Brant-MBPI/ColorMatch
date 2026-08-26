@@ -169,7 +169,7 @@
                                     <option value=""></option>
                                     {% for u in users %}
                                         <option value="{{ u.id }}" 
-                                            {% if form_data.matcher_id == u.id %}selected{% endif %}>
+                                            {% if form_data.matcher_id|add:0 == u.id|add:0 %}selected{% endif %}>
                                             {{ u.full_name }}
                                         </option>
                                     {% endfor %}
