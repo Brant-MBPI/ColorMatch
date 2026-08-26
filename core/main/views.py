@@ -18,7 +18,7 @@ from main.services.dashboard.dashboard_services import get_dashboard_context
 from main.utils.log_audit_trail import log_audit
 from main.services.formula import master_formula_services, formulation_services
 from main.services.save import mb_formula_save, dc_formula_save, rs_entry_save
-from main.decorators import role_required
+from main.decorators import permission_required, role_required
 from main.models import (
     tbl_audit_trail, tbl_cmf, tbl_cmf_dates, tbl_cmf_formula, tbl_cmf_pending_completed, 
     tbl_cmf_process02, tbl_cmf_process02, tbl_cmf_scanned, tbl_cmf_specification02, tbl_coding_materials, tbl_dc_extruder_formula, 
@@ -106,7 +106,8 @@ def signout(request):
     logout(request)
     return redirect('signin')
 
-@role_required # This now handles both login AND role check
+# @role_required # This now handles both login AND role check
+@permission_required(allowed_departments=['Laboratory', 'Information Technology'])
 def dashboard(request):
     context = get_dashboard_context()
     return render(request, "sidemenu/dashboard/dashboard.html", context)
@@ -1178,7 +1179,7 @@ def feedback(request):
     }
     return render(request, "sidemenu/feedback/feedback.html", context)
 
-@role_required
+@permission_required(allowed_roles=['ADMIN', 'HEAD'])
 def audit_trail(request):
     # 1. Get total record count
     record_count = tbl_audit_trail.objects.count()
