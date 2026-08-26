@@ -87,97 +87,97 @@ def _fill_and_export_via_excel(template_abs_path, pdf_path, data):
         check = lambda condition: '/' if condition else ''
 
         # --- GENERAL INFORMATION ---
-        set_cell('F6', cmf.cm_no)
-        set_cell('F8', formula_info.customer if formula_info else "")
-        set_cell('F10', dates.form_made.strftime('%m/%d/%Y') if dates and dates.form_made else "")
-        set_cell('F12', dates.date_required if dates else "")
-        set_cell('F14', cmf.sm.name if cmf.sm else "")
+        set_cell('F7', cmf.cm_no)
+        set_cell('F9', formula_info.customer if formula_info else "")
+        set_cell('F11', dates.form_made.strftime('%m/%d/%Y') if dates and dates.form_made else "")
+        set_cell('F13', dates.date_required if dates else "")
+        set_cell('F15', cmf.sm.name if cmf.sm else "")
         
         # Matching Type (Row 16)
-        set_cell('F16', check(cmf.matching_type == 'new'))
-        set_cell('I16', check(cmf.matching_type == 'rematch'))
+        set_cell('F17', check(cmf.matching_type == 'new'))
+        set_cell('I17', check(cmf.matching_type == 'rematch'))
         
         # Product Status (Row 18)
-        set_cell('F18', check(cmf.product_status == 'existing'))
-        set_cell('L18', check(cmf.product_status == 'new'))
+        set_cell('F19', check(cmf.product_status == 'existing'))
+        set_cell('L19', check(cmf.product_status == 'new'))
         
-        set_cell('F20', formula_info.finished_product if formula_info else "")
-        set_cell('F22', cmf.color_desc)
+        set_cell('F21', formula_info.finished_product if formula_info else "")
+        set_cell('F23', cmf.color_desc)
 
         # --- COLOR REQUIREMENT ---
         c_req_name = color_req_obj.name if color_req_obj else ""
         standard_reqs = ['transparent', 'opaque', 'translucent', 'metallic', 'fluorescent', 'pearlescent']
         req_map = {
-            'transparent': 'F24', 'opaque': 'I24', 'translucent': 'L24', 
-            'metallic': 'F26', 'fluorescent': 'I26', 'pearlescent': 'L26'
+            'transparent': 'F25', 'opaque': 'I25', 'translucent': 'L25', 
+            'metallic': 'F27', 'fluorescent': 'I27', 'pearlescent': 'L27'
         }
 
         # Clear standard req cells and 'Others' checkbox
         for addr in req_map.values(): set_cell(addr, "")
-        set_cell('F28', "")
-        set_cell('H28', "")
+        set_cell('F29', "")
+        set_cell('H29', "")
 
         if c_req_name in standard_reqs:
             set_cell(req_map[c_req_name], "/")
         elif c_req_name:
-            set_cell('F28', "/")           # "Others" checkbox
-            set_cell('H28', c_req_name)    # "Others" text value
+            set_cell('F29', "/")           # "Others" checkbox
+            set_cell('H29', c_req_name)    # "Others" text value
 
         # --- SAMPLE COLORANT AVAILABLE ---
-        set_cell('F30', check(cmf.is_sample_available is True))
-        set_cell('I30', check(cmf.is_sample_available is False))
+        set_cell('F31', check(cmf.is_sample_available is True))
+        set_cell('I31', check(cmf.is_sample_available is False))
 
         # --- TYPE OF COLORANT ---
-        set_cell('F32', check(cmf.colorant_type == 'MB'))
-        set_cell('I32', check(cmf.colorant_type == 'DC'))
+        set_cell('F33', check(cmf.colorant_type == 'MB'))
+        set_cell('I33', check(cmf.colorant_type == 'DC'))
         is_other_colorant = cmf.colorant_type not in ('MB', 'DC')
-        set_cell('L32', check(is_other_colorant))
-        set_cell('O32', cmf.colorant_type if is_other_colorant else "")
+        set_cell('L33', check(is_other_colorant))
+        set_cell('O33', cmf.colorant_type if is_other_colorant else "")
 
         # --- DOSAGE, QTY ORDER, RESIN ---
-        set_cell('F34', formula_info.dosage if formula_info else "")
-        ws.Range('F36').NumberFormat = "#,##0.00 \"KG\""
-        set_cell('F36', cmf.est_qty_order) # New Field
-        set_cell('F38', resins)
+        set_cell('F35', formula_info.dosage if formula_info else "")
+        ws.Range('F37').NumberFormat = "#,##0.00 \"KG\""
+        set_cell('F37', cmf.est_qty_order) # New Field
+        set_cell('F39', resins)
 
         # --- PROCESS ---
-        set_cell('F40', check('injection' in process_list))
-        set_cell('I40', check('blow-molding' in process_list))
-        set_cell('L40', check('film' in process_list))
-        set_cell('F42', check('pipe-extrusion' in process_list))
+        set_cell('F41', check('injection' in process_list))
+        set_cell('I41', check('blow-molding' in process_list))
+        set_cell('L41', check('film' in process_list))
+        set_cell('F43', check('pipe-extrusion' in process_list))
         
         standard_procs = ['injection', 'blow-molding', 'film', 'pipe-extrusion']
         other_procs = [p for p in process_list if p not in standard_procs]
-        set_cell('I42', check(bool(other_procs))) # Others checkbox
-        set_cell('K42', ", ".join(other_procs) if other_procs else "") # Others value
+        set_cell('I43', check(bool(other_procs))) # Others checkbox
+        set_cell('K43', ", ".join(other_procs) if other_procs else "") # Others value
 
         # --- RESIN PROVIDED & MI ---
-        set_cell('F44', cmf.qty_resin_testing)
-        set_cell('F46', check(cmf.is_resin_provided is True))
-        set_cell('I46', check(cmf.is_resin_provided is False))
-        set_cell('F48', cmf.mi_c_resin)
+        set_cell('F45', cmf.qty_resin_testing)
+        set_cell('F47', check(cmf.is_resin_provided is True))
+        set_cell('I47', check(cmf.is_resin_provided is False))
+        set_cell('F49', cmf.mi_c_resin)
 
         # --- COLOR GUIDE RETURN ---
-        set_cell('F50', check(cmf.is_guide_to_return is True))
-        set_cell('I50', check(cmf.is_guide_to_return is False))
+        set_cell('F51', check(cmf.is_guide_to_return is True))
+        set_cell('I51', check(cmf.is_guide_to_return is False))
 
         # --- OTHER SPECIFICATIONS ---
-        set_cell('F52', check('Food Contact' in spec_list))
-        set_cell('I52', check('Sunlight Exposure' in spec_list))
+        set_cell('F53', check('Food Contact' in spec_list))
+        set_cell('I53', check('Sunlight Exposure' in spec_list))
         
         standard_specs = ['Food Contact', 'Sunlight Exposure']
         other_specs = [s for s in spec_list if s not in standard_specs]
-        set_cell('F54', check(bool(other_specs))) # Others checkbox
-        set_cell('H54', ", ".join(other_specs) if other_specs else "") # Others value
+        set_cell('F55', check(bool(other_specs))) # Others checkbox
+        set_cell('H55', ", ".join(other_specs) if other_specs else "") # Others value
 
         # --- TEMPERATURE & LOW COST ---
-        set_cell('F56', cmf.temperature)
-        set_cell('F58', check(cmf.is_low_cost is True))
-        set_cell('I58', check(cmf.is_low_cost is False))
+        set_cell('F57', cmf.temperature)
+        set_cell('F59', check(cmf.is_low_cost is True))
+        set_cell('I59', check(cmf.is_low_cost is False))
 
         # --- REMARKS & PRODUCT CODE ---
-        set_cell('C63', cmf.remarks)
-        set_cell('D74', final_prod_code)
+        set_cell('C64', cmf.remarks)
+        set_cell('D76', final_prod_code)
 
         # --- PAGE SETUP ---
         ps = ws.PageSetup
@@ -268,145 +268,3 @@ def log_cmf_print(request, cm_no):
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-# logic for cmf old layout, and checkbox true and false values
-# def _fill_and_export_via_excel(template_abs_path, pdf_path, data):
-#     """
-#     Opens the ORIGINAL template directly in Excel (no openpyxl involved,
-#     so drawings/form controls/checkboxes/images are untouched), writes
-#     values into cells via COM, exports to PDF, then closes WITHOUT
-#     saving — the template file on disk is never modified.
-#     """
-#     cmf = data['cmf']
-#     dates = data['dates']
-#     formula_info = data['formula_info']
-#     color_req_obj = data['color_req_obj']
-#     resins = data['resins']
-#     process_list = data['process_list']
-#     spec_list = data['spec_list']
-#     final_prod_code = data['final_prod_code']
-
-#     pythoncom.CoInitialize()
-#     excel = None
-#     wb = None
-#     try:
-#         excel = win32.DispatchEx("Excel.Application")
-#         excel.Visible = False
-#         excel.DisplayAlerts = False
-
-#         wb = excel.Workbooks.Open(template_abs_path)
-#         ws = wb.Worksheets(1)
-
-#         def set_cell(addr, value):
-#             ws.Range(addr).Value = value
-
-#         # --- GENERAL INFORMATION ---
-#         set_cell('F6', cmf.cm_no)
-#         set_cell('F8', formula_info.customer if formula_info else "")
-#         set_cell('F10', dates.form_made.strftime('%m/%d/%Y') if dates and dates.form_made else "")
-#         set_cell('F12', dates.date_required if dates else "")
-#         set_cell('F14', cmf.matching_type == 'new')        # linked checkbox
-#         set_cell('I14', cmf.matching_type == 'rematch')    # linked checkbox
-#         set_cell('F16', cmf.sm.name if cmf.sm else "")
-#         set_cell('F18', cmf.color_desc)
-#         set_cell('F20', formula_info.finished_product if formula_info else "")
-
-#         # --- COLOR REQUIREMENT ---
-#         c_req_name = color_req_obj.name if color_req_obj else ""
-#         standard_reqs = ['transparent', 'opaque', 'translucent', 'metallic', 'fluorescent', 'pearlescent']
-#         req_map = {'transparent': 'F22', 'opaque': 'I22', 'translucent': 'L22', 'metallic': 'F24', 'fluorescent': 'I24', 'pearlescent': 'L24'}
-
-#         # Uncheck all, then check the matching one
-#         for addr in req_map.values():
-#             set_cell(addr, False)
-#         set_cell('F26', False)
-
-#         if c_req_name in standard_reqs:
-#             set_cell(req_map[c_req_name], True)
-#         elif c_req_name:
-#             set_cell('F26', True)          # "Others" checkbox
-#             set_cell('H26', c_req_name)    # "Others" text
-
-#         # --- RESIN & PROCESS ---
-#         set_cell('F28', resins)
-#         set_cell('F30', 'injection' in process_list)
-#         set_cell('I30', 'blow-molding' in process_list)
-#         set_cell('M30', 'film' in process_list)
-#         set_cell('F32', 'pipe-extrusion' in process_list)
-
-#         standard_procs = ['injection', 'blow-molding', 'film', 'pipe-extrusion']
-#         other_procs = [p for p in process_list if p not in standard_procs]
-#         set_cell('I32', bool(other_procs))
-#         set_cell('L32', ", ".join(other_procs) if other_procs else "")
-
-#         # --- TECHNICAL SPECS ---
-#         set_cell('F34', cmf.qty_resin_testing)
-#         set_cell('F36', cmf.is_resin_provided is True)
-#         set_cell('I36', cmf.is_resin_provided is False)
-#         set_cell('F38', cmf.mi_c_resin)
-
-#         set_cell('F40', cmf.is_sample_available is True)
-#         set_cell('I40', cmf.is_sample_available is False)
-
-#         # Colorant Type
-#         set_cell('F42', cmf.colorant_type == 'MB')
-#         set_cell('I42', cmf.colorant_type == 'DC')
-#         is_other_colorant = cmf.colorant_type not in ('MB', 'DC')
-#         set_cell('L42', is_other_colorant)
-#         set_cell('O42', cmf.colorant_type if is_other_colorant else "")
-
-#         set_cell('F44', formula_info.dosage if formula_info else "")
-#         set_cell('F46', cmf.is_guide_to_return is True)
-#         set_cell('I46', cmf.is_guide_to_return is False)
-
-#         # Specifications
-#         set_cell('F48', 'Food Contact' in spec_list)
-#         set_cell('I48', 'Sunlight Exposure' in spec_list)
-
-#         standard_specs = ['Food Contact', 'Sunlight Exposure']
-#         other_specs = [s for s in spec_list if s not in standard_specs]
-#         set_cell('F50', bool(other_specs))
-#         set_cell('H50', ", ".join(other_specs) if other_specs else "")
-
-#         set_cell('F52', cmf.temperature)
-#         set_cell('F54', cmf.is_low_cost is True)
-#         set_cell('I54', cmf.is_low_cost is False)
-
-#         # --- REMARKS & PRODUCT CODE ---
-#         set_cell('C59', cmf.remarks)
-#         set_cell('D74', final_prod_code)
-
-#         # --- PAGE SETUP: zero margins, fit print area to one page ---
-#         # Assumes PrintArea is already defined in the template itself.
-#         ps = ws.PageSetup
-#         ps.LeftMargin = 0
-#         ps.RightMargin = 0
-#         ps.TopMargin = 0
-#         ps.BottomMargin = 0
-#         ps.HeaderMargin = 0
-#         ps.FooterMargin = 0
-#         ps.Zoom = False
-#         ps.FitToPagesWide = 1
-#         ps.FitToPagesTall = 1
-
-#         # 0 = xlTypePDF
-#         ws.ExportAsFixedFormat(0, pdf_path)
-
-#     finally:
-#         if wb is not None:
-#             wb.Close(SaveChanges=False)   # never overwrite the template
-#         if excel is not None:
-#             excel.Quit()
-#         pythoncom.CoUninitialize()
