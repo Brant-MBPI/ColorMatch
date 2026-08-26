@@ -586,6 +586,7 @@ def cmf_mb_formula(request):
                     'cmyk_m': header.m,
                     'cmyk_y': header.y,
                     'cmyk_k': header.k,
+                    'matcher_id': header.matcher.id if header.matcher else "",
                 })
 
                 ingredients = list(
@@ -599,11 +600,11 @@ def cmf_mb_formula(request):
 
     if not ingredients:
         ingredients = [{'material': '', 'value': '', 'weight': ''}] * 10
-    user_names = (
+    user_list  = (
         User.objects.filter(is_active=True)
         .exclude(first_name="")
         .annotate(full_name=Concat('first_name', Value(' '), 'last_name'))
-        .values_list('full_name', flat=True)
+        .values('id', 'full_name')
         .distinct()
         .order_by('full_name')
     )
@@ -630,7 +631,7 @@ def cmf_mb_formula(request):
     context = {
         "form_data": form_data,
         "materials": cmf_records_services.get_raw_material_codes(),
-        "users": list(user_names),
+        "users": list(user_list),
         "colorant_mismatch": colorant_mismatch,
         "ingredients": ingredients,
         "cmf_list": combined_list,
@@ -753,6 +754,7 @@ def cmf_dc_formula(request):
                     'cmyk_m': header.m,
                     'cmyk_y': header.y,
                     'cmyk_k': header.k,
+                    'matcher_id': header.matcher.id if header.matcher else "",
                 })
 
                 # Build the material_rows grid: one row per material, each
@@ -784,11 +786,11 @@ def cmf_dc_formula(request):
     if not material_rows:
         material_rows = [{'material': '', 'versions': [None] * 10} for _ in range(10)]
 
-    user_names = (
+    user_list  = (
         User.objects.filter(is_active=True)
         .exclude(first_name="")
         .annotate(full_name=Concat('first_name', Value(' '), 'last_name'))
-        .values_list('full_name', flat=True)
+        .values('id', 'full_name')
         .distinct()
         .order_by('full_name')
     )
@@ -815,7 +817,7 @@ def cmf_dc_formula(request):
     context = {
         "form_data": form_data,
         "materials": cmf_records_services.get_raw_material_codes(),
-        "users": list(user_names),
+        "users": list(user_list),
         "colorant_mismatch": colorant_mismatch,
         "material_rows": material_rows,
         "cmf_list": combined_list,

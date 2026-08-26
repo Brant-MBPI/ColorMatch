@@ -442,6 +442,7 @@ class tbl_mb_extruder_formula(models.Model):
     m = models.IntegerField(blank=True, null=True)
     y = models.IntegerField(blank=True, null=True)
     k = models.IntegerField(blank=True, null=True)
+    matcher = models.ForeignKey('tbl_user', on_delete=models.SET_NULL, null=True, blank=True, db_column="matcher_id")
     class Meta:
         db_table = "tbl_mb_extruder_formula"
 
@@ -486,6 +487,7 @@ class tbl_dc_extruder_formula(models.Model):
     m = models.IntegerField(blank=True, null=True)
     y = models.IntegerField(blank=True, null=True)
     k = models.IntegerField(blank=True, null=True)
+    matcher = models.ForeignKey('tbl_user', on_delete=models.SET_NULL, null=True, blank=True, db_column="matcher_id")
     class Meta:
         db_table = "tbl_dc_extruder_formula"
 

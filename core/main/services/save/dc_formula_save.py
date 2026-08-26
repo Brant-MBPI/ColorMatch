@@ -1,6 +1,7 @@
 import json
 from decimal import Decimal
 from datetime import datetime, date
+from django.contrib.auth import get_user_model
 from django.db import IntegrityError, transaction
 from main.utils.log_audit_trail import log_audit
 from ...models import (
@@ -12,7 +13,7 @@ from ...models import (
 MAX_MATERIAL_ROWS = 10
 MAX_VERSIONS = 10
 
-
+User = get_user_model()
 def save_dc_complete_formula(request):
     post_data = request.POST
     formula_id = post_data.get('formula_id')
@@ -41,7 +42,8 @@ def save_dc_complete_formula(request):
             'total_weight': 'Total Weight', 'html': 'sRGB Hex',
             'L': 'Spectro L', 'A': 'Spectro A', 'B': 'Spectro B',
             'C': 'Spectro C', 'H': 'Spectro H', 'notes': 'Note',
-            'code': 'Product Code', 'material_code': 'Material Code'
+            'code': 'Product Code', 'material_code': 'Material Code',
+            'matcher': 'Matcher Account'
         }
         return mapping.get(field, field.replace('_', ' ').title())
 
@@ -50,6 +52,13 @@ def save_dc_complete_formula(request):
             # 1. Resolve Product Code
             prod_code_str = post_data.get('product_code', '').strip()
             prod_code_obj, _ = tbl_generated_prod_code.objects.get_or_create(product_code=prod_code_str) if prod_code_str else (None, False)
+
+            # Resolve Personnel (The new Matcher Account)
+            matcher_id = post_data.get('matcher_id')
+            matcher_obj = User.objects.filter(pk=matcher_id).first() if matcher_id else None
+            
+            # Also get the full name string to keep 'matched_by' updated
+            matched_by_text = matcher_obj.get_full_name() if matcher_obj else ""
 
             # Resolve Material Code Instance
             mat_code_id = post_data.get('material_code_id')
@@ -85,7 +94,8 @@ def save_dc_complete_formula(request):
                 'sample_size': post_data.get('sample_size'),
                 'mixing_time': post_data.get('mixing_time'),
                 'notes': post_data.get('note'),
-                'matched_by': post_data.get('matched_by'),
+                'matcher': matcher_obj,      # NEW: User Object
+                'matched_by': matched_by_text, 
                 'weighted_by': post_data.get('weighed_by'),
                 'encoded_by': post_data.get('encoded_by'),
                 'total_weight': Decimal(clean_num(post_data.get('total_weight')) or 0),
