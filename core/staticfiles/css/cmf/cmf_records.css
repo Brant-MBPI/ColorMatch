@@ -1,0 +1,108 @@
+.cmf-table-card { background-color: var(--card-bg); border-radius: 0.5rem; border: 1px solid var(--sidebar-border); overflow: hidden; }
+
+.cmf-scroll-body { max-height: clamp(280px, 60vh, 640px); overflow: auto; }
+
+.cmf-records-table thead th { position: sticky; top: 0; z-index: 2; }
+
+.cmf-records-table tbody td { color: var(--text-main); border-bottom: 1px solid var(--sidebar-border); }
+
+.cmf-records-table tbody tr:hover td { background-color: var(--sidebar-hover-bg) !important; }
+
+/* --- Teal Toggle Switch (CMF / RS) --- */
+.teal-toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 42px;
+    height: 22px;
+    cursor: pointer;
+}
+
+.teal-toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.teal-toggle-slider {
+    position: absolute;
+    inset: 0;
+    background-color: #cbd5e1;
+    transition: 0.3s;
+    border-radius: 34px;
+}
+
+.teal-toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 3px;
+    bottom: 3px;
+    background-color: #ffffff;
+    transition: 0.3s;
+    border-radius: 50%;
+}
+
+.teal-toggle-switch input:checked + .teal-toggle-slider {
+    background-color: #0d9488;
+}
+
+.teal-toggle-switch input:checked + .teal-toggle-slider:before {
+    transform: translateX(20px);
+}
+
+body.dark-mode .teal-toggle-slider {
+    background-color: #475569;
+}
+
+.cmf-records-custom-menu{
+    display:none; 
+    position:fixed; 
+    z-index: 10000;
+}
+
+.custom-context-menu {
+    min-width: 200px;
+    border-radius: 8px;
+    background-color: var(--card-bg);
+    border: 1px solid var(--sidebar-border) !important;
+}
+
+.custom-context-menu .dropdown-item {
+    color: var(--text-main);
+    font-weight: 500;
+    transition: background 0.2s;
+}
+
+.custom-context-menu .dropdown-item:hover {
+    background-color: var(--sidebar-active-bg);
+    color: var(--sidebar-active-text);
+}
+
+.custom-context-menu .dropdown-item i {
+    font-size: 1rem;
+}
+#cmfDetailModal .modal-header {
+    background-color: #0d9488 !important; /* Specific Teal Color */
+    border-bottom: none;
+    padding: 10px 16px;
+}
+
+/* Even in dark mode, usually brand headers like Teal stay Teal */
+body.dark-mode #cmfDetailModal .modal-header {
+    background-color: #0d9488 !important;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+body.dark-mode .custom-context-menu .bg-light {
+    background-color: var(--sidebar-hover-bg) !important;
+    color: var(--text-muted) !important;
+}
+
+.export-filter-panel {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    right: 0;
+    width: 320px;
+    z-index: 1000;
+}

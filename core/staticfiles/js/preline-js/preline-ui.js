@@ -1,0 +1,88 @@
+const Preline = {
+    // 1. TOAST SYSTEM
+    toast: function(message, type = 'success') {
+        let container = document.getElementById('preline-toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'preline-toast-container';
+            document.body.appendChild(container);
+        }
+
+        const toast = document.createElement('div');
+        const cleanType = type.includes('error') ? 'danger' : type;
+        toast.className = `preline-toast ${cleanType}`;
+        
+        let icon = 'check-circle-fill';
+        if (cleanType === 'danger' || cleanType === 'error') icon = 'exclamation-triangle-fill';
+        if (cleanType === 'warning') icon = 'exclamation-circle-fill';
+
+        toast.innerHTML = `
+            <i class="bi bi-${icon} fs-5"></i>
+            <div class="flex-grow-1 mr-2">
+                <span class="small fw-semibold d-block">${cleanType.toUpperCase()}</span>
+                <span class="small opacity-75">${message}</span>
+            </div>
+            <button type="button" class="btn-close ms-2" style="font-size: 0.7rem" onclick="this.parentElement.remove()"></button>
+        `;
+
+        container.appendChild(toast);
+
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(40px)';
+            setTimeout(() => toast.remove(), 500);
+        }, 4000);
+    },
+
+    // 2. CONFIRMATION MODAL
+    confirm: function(title, message, type, onConfirm, onCancel) {
+        const modalEl = document.getElementById('dynamicModal');
+        const modal = new bootstrap.Modal(modalEl);
+        
+        document.getElementById('modalTitle').innerText = title;
+        document.getElementById('modalMessage').innerText = message;
+        
+        const iconContainer = document.getElementById('modalIconContainer');
+        const icon = document.getElementById('modalIcon');
+        
+        // 1. Normalize type
+        const cleanType = (type === 'error') ? 'danger' : (type || 'success');
+        
+        // 2. Set Circle Color Class (Ensure .icon-info exists in your CSS)
+        iconContainer.className = 'modal-icon-circle icon-' + cleanType;
+        
+        // 3. Set the specific Icon (ADDED 'info' HERE)
+        if (cleanType === 'danger') {
+            icon.className = 'bi bi-exclamation-triangle'; // Error Triangle
+        } else if (cleanType === 'warning') {
+            icon.className = 'bi bi-exclamation-circle';   // Warning Circle
+        } else if (cleanType === 'info') {
+            icon.className = 'bi bi-info-circle';          // Info Circle <--- ADDED
+        } else {
+            icon.className = 'bi bi-check-lg';              // Success Check
+        }
+
+        const confirmBtn = document.getElementById('modalConfirmBtn');
+        const newConfirmBtn = confirmBtn.cloneNode(true);
+        confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+
+        let confirmed = false;
+
+        newConfirmBtn.onclick = () => {
+            confirmed = true;
+            if (typeof onConfirm === 'function') {
+                onConfirm();
+            }
+            modal.hide();
+        };
+
+        modalEl.addEventListener('hidden.bs.modal', function handler() {
+            if (!confirmed && typeof onCancel === 'function') {
+                onCancel();
+            }
+            modalEl.removeEventListener('hidden.bs.modal', handler);
+        });
+
+        modal.show();
+    }
+};

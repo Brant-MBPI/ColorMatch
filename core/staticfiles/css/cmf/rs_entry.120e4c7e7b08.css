@@ -1,0 +1,16 @@
+.rs-entry-card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--sidebar-border);
+    border-radius: 0.6rem;
+}
+
+.rs-section-title {
+    color: #0d9488;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    border-left: 3px solid #0d9488;
+    padding-left: 10px;
+}
+
+body.dark-mode .rs-section-title { color: #2dd4bf; border-left-color: #2dd4bf; }

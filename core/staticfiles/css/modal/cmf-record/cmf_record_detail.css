@@ -1,0 +1,46 @@
+.text-teal {
+    color: var(--sidebar-header-bg) !important;
+}
+
+/* Formula Container indentation and style */
+.formula-container {
+    background-color: var(--sidebar-hover-bg);
+    margin-left: 40px;
+    border-left: 3px solid var(--sidebar-header-bg) !important;
+}
+
+/* Individual Formula Card inside the sub-row */
+.formula-card-header {
+    background-color: var(--sidebar-active-bg);
+    color: var(--sidebar-active-text);
+    padding: 6px 12px;
+    border-bottom: 1px solid var(--sidebar-border);
+}
+
+/* Dark mode adjustment for the white tables inside sub-rows */
+body.dark-mode .formula-container table {
+    background-color: var(--card-bg) !important;
+}
+
+/* Hover effect on formula header rows */
+.formula-row-hover {
+    cursor: pointer;
+    transition: background-color 0.15s ease-in-out;
+}
+
+.formula-row-hover:hover {
+    background-color: var(--sidebar-hover-bg) !important;
+}
+
+/* Pen icon */
+.formula-edit-icon {
+    color: var(--sidebar-header-bg);
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: transform 0.15s ease-in-out, color 0.15s ease-in-out;
+}
+
+.formula-edit-icon:hover {
+    color: var(--sidebar-active-bg);
+    transform: scale(1.2);
+}

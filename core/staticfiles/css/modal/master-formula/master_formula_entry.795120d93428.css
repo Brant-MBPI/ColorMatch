@@ -1,0 +1,169 @@
+/* --- Master Formula Style Match --- */
+
+/* Base Card Styling */
+.mf-entry-card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--sidebar-border);
+    border-radius: 0.6rem; 
+}
+
+/* Section Title - Matches CMF Teal Style */
+.mf-section-title {
+    color: #0d9488;
+    font-size: 0.8rem;
+    font-weight: 700;
+    border-left: 3px solid #0d9488;
+    padding-left: 10px;
+    text-transform: uppercase;
+}
+
+/* Required Label Asterisk */
+.required-label::after {
+    content: " *";
+    color: #dc3545;
+    font-weight: bold;
+}
+
+/* Fix for Search Button Icon Visibility */
+#mfBrowseFormulasBtn {
+    transition: all 0.2s ease;
+}
+
+/* Light Mode: icon is teal when disabled, white when enabled */
+#mfBrowseFormulasBtn:disabled {
+    background-color: #f1f5f9 !important;
+    border-color: #cbd5e1 !important;
+    color: #94a3b8 !important; /* Grey icon in light mode */
+}
+
+#mfBrowseFormulasBtn:not(:disabled) {
+    background-color: #0d9488 !important;
+    border-color: #0d9488 !important;
+    color: #ffffff !important; /* White icon when active */
+}
+
+/* Dark Mode Overrides */
+body.dark-mode .mf-entry-card {
+    border-color: var(--sidebar-border);
+}
+
+body.dark-mode #mfBrowseFormulasBtn:disabled {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    border-color: #334155 !important;
+    color: #475569 !important;
+}
+
+/* Form input consistency */
+.uniform-input {
+    border-radius: 0.375rem;
+}
+
+.readonly-gray {
+    background-color: #e9ecef !important;
+    cursor: not-allowed;
+    border-color: #dee2e6;
+}
+
+body.dark-mode .readonly-gray {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    border-color: #334155 !important;
+}
+
+
+/* --- Master Formula Lookup Modal Sizing & Design --- */
+
+/* The Backdrop Overlay */
+#mfFormulaLookupModal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 2050;
+    display: none; /* Controlled by JS */
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding: 1rem; /* Creates the gap from screen edges on mobile */
+}
+
+/* The "Dialog" - This handles the width responsiveness */
+#mfFormulaLookupModal .modal-dialog {
+    margin: 1.75rem auto; /* Vertical spacing and horizontal centering */
+    width: 100%;
+    max-width: 95%; /* Default for small screens */
+    pointer-events: none;
+}
+
+/* Breakpoint: Desktop (Match CMF XL Modal) */
+@media (min-width: 1200px) {
+    #mfFormulaLookupModal .modal-dialog {
+        max-width: 1140px; /* Fixed width on large screens so it's not edge-to-edge */
+    }
+}
+
+/* The Content Box */
+#mfFormulaLookupModal .modal-content {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    pointer-events: auto;
+    background-color: #fff;
+    border-radius: 0.5rem;
+    outline: 0;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+}
+
+/* TOP HEADER (Blue-Grey Table Header) */
+#mfFormulaLookupModal .main-table-header {
+    background-color: #94a3b8 !important;
+    color: white !important;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+/* NESTED WRAPPER (The card look) */
+.mf-lookup-wrapper {
+    padding: 20px;
+    background-color: #f1f5f9; /* Light mode grey */
+}
+
+.mf-formula-card {
+    background-color: #ffffff;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    border-left: 5px solid #0d9488 !important; /* Thick teal border */
+    padding: 15px;
+}
+/* 1. Modal Header - Updated to Teal */
+#mfFormulaLookupModal .modal-header {
+    background-color: #0d9488 !important; /* Specific Teal Color */
+    border-bottom: none;
+    padding: 10px 16px;
+}
+
+/* Ensure the title and icon stay white */
+#mfFormulaLookupModal .modal-title {
+    color: #ffffff !important;
+}
+
+.row-already-in-mf {
+    background-color: #fff9db !important; /* Light yellow tint */
+    border-left: 4px solid #fcc419; /* Amber border accent */
+}
+.text-in-mf {
+    color: #856404;
+    font-size: 0.7rem;
+}
+
+/* Even in dark mode, usually brand headers like Teal stay Teal */
+body.dark-mode #mfFormulaLookupModal .modal-header {
+    background-color: #0d9488 !important;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+/* Dark Mode logic remains similar but updated for sizing */
+body.dark-mode .modal-content { background-color: #1e293b; border-color: #334155; }
+body.dark-mode .mf-lookup-wrapper { background-color: #0f172a; }
+body.dark-mode .mf-formula-card { background-color: #1e293b; border-color: #334155; }
