@@ -11,21 +11,23 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 import os
 from pathlib import Path
+from dotenv import load_dotenv 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+load_dotenv(os.path.join(BASE_DIR, '.env'))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-l+6lu1(h6&v5&(3f74f@ejx&2ec-qz#4qgnd#%+qes3!ue$bi2'
+SECRET_KEY = os.environ.get('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',')
 
 
 # Application definition
@@ -86,7 +88,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'core.wsgi.application'
 
 
-DBF_BASE_PATH = r'\\system-server\SYSTEM-NEW-OLD'
+DBF_BASE_PATH = os.environ.get('DBF_BASE_PATH', r'\\system-server\SYSTEM-NEW-OLD')
 DBF_PATHS = {
     'formula_primary': 'tbl_formula01.dbf',
     'formula_items': 'tbl_formula02.dbf',
@@ -105,11 +107,11 @@ DBF_PATHS = {
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'db_test_colormatch',
-        'USER': 'postgres',
-        'PASSWORD': 'password',
-        'HOST': 'localhost',
-        'PORT': '5433',
+        'NAME': os.environ.get('DB_NAME'),
+        'USER': os.environ.get('DB_USER'),
+        'PASSWORD': os.environ.get('DB_PASSWORD'),
+        'HOST': os.environ.get('DB_HOST'),
+        'PORT': os.environ.get('DB_PORT'),
     }
 }
 
