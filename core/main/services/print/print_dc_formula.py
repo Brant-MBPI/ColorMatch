@@ -18,7 +18,7 @@ from django.views.decorators.clickjacking import xframe_options_exempt
 
 from main.utils.log_audit_trail import log_audit
 from main.models import (
-    tbl_dc_extruder_formula, tbl_dc_extruder_materials, tbl_dc_extruder_version,
+    tbl_cmf_process02, tbl_dc_extruder_formula, tbl_dc_extruder_materials, tbl_dc_extruder_version,
     tbl_cmf_formula, tbl_resins_selected,
 )
 
@@ -166,7 +166,9 @@ def _fetch_dc_formula_data(formula_id):
         parent_no, color = header.cm_no.cm_no, header.cm_no.color_desc
         formula_info = tbl_cmf_formula.objects.filter(cm_no=header.cm_no).first()
         if formula_info:
-            customer, application, finished_product, dosage = formula_info.customer, formula_info.finished_product, formula_info.finished_product, formula_info.dosage
+            customer, finished_product, dosage = formula_info.customer, formula_info.finished_product, formula_info.dosage
+            processes = tbl_cmf_process02.objects.filter(cmf_formula_no=formula_info).values_list('process_no__name', flat=True)
+            application = ", ".join(processes) if processes else formula_info.finished_product
         resin = ", ".join(tbl_resins_selected.objects.filter(cm_no=header.cm_no).values_list('resin_no__abbreviation', flat=True))
     elif header.rs_no:
         parent_no, customer, color, application, finished_product, dosage = header.rs_no.rs_no, header.rs_no.customer, header.rs_no.color_desc, header.rs_no.finished_product, header.rs_no.finished_product, header.rs_no.dosage
