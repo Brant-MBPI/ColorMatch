@@ -234,7 +234,7 @@ CMF Entry
                         </div>
 
                         <div class="row g-2 mb-2">
-                            <div class="col-7"><label class="fw-bold extra-small required-label">MI Customer Resin:</label><input type="text" name="mi_customer_resin" value="{{ form_data.mi_customer_resin|default:'' }}" class="form-control form-control-sm uniform-input" required></div>
+                            <div class="col-7"><label class="fw-bold extra-small required-label">MI Customer Resin:</label><input type="text" name="mi_customer_resin" value="{{ form_data.mi_customer_resin|default:'N/A' }}" class="form-control form-control-sm uniform-input" required></div>
                             <div class="col-5">
                                 <label class="fw-bold extra-small d-block required-label">Sample Colorant Available:</label>
                                 <div class="form-check form-check-inline"><input class="form-check-input visible-check" type="radio" value="Y" name="sampleColorant" id="sample_yes" {% if form_data.sampleColorant == 'Y' %}checked{% endif %} required><label class="form-check-label extra-small" for="sample_yes">Y</label></div>

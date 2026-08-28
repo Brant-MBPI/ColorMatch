@@ -129,7 +129,7 @@ def cmf_records(request):
         "records": all_records,
     })
 
-@role_required
+@permission_required(allowed_departments=['Laboratory', 'Information Technology'])
 def formula_records(request):
     mb_dates = tbl_mb_extruder_formula.objects.aggregate(Min('date'), Max('date'))
     dc_dates = tbl_dc_extruder_formula.objects.aggregate(Min('date'), Max('date'))
@@ -256,7 +256,7 @@ def cmf_entry(request):
     }
     return render(request, "sidemenu/cmf/cmf_entry.html", context)
 
-@role_required
+@permission_required(allowed_departments=['Laboratory', 'Information Technology', 'Sales'])
 def cmf_rs_entry(request):
     form_data = {}
 
@@ -396,7 +396,7 @@ def rs_record_detail(request, rs_id):
 
     return render(request, "modal/cmf-record/rs_record_detail.html", context)
 
-@role_required
+@permission_required(allowed_departments=['Laboratory', 'Information Technology'])
 def cmf_mb_formula(request):
     form_data = {}
     ingredients = []
@@ -574,7 +574,7 @@ def cmf_mb_formula(request):
     }
     return render(request, "sidemenu/cmf/formula_mb.html", context)
 
-@role_required
+@permission_required(allowed_departments=['Laboratory', 'Information Technology'])
 def cmf_dc_formula(request):
     form_data = {}
     material_rows = []
@@ -761,7 +761,7 @@ def cmf_dc_formula(request):
     }
     return render(request, "sidemenu/cmf/formula_dc.html", context)
 
-@role_required
+@permission_required(allowed_departments=['Laboratory', 'Information Technology'])
 def cmf_pending_completed(request):
     form_data = {}
     record_no = request.POST.get('record_no') or request.GET.get('no')
