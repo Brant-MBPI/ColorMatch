@@ -154,7 +154,8 @@ USE_I18N = True
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/6.0/howto/static-files/
+# 1. This silences the Cross-Origin-Opener-Policy warning for HTTP
+SECURE_CROSS_ORIGIN_OPENER_POLICY = None
 
-STATIC_URL = 'static/'
+# 2. This makes WhiteNoise more stable if files are missing or modified
+WHITENOISE_MANIFEST_STRICT = False
