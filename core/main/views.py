@@ -1025,6 +1025,13 @@ def feedback(request):
                 if val is None or val == "" or val == "None": return "---"
                 return str(val).strip()
 
+            def parse_date(d_str):
+                """Converts MM/DD/YYYY string from form to Python date object."""
+                if not d_str: return None
+                try: 
+                    return datetime.strptime(d_str.strip(), '%m/%d/%Y').date()
+                except ValueError: return None
+                
             with transaction.atomic():
                 fb_instance = tbl_feedback_details.objects.select_related('cm_no', 'rs_no').filter(feedback_no=feedback_no).first()
                 if not fb_instance:
@@ -1036,6 +1043,7 @@ def feedback(request):
                 # Mapping: POST Key -> (Model Attribute, Display Label)
                 update_map = {
                     'feedback_status': ('status', 'Status'),
+                    'date_sample_received': ('date_sample_received', 'Sample Received Date', parse_date),
                     'comments': ('comment', 'Comments'),
                     'storage_details': ('storage_details', 'Storage Details'),
                 }
@@ -1095,6 +1103,7 @@ def feedback(request):
                     'ar_date': pending.ar_date.strftime('%m/%d/%Y') if pending and pending.ar_date else '',
                     'record_type': 'cmf',
                     'feedback_status': fb.status or 'Pending',
+                    'date_sample_received': fb.date_sample_received.strftime('%m/%d/%Y') if fb.date_sample_received else '',
                     'comments': fb.comment or '',
                     'storage_details': fb.storage_details or '',
                 }
@@ -1124,6 +1133,7 @@ def feedback(request):
                     'ar_date': pending.ar_date.strftime('%m/%d/%Y') if pending and pending.ar_date else '',
                     'record_type': 'rs',
                     'feedback_status': fb.status or 'Pending',
+                    'date_sample_received': fb.date_sample_received.strftime('%m/%d/%Y') if fb.date_sample_received else '',
                     'comments': fb.comment or '',
                     'storage_details': fb.storage_details or '',
                 }

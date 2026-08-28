@@ -1,0 +1,59 @@
+.mb-card, .dc-card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--sidebar-border);
+    border-radius: 0.6rem;
+}
+
+.mb-section-title, .dc-section-title {
+    color: #0d9488; font-size: 0.8rem; font-weight: 700;
+    border-left: 3.5px solid #0d9488; padding-left: 10px;
+    text-transform: uppercase;
+}
+
+.mb-table-card, .dc-table-card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--sidebar-border);
+    border-radius: 0.5rem; overflow: hidden;
+}
+
+.mb-records-table thead th, .dc-records-table thead th {
+    position: sticky; top: 0; z-index: 2;
+    background-color: var(--table-header);
+    color: #ffffff; font-size: 0.72rem; padding: 14px 10px;
+}
+
+.table-input { width: 100%; border: none; background: transparent; padding: 5px 12px; color: var(--text-main); outline: none; }
+.table-input:focus { background-color: rgba(13, 148, 136, 0.08); }
+
+.total-weight-input {
+    width: 160px; background-color: #0f172a !important; color: #2dd4bf !important;
+    font-weight: 700; text-align: right; border: none; border-radius: 0.4rem; padding: 0.5rem 1rem;
+}
+
+/* Style TomSelect specifically for table usage */
+.ts-wrapper.ts-select-table .ts-control {
+    border: none !important;
+    background-color: transparent !important;
+    padding: 4px 8px !important;
+    font-size: 0.875rem;
+    box-shadow: none !important;
+    min-height: 32px !important;
+}
+
+.ts-wrapper.ts-select-table .ts-control input {
+    color: var(--text-main) !important;
+}
+
+/* Ensure the dropdown matches the theme */
+.ts-dropdown.ts-select-table {
+    border: 1px solid var(--sidebar-border) !important;
+    background-color: var(--card-bg) !important;
+    z-index: 1050; /* Ensure it floats above the table */
+}
+
+/* Hover effect to mimic other inputs */
+.ts-wrapper.ts-select-table:hover .ts-control {
+    background-color: rgba(0, 128, 128, 0.05) !important;
+}
+
+body.dark-mode .total-weight-input { background-color: #020617 !important; }

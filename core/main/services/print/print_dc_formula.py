@@ -1,3 +1,4 @@
+#print_dc_formula
 import os
 import tempfile
 import threading
