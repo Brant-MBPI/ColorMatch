@@ -15,13 +15,15 @@
 
     <div class="sidebar-menu">
         <ul class="nav flex-column mt-2">
-            <li class="nav-item">
-                <a href="{% url 'dashboard' %}" 
-                   class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
-                    <i class="bi bi-speedometer2"></i>
-                    <span>Dashboard</span>
-                </a>
-            </li>
+            {% if user.role.department in "Information Technology, Laboratory" %}
+                <li class="nav-item">
+                    <a href="{% url 'dashboard' %}" 
+                    class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                        <i class="bi bi-speedometer2"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+            {% endif %}
 
             <!-- CMF Parent Menu -->
             <li class="nav-item">
@@ -46,24 +48,29 @@
                                 CMF Records
                             </a>
                         </li>
+                        {% if user.role.department in "Information Technology, Laboratory" %}
                         <li>
                             <a href="{% url 'formula_records' %}"
                                 class="nav-link {% if request.resolver_match.url_name == 'formula_records' %}active-sub{% endif %}">
                                 Formula Records
                             </a>
                         </li>
+                        {% endif %}
                         <li>
                             <a href="{% url 'cmf_entry' %}"
                                 class="nav-link {% if request.resolver_match.url_name == 'cmf_entry' %}active-sub{% endif %}">
                                 CMF Entry
                             </a>
                         </li>
+                        {% if user.role.department in "Information Technology, Laboratory, Sales" %}
                         <li>
                             <a href="{% url 'rs_entry' %}"
                                 class="nav-link {% if request.resolver_match.url_name == 'rs_entry' %}active-sub{% endif %}">
                                 RS Entry
                             </a>
                         </li>
+                        {% endif %}
+                        {% if user.role.department in "Information Technology, Laboratory" %}
                         <li>
                             <a href="{% url 'mb_formula' %}"
                                 class="nav-link {% if request.resolver_match.url_name == 'mb_formula' %}active-sub{% endif %}">
@@ -82,6 +89,7 @@
                                 Pending/Completed
                             </a>
                         </li>
+                        {% endif %}
                     </ul>
                 </div>
             </li>
