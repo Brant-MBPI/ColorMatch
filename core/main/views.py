@@ -284,13 +284,16 @@ def cmf_rs_entry(request):
                 form_data = rs_entry_save.build_form_data(rs_instance)
             else:
                 messages.error(request, f"RS record with ID {record_id} not found.")
+    allowed_departments = ['Laboratory', 'Information Technology', 'Sales']
+    is_allowed = request.user.role.department in allowed_departments or request.user.is_superuser
 
     context = {
         "customers": cmf_records_services.get_customer_list(), 
         "salesman": cmf_records_services.get_salesman_list(),
         "primary_color": cmf_records_services.get_color_list(),
         "resin": cmf_records_services.get_resin_list(),
-        "form_data": form_data
+        "form_data": form_data,
+        'is_allowed': is_allowed,
     }
     return render(request, "sidemenu/cmf/rs_entry.html", context)
 
