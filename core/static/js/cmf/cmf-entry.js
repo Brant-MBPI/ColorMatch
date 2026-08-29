@@ -244,36 +244,66 @@ document.addEventListener('DOMContentLoaded', function() {
     applyFilters();
 
     // The function that checks the database
-    const handleCmfLookup = debounce(async (event) => {
-        const query = event.target.value;
-        if (query.length < 3) return; // Don't search for very short strings
+    async function validateCmf(isBlur = false) {
+        const query = cmfInput.value.trim();
+        if (query.length < 3) return;
 
         try {
             const response = await fetch(`/check-previous-matching/?cm_no=${query}`);
             const data = await response.json();
 
-            if (data.match) {
+            // 1. HARD VALIDATION: Does this exact CM No exist?
+            if (data.exists_exact) {
+                const errorMsg = `Error: CMF No. ${query} already exists!`;
+                
+                if (typeof Preline.toast === 'function') {
+                    Preline.toast(errorMsg, 'error');
+                } else {
+                    alert(errorMsg);
+                }
+
+                // Visual feedback
+                cmfInput.classList.add('border-red-500');
+
+                // FORCE FOCUS BACK: 
+                // We use setTimeout to ensure the focus happens AFTER the browser's default blur process
+                setTimeout(() => {
+                    cmfInput.focus();
+                }, 10);
+                
+                return true; // Return true indicating an error exists
+            } else {
+                cmfInput.classList.remove('border-red-500');
+            }
+
+            // 2. SUGGESTION LOGIC: (Only show if we aren't in a 'blur' event, 
+            // or if you want it on blur too, keep it outside the 'if')
+            if (!isBlur && data.match) {
                 Preline.confirm(
                     'Previous Matching Found',
-                    `A previous record (${data.latest_cm_no}) exists. Do you want to auto-fill the fields with its data?`,
+                    `A previous record (${data.latest_cm_no}) exists. Do you want to auto-fill?`,
                     'info',
                     () => {
-                        // CONFIRMED: Redirect to load data but keep the user's NEW ID
-                        const userInput = cmfInput.value;
-                        window.location.href = `/cmf/entry/?no=${data.latest_cm_no}&new_no=${userInput}`;
-                    },
-                    () => {
-                        // CANCELLED: Do nothing, let the user continue typing manually
+                        window.location.href = `/cmf/entry/?no=${data.latest_cm_no}&new_no=${query}`;
                     }
                 );
             }
         } catch (error) {
             console.error("Error fetching matching data:", error);
         }
+        return false;
+    }
+
+    // Debounced version for the 'input' event (real-time typing)
+    const handleCmfInput = debounce(() => {
+        validateCmf(false);
     }, 800);
 
     // Attach to the input event
     if (cmfInput) {
-        cmfInput.addEventListener('input', handleCmfLookup);
+        cmfInput.addEventListener('input', handleCmfInput);
     }
+    cmfInput.addEventListener('blur', () => {
+        validateCmf(true);
+    });
 });
