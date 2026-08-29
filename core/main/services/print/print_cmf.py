@@ -188,6 +188,10 @@ def _fill_and_export_via_excel(template_abs_path, pdf_path, data):
         ps.BottomMargin = 0
         ps.HeaderMargin = 0
         ps.FooterMargin = 0
+
+        ps.CenterHorizontally = True
+        ps.CenterVertically = False
+        
         ps.Zoom = False
         ps.FitToPagesWide = 1
         ps.FitToPagesTall = 1

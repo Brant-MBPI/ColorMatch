@@ -169,6 +169,7 @@ def _fill_and_export_mb_formula_via_excel(template_abs_path, pdf_path, data):
 
         # --- PAGE SETUP: zero margins, fit print area to one page ---
         ps = ws.PageSetup
+        
         ps.LeftMargin = 0
         ps.RightMargin = 0
         ps.TopMargin = 0
