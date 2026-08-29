@@ -65,7 +65,7 @@ def get_formulation_details(form_id):
         'materials': materials,
     }
 
-def get_formulation_context(form_id=None):
+def get_formulation_context(form_id=None, request=None):
     """Context for the Formulation page. 17k list removed to save memory."""
     if form_id:
         form_data = get_formulation_details(form_id)
@@ -83,13 +83,16 @@ def get_formulation_context(form_id=None):
     )
     
     from .master_formula_services import get_all_matching_numbers
-
+    allowed_departments = ['Laboratory', 'Information Technology', 'Sales']
+    is_allowed = request.user.role.department in allowed_departments or request.user.is_superuser
+    
     return {
         'form_data': form_data,
         'matching_numbers': get_all_matching_numbers(),
         'users': user_list,
         'materials': cmf_records_services.get_raw_material_codes(),
         'customers': cmf_records_services.get_customer_list(),
+        'is_allowed': is_allowed,
     }
 
 # --- 2. DATA TABLES (HIGH PERFORMANCE JSON) ---

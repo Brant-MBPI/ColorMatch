@@ -109,7 +109,7 @@ select.uniform-input {
 }
 
 /* Global Button Overrides */
-.btn-teal { background-color: var(--btn-teal); color: white !important; border: none; border-radius: 0.4rem; }
+.btn-teal { background-color: var(--btn-teal); border: none; border-radius: 0.4rem; }
 .btn-teal:hover { background-color: var(--btn-teal-hover); }
 .btn-teal:active { background-color: var(--btn-teal-hover) !important; }
 

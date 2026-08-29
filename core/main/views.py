@@ -25,7 +25,7 @@ from main.models import (
     tbl_cmf_process02, tbl_cmf_process02, tbl_cmf_scanned, tbl_cmf_specification02, tbl_coding_materials, tbl_dc_extruder_formula, 
     tbl_dc_extruder_materials, tbl_feedback_details, tbl_generated_prod_code, tbl_internal_color_code, tbl_master_formula, tbl_master_formula_encode, tbl_master_formula_info, tbl_mb_extruder_formula, 
     tbl_mb_extruder_formula02, tbl_resin, tbl_cmf_salesman, tbl_resins_selected, 
-    tbl_cmf_color_req, tbl_cmf_specification, tbl_cmf_process, tbl_rs
+    tbl_cmf_color_req, tbl_cmf_specification, tbl_cmf_process, tbl_rs, tbl_submitted_option, tbl_submitted_selected
 )
 
 from .services.cmf_records import cmf_records_services
@@ -284,13 +284,16 @@ def cmf_rs_entry(request):
                 form_data = rs_entry_save.build_form_data(rs_instance)
             else:
                 messages.error(request, f"RS record with ID {record_id} not found.")
+    allowed_departments = ['Laboratory', 'Information Technology', 'Sales']
+    is_allowed = request.user.role.department in allowed_departments or request.user.is_superuser
 
     context = {
         "customers": cmf_records_services.get_customer_list(), 
         "salesman": cmf_records_services.get_salesman_list(),
         "primary_color": cmf_records_services.get_color_list(),
         "resin": cmf_records_services.get_resin_list(),
-        "form_data": form_data
+        "form_data": form_data,
+        'is_allowed': is_allowed,
     }
     return render(request, "sidemenu/cmf/rs_entry.html", context)
 
@@ -858,6 +861,48 @@ def cmf_pending_completed(request):
                 if diff_logs:
                     tracking_instance.save()
                     feedback_instance.save()
+
+                # --- 4. Sync Submitted Options (Sample/Chips/Price) ---
+                # tracking_instance needs a pk before we can attach selections to it.
+                if tracking_instance.pk is None:
+                    tracking_instance.save()
+
+                submitted_ids = set(int(i) for i in data.getlist('submitted_options') if i.isdigit())
+                existing_ids = set(
+                    tbl_submitted_selected.objects
+                    .filter(completed_id=tracking_instance)
+                    .values_list('option_id', flat=True)
+                )
+
+                if submitted_ids != existing_ids:
+                    to_add = submitted_ids - existing_ids
+                    to_remove = existing_ids - submitted_ids
+
+                    if to_remove:
+                        tbl_submitted_selected.objects.filter(
+                            completed_id=tracking_instance, option_id__in=to_remove
+                        ).delete()
+
+                    if to_add:
+                        # option_id is a literal field name ending in "_id", so Django
+                        # requires an actual related object here — a raw pk int is rejected.
+                        option_objs = tbl_submitted_option.objects.filter(option_id__in=to_add)
+                        for option_obj in option_objs:
+                            tbl_submitted_selected.objects.get_or_create(
+                                completed_id=tracking_instance, option_id=option_obj
+                            )
+
+                    old_names = list(
+                        tbl_submitted_option.objects.filter(option_id__in=existing_ids).values_list('name', flat=True)
+                    )
+                    new_names = list(
+                        tbl_submitted_option.objects.filter(option_id__in=submitted_ids).values_list('name', flat=True)
+                    )
+                    diff_logs.append(
+                        f"Submitted ({', '.join(old_names) or '---'} -> {', '.join(new_names) or '---'})"
+                    )
+
+                if diff_logs:
                     log_audit(request, "Updated", f"Updated Status for {parent_display}. Changes: {', '.join(diff_logs)}")
                     messages.success(request, f"Successfully updated tracking for {parent_display}")
                 else:
@@ -869,6 +914,8 @@ def cmf_pending_completed(request):
             messages.error(request, f"Error updating record: {str(e)}")
 
     # --- GET LOGIC ---
+    all_options = list(tbl_submitted_option.objects.all())
+
     if record_no:
         if record_type == 'cmf':
             cmf = tbl_cmf.objects.filter(cm_no=record_no).first()
@@ -891,6 +938,10 @@ def cmf_pending_completed(request):
                 if not is_dc and final_formula and final_formula.code:
                     mb_lots = tbl_mb_extruder_formula.objects.filter(cm_no=cmf, code=final_formula.code).values_list('lot_no', flat=True)
                     lot_options = sorted(list(set(filter(None, mb_lots))), reverse=True)
+
+                selected_option_ids = list(
+                    tbl_submitted_selected.objects.filter(completed_id=tracking).values_list('option_id', flat=True)
+                ) if tracking else []
 
                 form_data = {
                     'cmf_no': cmf.cm_no,
@@ -916,6 +967,8 @@ def cmf_pending_completed(request):
                     'date_submitted': format_val(tracking.date_submitted) if tracking else "",
                     'ar_no': tracking.ar_no if tracking else "",
                     'ar_date': format_val(tracking.ar_date) if tracking else "",
+                    'submitted_options': all_options,
+                    'selected_option_ids': selected_option_ids,
                     'record_no': cmf.cm_no,
                     'record_type': 'cmf',
                 }
@@ -937,6 +990,10 @@ def cmf_pending_completed(request):
                 if not is_dc and tracking and tracking.code:
                     mb_lots = tbl_mb_extruder_formula.objects.filter(rs_no=rs, code=tracking.code).values_list('lot_no', flat=True)
                     lot_options = sorted(list(set(filter(None, mb_lots))), reverse=True)
+
+                selected_option_ids = list(
+                    tbl_submitted_selected.objects.filter(completed_id=tracking).values_list('option_id', flat=True)
+                ) if tracking else []
                 
                 form_data = {
                     'rs_no': rs.rs_no,
@@ -965,10 +1022,15 @@ def cmf_pending_completed(request):
                     'date_submitted': format_val(tracking.date_submitted) if tracking else "",
                     'ar_no': tracking.ar_no if tracking else "",
                     'ar_date': format_val(tracking.ar_date) if tracking else "",
+                    'submitted_options': all_options,
+                    'selected_option_ids': selected_option_ids,
                     'record_no': rs.id,
                     'record_type': 'rs',
                 }
-                print(tracking.date_submitted)
+    else:
+        form_data['submitted_options'] = all_options
+        form_data['selected_option_ids'] = []
+
     return render(request, "sidemenu/cmf/pending_completed.html", {"form_data": form_data})
 
 @role_required
@@ -987,7 +1049,7 @@ def master_formula(request):
     if form_id and not master_formula_services.get_master_formula_details(form_id):
         messages.error(request, f"Master Formula #{form_id} not found.")
 
-    context = master_formula_services.get_master_formula_context(form_id)
+    context = master_formula_services.get_master_formula_context(form_id, request)
     return render(request, "sidemenu/formula/master_formula.html", context)
 
 @role_required
@@ -1006,7 +1068,7 @@ def formulation(request):
     if form_id and not formulation_services.get_formulation_details(form_id):
         messages.error(request, f"Formulation #{form_id} not found.")
 
-    context = formulation_services.get_formulation_context(form_id)
+    context = formulation_services.get_formulation_context(form_id, request)
     return render(request, "sidemenu/formula/formulation.html", context)
 
 @role_required

@@ -209,11 +209,11 @@
                         </div>
                         <div class="d-flex gap-2 justify-content-end mt-3">
                             <button type="button" id="mfAddMaterialBtn" class="btn btn-sm btn-success px-3" 
-                            {% if form_data.is_locked %}disabled title="Modification locked (Record older than 3 days)" {% endif %}>Add</button>
+                            {% if form_data.is_locked or not is_allowed  %}disabled title="Modification locked (Record older than 3 days)" {% endif %}>Add</button>
                             <button type="button" id="mfRemoveMaterialBtn" class="btn btn-sm btn-danger px-3" 
-                            {% if form_data.is_locked %}disabled{% endif %}>Remove</button>
+                            {% if form_data.is_locked or not is_allowed  %}disabled{% endif %}>Remove</button>
                             <button type="button" id="mfClearMaterialsBtn" class="btn btn-sm btn-secondary px-3" 
-                            {% if form_data.is_locked %}disabled{% endif %}>Clear</button>
+                            {% if form_data.is_locked or not is_allowed  %}disabled{% endif %}>Clear</button>
                         </div>
                     </div>
                 </div>
@@ -256,10 +256,11 @@
             <button type="button" class="btn btn-sm btn-dark-teal px-4 shadow-sm btn-print">
                     <i class="bi bi-printer"></i> Print
                 </button>
-            <button type="button" class="btn btn-sm btn-primary px-4 shadow-sm btn-new">New</button>
+            <button type="button" class="btn btn-sm btn-primary px-4 shadow-sm btn-new"
+            {% if not is_allowed %}disabled{% endif %}>New</button>
             <button type="button" 
                 class="btn btn-sm btn-success px-4 shadow-sm btn-save" 
-                {% if form_data.is_locked %}disabled{% endif %}>
+                {% if form_data.is_locked or not is_allowed %}disabled{% endif %}>
                 {% if form_data.is_new %}Save{% else %}Update{% endif %}
             </button>
         </div>

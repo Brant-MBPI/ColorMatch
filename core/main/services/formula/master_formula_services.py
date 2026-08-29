@@ -79,7 +79,7 @@ def get_all_matching_numbers():
         cache.set('matching_numbers_list', nos, CACHE_TIMEOUT)
     return nos
 
-def get_master_formula_context(form_id=None):
+def get_master_formula_context(form_id=None, request=None):
     """Context for the Master Formula page."""
     if form_id:
         form_data = get_master_formula_details(form_id)
@@ -95,13 +95,16 @@ def get_master_formula_context(form_id=None):
         .distinct()
         .order_by('full_name')
     )
-    
+    allowed_departments = ['Laboratory', 'Information Technology', 'Sales']
+    is_allowed = request.user.role.department in allowed_departments or request.user.is_superuser
+        
     return {
         'form_data': form_data,
         'matching_numbers': get_all_matching_numbers(),
         'users': user_list,
         'materials': cmf_records_services.get_raw_material_codes(),
         'customers': cmf_records_services.get_customer_list(),
+        'is_allowed': is_allowed,
     }
 
 # --- 2. DATA TABLES ---
