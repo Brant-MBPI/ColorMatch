@@ -990,7 +990,7 @@ def master_formula(request):
     if form_id and not master_formula_services.get_master_formula_details(form_id):
         messages.error(request, f"Master Formula #{form_id} not found.")
 
-    context = master_formula_services.get_master_formula_context(form_id)
+    context = master_formula_services.get_master_formula_context(form_id, request)
     return render(request, "sidemenu/formula/master_formula.html", context)
 
 @role_required
