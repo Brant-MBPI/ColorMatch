@@ -182,21 +182,16 @@ def _fill_and_export_via_excel(template_abs_path, pdf_path, data):
 
         # --- PAGE SETUP ---
         ps = ws.PageSetup
-        ps.PrintArea = "A1:O75" 
-
-        try:
-            ps.PaperSize = 256
-            ps.PageWidth = 6.5 * 72
-            ps.PageHeight = 8.5 * 72
-        except:
-            pass
-        
         ps.LeftMargin = 0
         ps.RightMargin = 0
         ps.TopMargin = 0
         ps.BottomMargin = 0
         ps.HeaderMargin = 0
         ps.FooterMargin = 0
+
+        ps.CenterHorizontally = True
+        ps.CenterVertically = False
+        
         ps.Zoom = False
         ps.FitToPagesWide = 1
         ps.FitToPagesTall = 1
