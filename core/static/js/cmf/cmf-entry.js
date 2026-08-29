@@ -252,32 +252,41 @@ document.addEventListener('DOMContentLoaded', function() {
             const response = await fetch(`/check-previous-matching/?cm_no=${query}`);
             const data = await response.json();
 
-            // 1. HARD VALIDATION: Does this exact CM No exist?
+            let hasError = false;
+            let errorMessage = "";
+
+            // Check for exact duplicate
             if (data.exists_exact) {
-                const errorMsg = `Error: CMF No. ${query} already exists!`;
-                
+                errorMessage = `Error: CMF No. ${query} already exists!`;
+                hasError = true;
+            } 
+            // Check for sequential gap (e.g., missing 'b' when typing 'c')
+            else if (data.sequential_error) {
+                errorMessage = data.sequential_error;
+                hasError = true;
+            }
+
+            if (hasError) {
+                // 1. Show Toast
                 if (typeof Preline.toast === 'function') {
-                    Preline.toast(errorMsg, 'error');
+                    Preline.toast(errorMessage, 'error');
                 } else {
-                    alert(errorMsg);
+                    alert(errorMessage);
                 }
 
-                // Visual feedback
-                cmfInput.classList.add('border-red-500');
+                // 2. Visual Feedback
+                saveBtn.disabled = true;
 
-                // FORCE FOCUS BACK: 
-                // We use setTimeout to ensure the focus happens AFTER the browser's default blur process
+                // 3. Force Focus back
                 setTimeout(() => {
                     cmfInput.focus();
                 }, 10);
-                
-                return true; // Return true indicating an error exists
+                return; // STOP HERE
             } else {
-                cmfInput.classList.remove('border-red-500');
+                saveBtn.disabled = false;
             }
 
-            // 2. SUGGESTION LOGIC: (Only show if we aren't in a 'blur' event, 
-            // or if you want it on blur too, keep it outside the 'if')
+            // 4. SUGGESTION: Only show if we aren't in a blur event
             if (!isBlur && data.match) {
                 Preline.confirm(
                     'Previous Matching Found',
@@ -291,8 +300,8 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (error) {
             console.error("Error fetching matching data:", error);
         }
-        return false;
     }
+
 
     // Debounced version for the 'input' event (real-time typing)
     const handleCmfInput = debounce(() => {
