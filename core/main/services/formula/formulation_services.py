@@ -65,7 +65,7 @@ def get_formulation_details(form_id):
         'materials': materials,
     }
 
-def get_formulation_context(form_id=None):
+def get_formulation_context(form_id=None, request=None):
     """Context for the Formulation page. 17k list removed to save memory."""
     if form_id:
         form_data = get_formulation_details(form_id)

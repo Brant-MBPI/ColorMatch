@@ -1009,7 +1009,7 @@ def formulation(request):
     if form_id and not formulation_services.get_formulation_details(form_id):
         messages.error(request, f"Formulation #{form_id} not found.")
 
-    context = formulation_services.get_formulation_context(form_id)
+    context = formulation_services.get_formulation_context(form_id, request)
     return render(request, "sidemenu/formula/formulation.html", context)
 
 @role_required
