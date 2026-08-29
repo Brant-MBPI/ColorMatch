@@ -145,6 +145,9 @@ def _fill_and_export_dc_formula_via_word(template_abs_path, pdf_path, data):
             doc.PageSetup.Orientation = 1  # wdOrientLandscape
             doc.PageSetup.PageWidth = 11.0 * 72
             doc.PageSetup.PageHeight = 8.5 * 72
+
+            doc.PageSetup.LeftMargin = 18 # 0.25 inch
+            doc.PageSetup.RightMargin = 18
         except Exception as e:
             print(f"Warning: Could not force PageSetup dimensions: {e}")
 

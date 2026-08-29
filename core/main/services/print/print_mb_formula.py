@@ -169,6 +169,16 @@ def _fill_and_export_mb_formula_via_excel(template_abs_path, pdf_path, data):
 
         # --- PAGE SETUP: zero margins, fit print area to one page ---
         ps = ws.PageSetup
+        ps.PrintArea = "A1:H26" 
+        # 2. Force Paper Size to User-Defined (256) and set dimensions in points
+        # MB Formulation is 8.5 Wide x 6.5 Tall
+        try:
+            ps.PaperSize = 256 # xlPaperUser
+            ps.PageWidth = 8.5 * 72
+            ps.PageHeight = 6.5 * 72
+        except:
+            # Fallback if driver is stubborn
+            pass
         ps.LeftMargin = 0
         ps.RightMargin = 0
         ps.TopMargin = 0
