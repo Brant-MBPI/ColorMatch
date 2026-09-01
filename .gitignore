@@ -3,6 +3,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 .Python
+.pyc
 build/
 develop-eggs/
 dist/
