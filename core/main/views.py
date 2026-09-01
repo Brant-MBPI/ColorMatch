@@ -905,6 +905,8 @@ def cmf_pending_completed(request):
                 if diff_logs:
                     log_audit(request, "Updated", f"Updated Status for {parent_display}. Changes: {', '.join(diff_logs)}")
                     messages.success(request, f"Successfully updated tracking for {parent_display}")
+                    cache.delete('cmf_records_list')
+                    cache.delete('rs_records_list')
                 else:
                     messages.info(request, "No changes detected.")
 
