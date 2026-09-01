@@ -39,6 +39,7 @@
         const entryForm = document.getElementById('masterFormulaEntryForm');
         const saveBtn = document.querySelector('.btn-save');
         const newBtn = document.querySelector('.btn-new');
+        const printBtn = document.querySelector('.btn-print');
         const materialCodeSelect = document.getElementById('id_mf_material_code').tomselect;
         const concentrationInput = document.getElementById('id_mf_concentration');
         const materialTableBody = document.getElementById('mfMaterialTableBody');
@@ -181,40 +182,54 @@
             lookupModal.style.display = 'none';
             Preline.toast('Formula details loaded.', 'success');
         }
+        if (browseBtn) {
+            browseBtn.addEventListener('click', async function () {
+                const matchingNo = cmNoEl.tomselect.getValue();
+                if (!matchingNo) return;
+                document.getElementById('mfLookupMatchingNo').innerText = matchingNo;
+                lookupModalBody.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-teal"></div></div>';
+                lookupModal.style.display = 'flex';
+                selectBtn.disabled = true;
 
-        browseBtn.addEventListener('click', async function () {
-            const matchingNo = cmNoEl.tomselect.getValue();
-            if (!matchingNo) return;
-            document.getElementById('mfLookupMatchingNo').innerText = matchingNo;
-            lookupModalBody.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-teal"></div></div>';
-            lookupModal.style.display = 'flex';
-            selectBtn.disabled = true;
-
-            try {
-                const response = await fetch(`/master-formula/lookup/?matching_no=${encodeURIComponent(matchingNo)}`);
-                lookupModalBody.innerHTML = await response.text();
-                
-                lookupModalBody.querySelectorAll('.mf-lookup-header-row').forEach(row => {
-                    row.addEventListener('click', function() {
-                        lookupModalBody.querySelectorAll('.mf-lookup-header-row').forEach(r => r.classList.remove('table-active'));
-                        row.classList.add('table-active');
-                        highlightedLookupRow = row; 
-                        selectBtn.disabled = false;
-                        
-                        const nextRow = row.nextElementSibling;
-                        if (nextRow && nextRow.classList.contains('ingredient-sub-row')) {
-                            const isHidden = nextRow.classList.toggle('d-none');
-                            const icon = row.querySelector('.toggle-main-icon');
-                            if(icon) icon.className = isHidden ? 'bi bi-plus-circle-fill toggle-main-icon text-teal' : 'bi bi-dash-circle-fill toggle-main-icon text-danger';
-                        }
+                try {
+                    const response = await fetch(`/master-formula/lookup/?matching_no=${encodeURIComponent(matchingNo)}`);
+                    lookupModalBody.innerHTML = await response.text();
+                    
+                    lookupModalBody.querySelectorAll('.mf-lookup-header-row').forEach(row => {
+                        row.addEventListener('click', function() {
+                            lookupModalBody.querySelectorAll('.mf-lookup-header-row').forEach(r => r.classList.remove('table-active'));
+                            row.classList.add('table-active');
+                            highlightedLookupRow = row; 
+                            selectBtn.disabled = false;
+                            
+                            const nextRow = row.nextElementSibling;
+                            if (nextRow && nextRow.classList.contains('ingredient-sub-row')) {
+                                const isHidden = nextRow.classList.toggle('d-none');
+                                const icon = row.querySelector('.toggle-main-icon');
+                                if(icon) icon.className = isHidden ? 'bi bi-plus-circle-fill toggle-main-icon text-teal' : 'bi bi-dash-circle-fill toggle-main-icon text-danger';
+                            }
+                        });
+                        row.addEventListener('dblclick', () => loadFormulaIntoForm(row));
                     });
-                    row.addEventListener('dblclick', () => loadFormulaIntoForm(row));
-                });
-            } catch (err) { lookupModalBody.innerHTML = '<div class="text-center py-5 text-danger">Error fetching lookup data.</div>'; }
-        });
-
+                } catch (err) { lookupModalBody.innerHTML = '<div class="text-center py-5 text-danger">Error fetching lookup data.</div>'; }
+            });
+        }
         selectBtn.addEventListener('click', () => { if (highlightedLookupRow) loadFormulaIntoForm(highlightedLookupRow); });
         document.getElementById('id_close_modal_top').onclick = () => lookupModal.style.display='none';
         document.getElementById('id_close_modal_bottom').onclick = () => lookupModal.style.display='none';
+    
+        if (printBtn) {
+            printBtn.addEventListener('click', function () {
+                const formId = document.querySelector('[name="form_id"]').value;
+                const isNew = document.querySelector('[name="is_new_flag"]').value === 'true';
+
+                if (isNew || !formId) {
+                    Preline.toast('Please save the formula before printing.', 'warning');
+                    return;
+                }
+
+                window.open(`/master-formula/print/${formId}/`, '_blank', 'width=900,height=1000');
+            });
+        }
     });
 })();

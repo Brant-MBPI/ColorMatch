@@ -311,8 +311,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Attach to the input event
     if (cmfInput) {
         cmfInput.addEventListener('input', handleCmfInput);
+        cmfInput.addEventListener('blur', () => {
+            validateCmf(true);
+        });
     }
-    cmfInput.addEventListener('blur', () => {
-        validateCmf(true);
-    });
 });

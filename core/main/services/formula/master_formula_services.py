@@ -1,3 +1,4 @@
+from django.contrib import messages
 from django.core.cache import cache
 from django.db.models.functions import Concat
 from django.utils import timezone
@@ -44,6 +45,7 @@ def get_master_formula_details(form_id):
     return {
         'form_id': formula.form_id,
         'index_no': formula.index_no or '',
+        'date': formula.date.strftime('%m/%d/%Y') if formula.date else '',
         'is_locked': is_locked,
         'customer': formula.customer or '',
         'product_code': formula.product_code or '',
@@ -388,6 +390,17 @@ def master_formula_lookup(request):
         'matching_no': matching_no, 'error': error, 'color': color, 'parent': parent,
         'mb_formulas': mb_list, 'dc_formulas': dc_list
     })
+
+
+
+
+def print_master_formula(request, form_id):
+    data = get_master_formula_details(form_id)
+    if not data:
+        return messages.error(f"Master Formula #{form_id} not found.")
+    return render(request, "print-html/master_formula_print.html", {"f": data})
+
+
 # lookup all the trials
 # def master_formula_lookup(request):
 #     """Lookup logic. Returns EACH Trial (Version) of a DC Formula as a separate entry."""
