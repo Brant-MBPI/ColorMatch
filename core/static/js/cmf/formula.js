@@ -279,7 +279,7 @@
         iframe.addEventListener('load', () => { hideLoader(); dialog.showModal(); });
         dialog.querySelector('#formulaPreviewPrintBtn').addEventListener('click', () => {
             iframe.contentWindow.print();
-            fetch(`/formula-log-print/${urlPrefix}/${formulaId}/`);
+            fetch(`/formula/log-print/${urlPrefix}/${formulaId}/`);
         });
         dialog.querySelector('#formulaPreviewCloseBtn').addEventListener('click', () => dialog.close());
         dialog.addEventListener('close', () => dialog.remove());
@@ -293,7 +293,7 @@
     if (document.querySelector('.js-dc-formula')) {
         applyDcReadonlyLogic();
     }
-
+    
 
     //  Shared AJAX Auto-population Logic for MB and DC
     const cmfSelectMB = document.getElementById('id_mb_cmf_number');
