@@ -78,6 +78,7 @@ def sync_master_formula(progress_callback=None):
             "matched_by": to_str(r.get('T_MATCHBY')), 
             "encoded_by": to_str(r.get('T_ENCODEDB')),
             "updated_by": to_str(r.get('T_UPDATEBY')),
+            "colorant_type": to_str(r.get('T_MBDC')),
         })
 
     if not primary_recs:
@@ -93,13 +94,13 @@ def sync_master_formula(progress_callback=None):
                 form_id, index_no, date, customer, product_code, prod_color, 
                 dosage, total_concentration, ld, mix_time, resin, application, 
                 cm_no, colormatch_date, notes, date_modified, is_deleted, is_used,
-                html_code_hex, cyan, magenta, yellow, black
+                html_code_hex, cyan, magenta, yellow, black, colorant_type
             )
             VALUES (
                 %(uid)s, %(index_no)s, %(date)s, %(customer)s, %(prod_code)s, %(prod_color)s, 
                 %(dosage)s, %(total_concentration)s, %(ld)s, %(mix_time)s, %(resin)s, %(application)s, 
                 %(cm_no)s, %(cm_date)s, %(notes)s, %(date_time)s, %(is_deleted)s, %(is_used)s,
-                %(html)s, %(cyan)s, %(magenta)s, %(yellow)s, %(black)s
+                %(html)s, %(cyan)s, %(magenta)s, %(yellow)s, %(black)s, %(colorant_type)s
             )
             ON CONFLICT (form_id) DO NOTHING;
         """, primary_recs)

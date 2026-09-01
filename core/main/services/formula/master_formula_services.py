@@ -82,6 +82,7 @@ def get_master_formula_details(form_id):
         'matched_by': encode.match_by if encode else '',
         'encoded_by': encode.encoded_by if encode else '',
         'materials': materials,
+        'colorant_type': formula.colorant_type or '',
     }
 
 def get_all_matching_numbers():

@@ -574,6 +574,7 @@ class tbl_master_formula(models.Model):
     yellow = models.DecimalField(max_digits=12, decimal_places=6, null=True, blank=True)
     black = models.DecimalField(max_digits=12, decimal_places=6, null=True, blank=True)
 
+    colorant_type = models.CharField(max_length=5, blank=True, null=True)
     class Meta:
         db_table = "tbl_master_formula"
 
