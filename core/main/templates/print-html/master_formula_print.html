@@ -3,15 +3,13 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Master Formula #{{ f.form_id }}</title>
+    <title>Master Formula Record #{{ f.form_id }}</title>
     <style>
         @page {
             size: letter portrait;
-            margin: 0.4in;
+            margin: 0.35in;
         }
-
         * { box-sizing: border-box; }
-
         body {
             font-family: Arial, Helvetica, sans-serif;
             font-size: 11px;
@@ -19,190 +17,144 @@
             margin: 0;
             padding: 0;
         }
-
-        .print-toolbar {
-            position: sticky;
-            top: 0;
-            background: #222;
-            padding: 10px 20px;
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            z-index: 100;
+        .outer-border {
+            border: 2px solid #000;
+            padding: 14px;
         }
-        .print-toolbar button {
-            padding: 6px 18px;
+        .record-title {
             font-size: 13px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
+            font-weight: bold;
+            margin: 0 0 10px 4px;
         }
-        .btn-do-print { background: #0d6efd; color: #fff; }
-        .btn-do-close { background: #6c757d; color: #fff; }
-
-        .sheet {
-            width: 7.7in; /* letter width minus margins */
-            margin: 20px auto;
-            background: #fff;
-            padding: 10px;
+        .info-box {
+            border: 1px solid #000;
         }
-
-        .header-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 2px solid #7a1f3d;
-            padding-bottom: 6px;
-            margin-bottom: 10px;
-        }
-        .header-left { display: flex; align-items: center; gap: 10px; }
-        .header-left img { height: 40px; }
-        .company-name { font-size: 16px; font-weight: bold; color: #7a1f3d; margin: 0; }
-        .company-tagline { font-size: 9px; color: #333; margin: 0; }
-        .form-title { text-align: center; font-size: 14px; font-weight: bold; text-transform: uppercase; margin: 0 0 10px; }
-        .form-id-box { font-size: 11px; font-weight: bold; text-align: right; }
-
         .info-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 4px 20px;
-            margin-bottom: 12px;
+            display: flex;
         }
-        .info-item { display: flex; }
-        .info-label { font-weight: bold; width: 110px; flex-shrink: 0; }
-        .info-value { border-bottom: 1px solid #000; flex-grow: 1; padding-left: 4px; min-height: 14px; }
+        .info-col {
+            padding: 10px 14px;
+        }
+        .info-row {
+            display: flex;
+            font-size: 11px;
+            padding: 2px 0;
+        }
+        .info-label {
+            width: 150px;
+            flex-shrink: 0;
+        }
+        .info-colon { width: 12px; flex-shrink: 0; }
+        .info-value { flex-grow: 1; }
+        .info-value.bold { font-weight: bold; }
 
         table.materials-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 10px;
-        }
-        table.materials-table th, table.materials-table td {
-            border: 1px solid #000;
-            padding: 4px 6px;
-            font-size: 10.5px;
+            border-top: 1px solid #000;
+            border-left: 1px solid #000;
+            border-right: 1px solid #000;
         }
         table.materials-table th {
-            background: #f0f0f0;
-            text-transform: uppercase;
+            border-bottom: 1px solid #000;
+            padding: 6px 8px;
+            font-size: 11px;
+            text-align: center;
+            font-weight: bold;
         }
-        table.materials-table td.num { text-align: right; }
-        table.materials-table tr.total-row td { font-weight: bold; }
-
-        .signatures {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 16px;
-            margin-top: 24px;
+        table.materials-table td {
+            padding: 5px 8px;
+            font-size: 11px;
+            text-align: center;
+            border: 1px solid rgb(43, 43, 43);
         }
-        .sig-block { font-size: 10.5px; }
-        .sig-label { font-weight: bold; margin-bottom: 18px; display: block; }
-        .sig-line { border-top: 1px solid #000; padding-top: 2px; }
+        table.materials-table tbody tr:nth-child(even) {
+            background: #d9d9d9;
+        }
 
-        .notes-box { margin-top: 10px; font-size: 10.5px; }
-        .notes-box .notes-label { font-weight: bold; }
-        .notes-box .notes-value { border: 1px solid #000; min-height: 30px; padding: 4px; margin-top: 2px; white-space: pre-wrap; }
-
-        @media print {
-            .print-toolbar { display: none; }
-            .sheet { margin: 0; width: 100%; }
-            body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .footer-box {
+            border: 1px solid #000;
+            border-top: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 10px 14px;
+        }
+        .footer-left .info-row { padding: 2px 0; }
+        .footer-left .info-label { width: 130px; }
+        .footer-right {
+            text-align: right;
+        }
+        .footer-right .total-label {
+            font-size: 11px;
+        }
+        .footer-right .total-value {
+            font-size: 20px;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
 
-    <div class="print-toolbar">
-        <button class="btn-do-print" onclick="window.print()">Print</button>
-        <button class="btn-do-close" onclick="window.close()">Close</button>
-    </div>
+    <div class="outer-border">
+        <div class="record-title">MASTER FORMULA RECORD</div>
 
-    <div class="sheet">
-        <div class="header-row">
-            <div class="header-left">
-                <!-- adjust static path to your actual logo asset -->
-                <img src="{% static 'images/mbpi_logo.png' %}" alt="MBPI Logo" onerror="this.style.display='none'">
-                <div>
-                    <p class="company-name">MASTERBATCH PHILIPPINES, INC.</p>
-                    <p class="company-tagline">The Trusted Partner in Color Solutions and Innovations</p>
+        <div class="info-box">
+            <div class="info-grid">
+                <div class="info-col">
+                    <div class="info-row"><span class="info-label">FORMULA ID</span><span class="info-colon">:</span><span class="info-value bold">{{ f.form_id }}</span></div>
+                    <div class="info-row"><span class="info-label">MATCHING DATE</span><span class="info-colon">:</span><span class="info-value bold">{{ f.colormatch_date }}</span></div>
+                    <div class="info-row"><span class="info-label">DOSAGE</span><span class="info-colon">:</span><span class="info-value bold">{{ f.dosage }}</span></div>
+                    <div class="info-row"><span class="info-label">SUM OF CONCENTRATION</span><span class="info-colon">:</span><span class="info-value bold">{{ f.sum_of_concentration }}</span></div>
+                    <div class="info-row"><span class="info-label">PRODUCT CODE</span><span class="info-colon">:</span><span class="info-value bold">{{ f.product_code }}</span></div>
+                    <div class="info-row"><span class="info-label">COLOR</span><span class="info-colon">:</span><span class="info-value bold">{{ f.prod_color }}</span></div>
+                    <div class="info-row"><span class="info-label">MATCH BY</span><span class="info-colon">:</span><span class="info-value bold">{{ f.matched_by }}</span></div>
+                    <div class="info-row"><span class="info-label">ENCODED BY</span><span class="info-colon">:</span><span class="info-value bold">{{ f.encoded_by }}</span></div>
+                    <div class="info-row"><span class="info-label">PRODUCT CODE</span><span class="info-colon">:</span><span class="info-value bold">{{ f.product_code }}</span></div>
+                    <div class="info-row"><span class="info-label">COLOR</span><span class="info-colon">:</span><span class="info-value bold">{{ f.prod_color }}</span></div>
                 </div>
-            </div>
-            <div class="form-id-box">
-                MF #: {{ f.form_id }}<br>
-                {% if f.index_no %}Index Ref.: {{ f.index_no }}{% endif %}
-            </div>
-        </div>
-
-        <div class="form-title">Master Formula</div>
-
-        <div class="info-grid">
-            <div class="info-item"><span class="info-label">Date:</span><span class="info-value">{{ f.date }}</span></div>
-            <div class="info-item"><span class="info-label">Customer:</span><span class="info-value">{{ f.customer }}</span></div>
-
-            <div class="info-item"><span class="info-label">Product Code:</span><span class="info-value">{{ f.product_code }}</span></div>
-            <div class="info-item"><span class="info-label">Product Color:</span><span class="info-value">{{ f.prod_color }}</span></div>
-
-            <div class="info-item"><span class="info-label">Matching No.:</span><span class="info-value">{{ f.cm_no }}</span></div>
-            <div class="info-item"><span class="info-label">Date Matched:</span><span class="info-value">{{ f.colormatch_date }}</span></div>
-
-            <div class="info-item"><span class="info-label">Resin Used:</span><span class="info-value">{{ f.resin }}</span></div>
-            <div class="info-item"><span class="info-label">Process:</span><span class="info-value">{{ f.application }}</span></div>
-
-            <div class="info-item"><span class="info-label">Dosage:</span><span class="info-value">{{ f.dosage }}</span></div>
-            <div class="info-item"><span class="info-label">Mixing Time:</span><span class="info-value">{{ f.mix_time }}</span></div>
-
-            <div class="info-item"><span class="info-label">Sum of Con:</span><span class="info-value">{{ f.sum_of_concentration }}</span></div>
-            <div class="info-item"><span class="info-label">HEX / CMYK:</span>
-                <span class="info-value">
-                    {{ f.html_code_hex }}
-                    {% if f.cyan or f.magenta or f.yellow or f.black %}
-                        (C:{{ f.cyan }} M:{{ f.magenta }} Y:{{ f.yellow }} K:{{ f.black }})
-                    {% endif %}
-                </span>
+                <div class="info-col">
+                    <div class="info-row"><span class="info-label">INDEX REF. NO.</span><span class="info-colon">:</span><span class="info-value bold">{{ f.index_no|default:"---" }}</span></div>
+                    <div class="info-row"><span class="info-label">MIXING TIME</span><span class="info-colon">:</span><span class="info-value bold">{{ f.mix_time }}</span></div>
+                    <div class="info-row"><span class="info-label">RESIN USED</span><span class="info-colon">:</span><span class="info-value bold">{{ f.resin }}</span></div>
+                    <div class="info-row"><span class="info-label">APPLICATION</span><span class="info-colon">:</span><span class="info-value bold">{{ f.application }}</span></div>
+                    <div class="info-row"><span class="info-label">TOTAL SUM OF CONCENTRATION</span><span class="info-colon">:</span><span class="info-value bold">{{ f.total_concentration }}</span></div>
+                    <div class="info-row"><span class="info-label">HTML VALUE</span><span class="info-colon">:</span><span class="info-value bold">{{ f.html_code_hex }}</span></div>
+                    <div class="info-row"><span class="info-label">CMYK VALUE</span><span class="info-colon">:</span><span class="info-value bold">{{ f.cyan }}&nbsp;&nbsp;{{ f.magenta }}&nbsp;&nbsp;{{ f.yellow }}&nbsp;&nbsp;{{ f.black }}</span></div>
+                    <div class="info-row"><span class="info-label">MB-DC VALUE</span><span class="info-colon">:</span><span class="info-value bold">{{ f.colorant_type }}</span></div>
+                    <div class="info-row"><span class="info-label">REMARKS</span><span class="info-colon">:</span><span class="info-value bold">{{ f.notes }}</span></div>
+                </div>
             </div>
         </div>
 
         <table class="materials-table">
             <thead>
                 <tr>
-                    <th style="width:70%;">Material Code</th>
-                    <th style="width:30%;">Concentration</th>
+                    <th style="width:45%;">MATERIAL CODE</th>
+                    <th style="width:35%;">CONCENTRATION</th>
+                    <th style="width:20%;">SEQ NO.</th>
                 </tr>
             </thead>
             <tbody>
                 {% for mat in f.materials %}
                 <tr>
                     <td>{{ mat.material_code }}</td>
-                    <td class="num">{{ mat.concentration }}</td>
+                    <td>{{ mat.concentration }}</td>
+                    <td>{{ mat.sequence_no }}</td>
                 </tr>
                 {% endfor %}
-                <tr class="total-row">
-                    <td>Total</td>
-                    <td class="num">{{ f.total_concentration }}</td>
-                </tr>
             </tbody>
         </table>
 
-        <div class="notes-box">
-            <span class="notes-label">Notes:</span>
-            <div class="notes-value">{{ f.notes }}</div>
-        </div>
-
-        <div class="signatures">
-            <div class="sig-block">
-                <span class="sig-label"></span>
-                <div class="sig-line">{{ f.matched_by }}</div>
-                Matched By
+        <div class="footer-box">
+            <div class="footer-left">
+                <div class="info-row"><span class="info-label">DATE OF ENTRY</span><span class="info-colon">:</span><span class="info-value">{{ f.date }}</span></div>
+                <div class="info-row"><span class="info-label">PDF GENERATED ON</span><span class="info-colon">:</span><span class="info-value">{{ f.pdf_generated_on }}</span></div>
+                <div class="info-row"><span class="info-label">DEPT AND USER</span><span class="info-colon">:</span><span class="info-value">{{ f.department_and_user }}</span></div>
             </div>
-            <div class="sig-block">
-                <span class="sig-label"></span>
-                <div class="sig-line">{{ f.encoded_by }}</div>
-                Encoded By
-            </div>
-            <div class="sig-block">
-                <span class="sig-label"></span>
-                <div class="sig-line">{{ f.updated_by }}</div>
-                Updated By ({{ f.updated_time }})
+            <div class="footer-right">
+                <div class="total-label">TOTAL SUM OF CONCENTRATION</div>
+                <div class="total-value">{{ f.total_concentration }}</div>
             </div>
         </div>
     </div>

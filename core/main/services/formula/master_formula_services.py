@@ -10,6 +10,7 @@ from django.db.models import Q, Max, Value
 from django.shortcuts import render
 from main.utils.log_audit_trail import log_audit
 from main.services.cmf_records import cmf_records_services
+from django.views.decorators.clickjacking import xframe_options_exempt
 from main.models import (
     tbl_cmf_formula, tbl_cmf_process02, tbl_dc_extruder_formula, tbl_dc_extruder_materials, tbl_dc_extruder_version, 
     tbl_master_formula, tbl_master_formula_info, tbl_master_formula_encode, 
@@ -27,6 +28,18 @@ def get_master_formula_details(form_id):
     formula = tbl_master_formula.objects.filter(pk=form_id, is_deleted=False).first()
     if not formula:
         return None
+
+    # Helper function to strip trailing zeros and the decimal point if whole number
+    def clean_num(val):
+        if val is None or val == "":
+            return "0"
+        try:
+            # Convert to float and use %g formatter 
+            # %g automatically removes trailing zeros and dots
+            # Example: 10.00000 -> "10", 0.23000 -> "0.23"
+            return format(float(val), 'g')
+        except (ValueError, TypeError):
+            return val
 
     is_locked = False
     if formula.date:
@@ -60,10 +73,10 @@ def get_master_formula_details(form_id):
         'colormatch_date': formula.colormatch_date.strftime('%m/%d/%Y') if formula.colormatch_date else '',
         'notes': formula.notes or '',
         'html_code_hex': formula.html_code_hex or '',
-        'cyan': formula.cyan or '',
-        'magenta': formula.magenta or '',
-        'yellow': formula.yellow or '',
-        'black': formula.black or '',
+        'cyan': clean_num(formula.cyan),
+        'magenta': clean_num(formula.magenta),
+        'yellow': clean_num(formula.yellow),
+        'black': clean_num(formula.black),
         'updated_by': encode.updated_by if encode else '',
         'updated_time': formula.date_modified or '',
         'matched_by': encode.match_by if encode else '',
@@ -398,8 +411,11 @@ def print_master_formula(request, form_id):
     data = get_master_formula_details(form_id)
     if not data:
         return messages.error(f"Master Formula #{form_id} not found.")
+    data['pdf_generated_on'] = timezone.now().strftime('%m/%d/%y %I:%M:%S %p')
+    data['department_and_user'] = f"{request.user.role.department} # {request.user.username}"
     return render(request, "print-html/master_formula_print.html", {"f": data})
 
+print_master_formula = xframe_options_exempt(print_master_formula)
 
 # lookup all the trials
 # def master_formula_lookup(request):

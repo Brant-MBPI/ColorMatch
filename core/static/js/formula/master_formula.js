@@ -228,7 +228,26 @@
                     return;
                 }
 
-                window.open(`/master-formula/print/${formId}/`, '_blank', 'width=900,height=1000');
+                // Remove any leftover print iframe from a previous click
+                const oldFrame = document.getElementById('mfPrintFrame');
+                if (oldFrame) oldFrame.remove();
+
+                const iframe = document.createElement('iframe');
+                iframe.id = 'mfPrintFrame';
+                iframe.style.position = 'fixed';
+                iframe.style.right = '0';
+                iframe.style.bottom = '0';
+                iframe.style.width = '0';
+                iframe.style.height = '0';
+                iframe.style.border = '0';
+                iframe.src = `/master-formula/print/${formId}/`;
+
+                iframe.onload = function () {
+                    iframe.contentWindow.focus();
+                    iframe.contentWindow.print();
+                };
+
+                document.body.appendChild(iframe);
             });
         }
     });
