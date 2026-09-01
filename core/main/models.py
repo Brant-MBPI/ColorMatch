@@ -320,7 +320,7 @@ class tbl_cmf_specification02(models.Model):
 
 
 class tbl_cmf_pending_completed(models.Model):
-    id = models.AutoField(primary_key=True)
+    completed_id = models.AutoField(primary_key=True)
     # References tbl_cmf.cm_no (string)
     cm_no = models.ForeignKey(
         'tbl_cmf', on_delete=models.SET_NULL, to_field='cm_no', 
@@ -349,6 +349,38 @@ class tbl_cmf_pending_completed(models.Model):
     def __str__(self):
         return f"{self.cm_no} - {'Completed' if self.is_completed else 'Pending'}"
 
+class tbl_submitted_option(models.Model):
+    option_id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=50, unique=True)
+
+    class Meta:
+        db_table = "tbl_submitted_option"
+
+    def __str__(self):
+        return self.name
+
+
+class tbl_submitted_selected(models.Model):
+    submitted_id = models.AutoField(primary_key=True)
+    completed_id = models.ForeignKey(
+        'tbl_cmf_pending_completed',
+        on_delete=models.CASCADE,
+        db_column='completed_id',
+        related_name='submitted_selections'
+    )
+    option_id = models.ForeignKey(
+        'tbl_submitted_option',
+        on_delete=models.CASCADE,
+        db_column='option_id'
+    )
+
+    class Meta:
+        db_table = "tbl_submitted_selected"
+        unique_together = ('completed_id', 'option_id')
+
+    def __str__(self):
+        return f"{self.completed_id.completed_id} - {self.option_id.name}"
+
 
 # ==========================================
 # 4. RS & FEEDBACK
@@ -374,15 +406,6 @@ class tbl_rs(models.Model):
 
     def __str__(self):
         return self.rs_no or str(self.id)
-
-
-class tbl_rs_prod_codes(models.Model):
-    rs_code_no = models.AutoField(primary_key=True)
-    code = models.ForeignKey(tbl_generated_prod_code, on_delete=models.SET_NULL, null=True, blank=True, db_column="code_no")
-    rs = models.ForeignKey(tbl_rs, on_delete=models.SET_NULL, null=True, blank=True, db_column="rs_id")
-
-    class Meta:
-        db_table = "tbl_rs_prod_codes"
 
 
 class tbl_feedback_details(models.Model):

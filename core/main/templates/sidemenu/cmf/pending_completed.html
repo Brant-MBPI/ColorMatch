@@ -127,16 +127,31 @@ Pending/Completed Forms
 
                         <!-- Qty Given (KG) - Defaults to Quantity Required if empty -->
                         <div class="mb-3">
+                        <label class="fw-bold extra-small d-block mb-1 required-label">Submitted:</label>
+                        <div class="d-flex align-items-center flex-wrap gap-3">
+                            {% for opt in form_data.submitted_options %}
+                            <div class="form-check">
+                                <input class="form-check-input visible-check" type="checkbox" name="submitted_options"
+                                    id="submitted_option_{{ opt.option_id }}" value="{{ opt.option_id }}"
+                                    {% if opt.option_id in form_data.selected_option_ids %}checked{% endif %}>
+                                <label class="form-check-label extra-small" for="submitted_option_{{ opt.option_id }}">{{ opt.name }}</label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
                             <label class="fw-bold extra-small required-label">Qty Given (KG):</label>
                             <input type="number" name="qty_given" value="{% if form_data.qty_given %}{{ form_data.qty_given }}{% elif form_data.quantity_kg %}{{ form_data.quantity_kg }}{% else %}{% endif %}" 
                                 class="form-control form-control-sm uniform-input" placeholder="KG" step="0.01" min="0" required>
                         </div>
-
-                        <div class="mb-3">
+                        <div class="col-6">
                             <label class="fw-bold extra-small required-label">Set (Pc/Pcs):</label>
                             <input type="number" name="set_pc" value="{{ form_data.set_pc|default:'' }}" 
-                            class="form-control form-control-sm uniform-input" placeholder="Qty" step="1" required>
+                                class="form-control form-control-sm uniform-input" placeholder="Qty" step="1" required>
                         </div>
+                    </div>
 
                         <div class="mb-3">
                             <label class="fw-bold extra-small required-label">Date Submitted:</label>
@@ -165,7 +180,7 @@ Pending/Completed Forms
                                             <option value="{{ lot }}"></option>
                                         {% endif %}
                                     {% endfor %}
-                                </datalist>y
+                                </datalist>
                                 {% endif %}
                             </div>
                             <div class="col-6">

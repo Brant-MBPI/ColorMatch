@@ -244,36 +244,75 @@ document.addEventListener('DOMContentLoaded', function() {
     applyFilters();
 
     // The function that checks the database
-    const handleCmfLookup = debounce(async (event) => {
-        const query = event.target.value;
-        if (query.length < 3) return; // Don't search for very short strings
+    async function validateCmf(isBlur = false) {
+        const query = cmfInput.value.trim();
+        if (query.length < 3) return;
 
         try {
             const response = await fetch(`/check-previous-matching/?cm_no=${query}`);
             const data = await response.json();
 
-            if (data.match) {
+            let hasError = false;
+            let errorMessage = "";
+
+            // Check for exact duplicate
+            if (data.exists_exact) {
+                errorMessage = `Error: CMF No. ${query} already exists!`;
+                hasError = true;
+            } 
+            // Check for sequential gap (e.g., missing 'b' when typing 'c')
+            else if (data.sequential_error) {
+                errorMessage = data.sequential_error;
+                hasError = true;
+            }
+
+            if (hasError) {
+                // 1. Show Toast
+                if (typeof Preline.toast === 'function') {
+                    Preline.toast(errorMessage, 'error');
+                } else {
+                    alert(errorMessage);
+                }
+
+                // 2. Visual Feedback
+                saveBtn.disabled = true;
+
+                // 3. Force Focus back
+                setTimeout(() => {
+                    cmfInput.focus();
+                }, 10);
+                return; // STOP HERE
+            } else {
+                saveBtn.disabled = false;
+            }
+
+            // 4. SUGGESTION: Only show if we aren't in a blur event
+            if (!isBlur && data.match) {
                 Preline.confirm(
                     'Previous Matching Found',
-                    `A previous record (${data.latest_cm_no}) exists. Do you want to auto-fill the fields with its data?`,
+                    `A previous record (${data.latest_cm_no}) exists. Do you want to auto-fill?`,
                     'info',
                     () => {
-                        // CONFIRMED: Redirect to load data but keep the user's NEW ID
-                        const userInput = cmfInput.value;
-                        window.location.href = `/cmf/entry/?no=${data.latest_cm_no}&new_no=${userInput}`;
-                    },
-                    () => {
-                        // CANCELLED: Do nothing, let the user continue typing manually
+                        window.location.href = `/cmf/entry/?no=${data.latest_cm_no}&new_no=${query}`;
                     }
                 );
             }
         } catch (error) {
             console.error("Error fetching matching data:", error);
         }
+    }
+
+
+    // Debounced version for the 'input' event (real-time typing)
+    const handleCmfInput = debounce(() => {
+        validateCmf(false);
     }, 800);
 
     // Attach to the input event
     if (cmfInput) {
-        cmfInput.addEventListener('input', handleCmfLookup);
+        cmfInput.addEventListener('input', handleCmfInput);
     }
+    cmfInput.addEventListener('blur', () => {
+        validateCmf(true);
+    });
 });
