@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.core.cache import cache
 from django.db.models.functions import Concat
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
 import json
 from datetime import datetime
@@ -417,6 +418,22 @@ def print_master_formula(request, form_id):
     return render(request, "print-html/master_formula_print.html", {"f": data})
 
 print_master_formula = xframe_options_exempt(print_master_formula)
+
+
+def log_master_formula_print(request, formula_id):
+    try:
+        # Get the record from the database
+        formula = get_object_or_404(tbl_master_formula, pk=formula_id)
+        
+        # Construct description for audit trail
+        desc = f"Printed Master Formula (Form ID: {formula.form_id or 'N/A'})"
+
+        # Call your existing log_audit function
+        log_audit(request, "Printed", desc)
+        
+        return JsonResponse({'status': 'success'})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
 # lookup all the trials
 # def master_formula_lookup(request):

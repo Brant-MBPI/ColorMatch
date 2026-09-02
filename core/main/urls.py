@@ -63,6 +63,7 @@ urlpatterns = [
     path('dc-formula/print/<str:formula_id>/preview', print_dc_formula.print_dc_formula_preview, name='dc_formula_print'),
     path('cmf/log-print/<str:cm_no>/', print_cmf.log_cmf_print, name='log_cmf_print'),
     path('master-formula/print/<int:form_id>/', master_formula_services.print_master_formula, name='print_master_formula'),
+    path('master-formula/log-print/<int:form_id>/', master_formula_services.log_master_formula_print, name='log_master_formula_print'),
     path('master-formula/<int:form_id>/materials/', master_formula_services.master_formula_materials_json, name='master_formula_materials_json'),
     path('formulation/<int:form_id>/materials/', formulation_services.formulation_materials_json, name='formulation_materials_json'),
     path('formula/log-print/mb-formula/<int:formula_id>/', print_mb_formula.log_formula_print, name='log_mb_formula_print'),

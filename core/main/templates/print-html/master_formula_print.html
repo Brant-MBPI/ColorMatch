@@ -31,9 +31,13 @@
         }
         .info-grid {
             display: flex;
+            padding: 0px 4px;
         }
-        .info-col {
+        .info-grid .info-col {
             padding: 10px 14px;
+        }
+        .info-grid .info-col:first-child {
+            width: 45%;
         }
         .info-row {
             display: flex;
@@ -44,6 +48,7 @@
             width: 150px;
             flex-shrink: 0;
         }
+        .info-grid .info-col:last-child .info-row:nth-child(5) .info-label { width: 185px; }
         .info-colon { width: 12px; flex-shrink: 0; }
         .info-value { flex-grow: 1; }
         .info-value.bold { font-weight: bold; }
@@ -102,27 +107,88 @@
         <div class="info-box">
             <div class="info-grid">
                 <div class="info-col">
-                    <div class="info-row"><span class="info-label">FORMULA ID</span><span class="info-colon">:</span><span class="info-value bold">{{ f.form_id|default:"---" }}</span></div>
-                    <div class="info-row"><span class="info-label">MATCHING DATE</span><span class="info-colon">:</span><span class="info-value bold">{{ f.colormatch_date|default:"---" }}</span></div>
-                    <div class="info-row"><span class="info-label">DOSAGE</span><span class="info-colon">:</span><span class="info-value bold">{{ f.dosage|default:"---" }}</span></div>
-                    <div class="info-row"><span class="info-label">SUM OF CONCENTRATION</span><span class="info-colon">:</span><span class="info-value bold">{{ f.sum_of_concentration|default:"---" }}</span></div>
-                    <div class="info-row"><span class="info-label">PRODUCT CODE</span><span class="info-colon">:</span><span class="info-value bold">{{ f.product_code|default:"---" }}</span></div>
-                    <div class="info-row"><span class="info-label">COLOR</span><span class="info-colon">:</span><span class="info-value bold">{{ f.prod_color|default:"---" }}</span></div>
-                    <div class="info-row"><span class="info-label">MATCH BY</span><span class="info-colon">:</span><span class="info-value bold">{{ f.matched_by|default:"---" }}</span></div>
-                    <div class="info-row"><span class="info-label">ENCODED BY</span><span class="info-colon">:</span><span class="info-value bold">{{ f.encoded_by|default:"---" }}</span></div>
-                    <div class="info-row"><span class="info-label">PRODUCT CODE</span><span class="info-colon">:</span><span class="info-value bold">{{ f.product_code|default:"---" }}</span></div>
-                    <div class="info-row"><span class="info-label">COLOR</span><span class="info-colon">:</span><span class="info-value bold">{{ f.prod_color|default:"---" }}</span></div>
+                    <div class="info-row">
+                        <span class="info-label">FORMULA ID</span>
+                        <span class="info-colon">:</span>
+                        <span class="info-value bold">{{ f.form_id|default:"---" }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">MATCHING DATE</span>
+                        <span class="info-colon">:</span>
+                        <span class="info-value bold">{{ f.colormatch_date|default:"---" }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">DOSAGE</span>
+                        <span class="info-colon">:</span>
+                        <span class="info-value bold">{{ f.dosage|default:"---" }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">SUM OF CONCENTRATION</span>
+                        <span class="info-colon">:</span>
+                        <span class="info-value bold">{{ f.sum_of_concentration|default:"---" }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">ENCODED BY</span>
+                        <span class="info-colon">:</span>
+                        <span class="info-value bold">{{ f.encoded_by|default:"---" }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">PRODUCT CODE</span>
+                        <span class="info-colon">:</span>
+                        <span class="info-value bold">{{ f.product_code|default:"---" }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">COLOR</span>
+                        <span class="info-colon">:</span>
+                        <span class="info-value bold">{{ f.prod_color|default:"---" }}</span>
+                    </div>
                 </div>
                 <div class="info-col">
-                    <div class="info-row"><span class="info-label">INDEX REF. NO.</span><span class="info-colon">:</span><span class="info-value bold">{{ f.index_no|default:"---" }}</span></div>
-                    <div class="info-row"><span class="info-label">MIXING TIME</span><span class="info-colon">:</span><span class="info-value bold">{{ f.mix_time|default:"---" }}</span></div>
-                    <div class="info-row"><span class="info-label">RESIN USED</span><span class="info-colon">:</span><span class="info-value bold">{{ f.resin|default:"---" }}</span></div>
-                    <div class="info-row"><span class="info-label">APPLICATION</span><span class="info-colon">:</span><span class="info-value bold">{{ f.application|default:"---" }}</span></div>
-                    <div class="info-row"><span class="info-label">TOTAL SUM OF CONCENTRATION</span><span class="info-colon">:</span><span class="info-value bold">{{ f.total_concentration|default:"---" }}</span></div>
-                    <div class="info-row"><span class="info-label">HTML VALUE</span><span class="info-colon">:</span><span class="info-value bold">{{ f.html_code_hex|default:"---" }}</span></div>
-                    <div class="info-row"><span class="info-label">CMYK VALUE</span><span class="info-colon">:</span><span class="info-value bold">{{ f.cyan|default:"---" }}&nbsp;&nbsp;{{ f.magenta|default:"---" }}&nbsp;&nbsp;{{ f.yellow|default:"---" }}&nbsp;&nbsp;{{ f.black|default:"---" }}</span></div>
-                    <div class="info-row"><span class="info-label">MB-DC VALUE</span><span class="info-colon">:</span><span class="info-value bold">{{ f.colorant_type|default:"---" }}</span></div>
-                    <div class="info-row"><span class="info-label">REMARKS</span><span class="info-colon">:</span><span class="info-value bold">{{ f.notes|default:"---" }}</span></div>
+                    <div class="info-row">
+                        <span class="info-label">INDEX REF. NO.</span>
+                        <span class="info-colon">:</span>
+                        <span class="info-value bold">{{ f.index_no|default:"---" }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">MIXING TIME</span>
+                        <span class="info-colon">:</span>
+                        <span class="info-value bold">{{ f.mix_time|default:"---" }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">RESIN USED</span>
+                        <span class="info-colon">:</span>
+                        <span class="info-value bold">{{ f.resin|default:"---" }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">APPLICATION</span>
+                        <span class="info-colon">:</span>
+                        <span class="info-value bold">{{ f.application|default:"---" }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">TOTAL SUM OF CONCENTRATION</span>
+                        <span class="info-colon">:</span>
+                        <span class="info-value bold">{{ f.total_concentration|default:"---" }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">HTML VALUE</span>
+                        <span class="info-colon">:</span>
+                        <span class="info-value bold">{{ f.html_code_hex|default:"---" }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">CMYK VALUE</span>
+                        <span class="info-colon">:</span>
+                        <span class="info-value bold">{{ f.cyan|default:"---" }}&nbsp;&nbsp;{{ f.magenta|default:"---" }}&nbsp;&nbsp;{{ f.yellow|default:"---" }}&nbsp;&nbsp;{{ f.black|default:"---" }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">MB-DC VALUE</span>
+                        <span class="info-colon">:</span>
+                        <span class="info-value bold">{{ f.colorant_type|default:"---" }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">REMARKS</span>
+                        <span class="info-colon">:</span>
+                        <span class="info-value bold">{{ f.notes|default:"---" }}</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -159,5 +225,17 @@
         </div>
     </div>
 
+    <script>
+        window.onafterprint = function() {
+            const formulaId = "{{ f.form_pk }}"; // Ensure you pass the Primary Key here from your view context
+            if (formulaId) {
+                fetch(`/master-formula/log-print/${formulaId}/`)
+                    .then(response => response.json())
+                    .then(data => {
+                    })
+                    
+            }
+        };
+    </script>
 </body>
 </html>
