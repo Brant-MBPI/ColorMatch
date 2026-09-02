@@ -12,7 +12,7 @@
         * { box-sizing: border-box; }
         body {
             font-family: Times New Roman, Arial, Helvetica, sans-serif;
-            font-size: 12px;
+            font-size: 14px;
             color: #000;
             margin: 0;
             padding: 0;
@@ -37,7 +37,7 @@
         .form-title {
             position: relative;
             text-align: center;
-            font-size: 18px;
+            font-size: 20px;
             font-weight: bold;
             margin: 4px 0 10px;
         }
@@ -50,7 +50,7 @@
         }
         .info-row {
             display: flex;
-            font-size: 12px;
+            font-size: 14px;
             font-weight: bold;
             padding: 4px 0;
         }
@@ -65,7 +65,7 @@
 
         .form-code {
             text-align: end;
-            font-size: 12px;
+            font-size: 14px;
             padding-right: 40px;
             font-weight: bold;
         }
@@ -73,43 +73,49 @@
         table.dc-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 2px;
             table-layout: fixed;
         }
         table.dc-table th, table.dc-table td {
             border: 1px solid #000;
-            padding: 3px 4px;
-            font-size: 10px;
+            font-size: 14px;
             text-align: center;
+            height: 28px;
+            min-height: 20px;
         }
-        table.dc-table th.material-col, table.dc-table td.material-col {
+        table.dc-table td {
+            padding: 6px 4px;
+        }
+        table.dc-table th{
+            padding: 18px 4px 0;
+            align-items:baseline;
+        }
+        table.dc-table td.material-col {
             text-align: left;
             width: 16%;
         }
         table.dc-table tr.total-row td {
             border: none;
             font-weight: bold;
+            
         }
         table.dc-table tr.total-row td.material-col {
             border-top: 1px solid #000;
         }
 
         .note-row {
-            font-size: 11px;
+            font-size: 14px;
             font-weight: bold;
-            margin-top: 8px;
         }
 
         .signatures {
             display: flex;
-            gap: 60px;
-            margin-top: 22px;
-            font-size: 11px;
+            gap: 90px;
+            font-size: 14px;
             font-weight: bold;
         }
         .sig-line {
             text-decoration: underline;
-            padding-left: 4px;
+            padding: 6px 0 0 4px;
         }
     </style>
 </head>
@@ -171,9 +177,13 @@
         <div class="note-row">NOTE: {{ note }}</div>
 
         <div class="signatures">
-            <div>Matched by: <span class="sig-line">{{ matched_by }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></div>
-            <div>Weighed by: <span class="sig-line">{{ weighed_by }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></div>
-            <div>Encoded by: <span class="sig-line">{{ encoded_by }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></div>
+            <div>  
+                <div>Matched by: <span class="sig-line">{{ matched_by }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></div>
+                <div>Weighed by: <span class="sig-line">{{ weighed_by }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></div>
+            </div>
+            <div>
+                <div>Encoded by: <span class="sig-line">{{ encoded_by }}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></div>
+            </div>
         </div>
     </div>
 </body>
