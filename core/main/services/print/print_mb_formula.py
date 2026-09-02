@@ -4,11 +4,11 @@ import tempfile
 import threading
 import uuid
 from decimal import Decimal
-
+from django.shortcuts import render
 import pythoncom
 import win32com.client as win32
 from django.contrib import messages
-from django.http import HttpResponse, HttpResponseServerError, JsonResponse
+from django.http import HttpResponse, HttpResponseNotFound, HttpResponseServerError, JsonResponse
 from django.shortcuts import redirect
 from django.views.decorators.clickjacking import xframe_options_exempt
 
@@ -238,6 +238,57 @@ def print_mb_formula_preview(request, formula_id):
 
 print_mb_formula_preview = xframe_options_exempt(print_mb_formula_preview)
 
+def print_mb_formula(request, formula_id):
+    """
+    Renders the MB Formula as plain HTML/CSS (Letter size) for native
+    browser print preview — no Excel/COM involved.
+    """
+    try:
+        data = _fetch_mb_formula_data(formula_id)
+    except tbl_mb_extruder_formula.DoesNotExist:
+        return HttpResponseNotFound(f"MB Formula '{formula_id}' was not found.")
+
+    header = data['header']
+    ingredients = data['ingredients']
+
+    # Pad ingredient rows to a fixed 10 rows so the table always has the
+    # same number of visual rows as the original template.
+    rows = []
+    for i in range(MATERIAL_MAX_ROWS):
+        if i < len(ingredients):
+            ing = ingredients[i]
+            rows.append({
+                'material': ing.material or '',
+                'value': f"{_to_num(ing.value):.4f}" if ing.value not in (None, '') else '',
+                'weight': f"{_to_num(ing.weight):.7f}" if ing.weight not in (None, '') else '',
+            })
+        else:
+            rows.append({'material': '', 'value': '', 'weight': ''})
+
+    total_value = sum((Decimal(ing.value or 0) for ing in ingredients), Decimal('0'))
+
+    context = {
+        'date': header.date.strftime('%m/%d/%Y') if header.date else '',
+        'cm_form_no': data['parent_no'],
+        'product_code': header.code.product_code if header.code else '',
+        'resin_used': data['resin'],
+        'customer': data['customer'],
+        'dosage': f"{_to_num(data['dosage']):.2f}%" if data['dosage'] not in (None, '', 0) else '',
+        'lot_number': header.lot_no or '',
+        'mixing_time': header.mixing_time or '',
+        'color': data['color'],
+        'application': data['application'],
+        'rows': rows,
+        'total_value': f"{_to_num(total_value):.4f}",
+        'total_weight': f"{_to_num(header.total_weight):.7f}" if header.total_weight not in (None, '', 0) else '',
+        'matched_by': header.matched_by or '',
+        'weighed_by': header.weighted_by or '',
+        'encoded_by': header.encoded_by or '',
+        'note': header.notes or '',
+    }
+    return render(request, "print-html/mb_formula_print.html", context)
+
+print_mb_formula = xframe_options_exempt(print_mb_formula) 
 
 def log_formula_print(request, formula_id):
     try:

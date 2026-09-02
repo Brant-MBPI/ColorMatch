@@ -59,13 +59,14 @@ urlpatterns = [
     path('cmf/formula/<str:formula_type>/<int:formula_id>/toggle-final/', cmf_records_services.toggle_final_formula, name='toggle_final_formula'),
     path('cmf/rs-records/<int:rs_id>/', views.rs_record_detail, name='rs_record_detail'),
     path('cmf/print/<str:cm_no>/preview', print_cmf.print_cmf_preview, name='cmf_print_preview'),
-    path('mb-formula/print/<str:formula_id>/preview', print_mb_formula.print_mb_formula_preview, name='mb_formula_print'),
+    path('mb-formula/print/<int:formula_id>/', print_mb_formula.print_mb_formula, name='print_mb_formula'), # for flexible print (uses html css for print)
+    # path('mb-formula/print/<str:formula_id>/preview', print_mb_formula.print_mb_formula_preview, name='mb_formula_print'), used Com/ms office for editing the template
     path('dc-formula/print/<str:formula_id>/preview', print_dc_formula.print_dc_formula_preview, name='dc_formula_print'),
     path('cmf/log-print/<str:cm_no>/', print_cmf.log_cmf_print, name='log_cmf_print'),
     path('master-formula/print/<int:form_id>/', master_formula_services.print_master_formula, name='print_master_formula'),
     path('master-formula/log-print/<int:form_id>/', master_formula_services.log_master_formula_print, name='log_master_formula_print'),
     path('master-formula/<int:form_id>/materials/', master_formula_services.master_formula_materials_json, name='master_formula_materials_json'),
     path('formulation/<int:form_id>/materials/', formulation_services.formulation_materials_json, name='formulation_materials_json'),
-    path('formula/log-print/mb-formula/<int:formula_id>/', print_mb_formula.log_formula_print, name='log_mb_formula_print'),
-    path('formula/log-print/dc-formula/<int:formula_id>/', print_dc_formula.log_formula_print, name='log_dc_formula_print'),
+    path('mb-formula/log-print/<int:formula_id>/', print_mb_formula.log_formula_print, name='log_mb_formula_print'),
+    path('dc-formula/log-print/<int:formula_id>/', print_dc_formula.log_formula_print, name='log_dc_formula_print'),
 ]

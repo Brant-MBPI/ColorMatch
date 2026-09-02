@@ -246,7 +246,12 @@
                 Preline.confirm('Not Yet Saved', 'Please save this formula before printing.', 'warning', () => {});
                 return;
             }
-            openFormulaPreview(config.urlPrefix, config.formulaId);
+            // function for print preview using Com/ms office and modifying the template in print excel
+            // openFormulaPreview(config.urlPrefix, config.formulaId);
+            
+            // print using html css for flexible print
+            printFormula(config.urlPrefix, config.formulaId);
+
         });
     }
 
@@ -259,31 +264,57 @@
         };
     }
 
-    function openFormulaPreview(urlPrefix, formulaId) {
-        const previewUrl = `/${urlPrefix}/print/${encodeURIComponent(formulaId)}/preview`;
-        showLoader();
-        const dialog = document.createElement('dialog');
-        dialog.className = 'p-0 border-0 rounded-3 shadow-lg';
-        dialog.style.width = '90vw'; dialog.style.height = '90vh'; dialog.style.maxWidth = '1200px';
-        dialog.innerHTML = `
-            <div class="d-flex flex-column w-100 h-100">
-                <div class="d-flex justify-content-end gap-2 p-2 bg-dark">
-                    <button id="formulaPreviewPrintBtn" class="btn btn-primary btn-sm"><i class="bi bi-printer"></i> Print</button>
-                    <button id="formulaPreviewCloseBtn" class="btn btn-secondary btn-sm">Close</button>
-                </div>
-                <iframe id="formulaPreviewFrame" src="${previewUrl}" class="flex-grow-1 w-100 border-0"></iframe>
-            </div>
-        `;
-        document.body.appendChild(dialog);
-        const iframe = dialog.querySelector('#formulaPreviewFrame');
-        iframe.addEventListener('load', () => { hideLoader(); dialog.showModal(); });
-        dialog.querySelector('#formulaPreviewPrintBtn').addEventListener('click', () => {
-            iframe.contentWindow.print();
-            fetch(`/formula/log-print/${urlPrefix}/${formulaId}/`);
-        });
-        dialog.querySelector('#formulaPreviewCloseBtn').addEventListener('click', () => dialog.close());
-        dialog.addEventListener('close', () => dialog.remove());
+    function printFormula(urlPrefix, formulaId) {
+        const oldFrame = document.getElementById('formulaPrintFrame');
+        if (oldFrame) oldFrame.remove();
+
+        const iframe = document.createElement('iframe');
+        iframe.id = 'formulaPrintFrame';
+        iframe.style.display = 'none'
+        iframe.src = `/${urlPrefix}/print/${formulaId}/`;
+
+        iframe.onload = function () {
+            setTimeout(() => {
+                iframe.contentWindow.focus();
+                iframe.contentWindow.print();
+
+                const csrfToken = document.querySelector('#formulaForm [name=csrfmiddlewaretoken]')?.value;
+                fetch(`/${urlPrefix}/log-print/${formulaId}/`, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': csrfToken }
+                });
+            }, 500);
+        };
+
+        document.body.appendChild(iframe);
     }
+
+    // function for print preview using Com/ms office and modifying the template in print excel
+    // function openFormulaPreview(urlPrefix, formulaId) {
+    //     const previewUrl = `/${urlPrefix}/print/${encodeURIComponent(formulaId)}/preview`;
+    //     showLoader();
+    //     const dialog = document.createElement('dialog');
+    //     dialog.className = 'p-0 border-0 rounded-3 shadow-lg';
+    //     dialog.style.width = '90vw'; dialog.style.height = '90vh'; dialog.style.maxWidth = '1200px';
+    //     dialog.innerHTML = `
+    //         <div class="d-flex flex-column w-100 h-100">
+    //             <div class="d-flex justify-content-end gap-2 p-2 bg-dark">
+    //                 <button id="formulaPreviewPrintBtn" class="btn btn-primary btn-sm"><i class="bi bi-printer"></i> Print</button>
+    //                 <button id="formulaPreviewCloseBtn" class="btn btn-secondary btn-sm">Close</button>
+    //             </div>
+    //             <iframe id="formulaPreviewFrame" src="${previewUrl}" class="flex-grow-1 w-100 border-0"></iframe>
+    //         </div>
+    //     `;
+    //     document.body.appendChild(dialog);
+    //     const iframe = dialog.querySelector('#formulaPreviewFrame');
+    //     iframe.addEventListener('load', () => { hideLoader(); dialog.showModal(); });
+    //     dialog.querySelector('#formulaPreviewPrintBtn').addEventListener('click', () => {
+    //         iframe.contentWindow.print();
+    //         fetch(`//${urlPrefix}/log-print/${formulaId}/`);
+    //     });
+    //     dialog.querySelector('#formulaPreviewCloseBtn').addEventListener('click', () => dialog.close());
+    //     dialog.addEventListener('close', () => dialog.remove());
+    // }
 
     // --- 5. INITIALIZATION ---
     const initialTable = document.querySelector('.js-formula-table');

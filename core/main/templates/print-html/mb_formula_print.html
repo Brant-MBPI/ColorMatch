@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Extruder Color Matching Form</title>
+    <style>
+        @page {
+            size: letter portrait;
+            margin: 0.5in;
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 12px;
+            color: #000;
+            margin: 0;
+            padding: 0;
+        }
+        .sheet { width: 100%; }
+
+        .form-title {
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            margin: 0 0 4px;
+        }
+        .form-code {
+            text-align: center;
+            font-size: 12px;
+            font-weight: bold;
+            margin: 0 0 16px;
+        }
+
+        .header-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            column-gap: 24px;
+            margin-bottom: 18px;
+        }
+        .header-row {
+            display: flex;
+            font-size: 12px;
+            font-weight: bold;
+            padding: 3px 0;
+        }
+        .header-label { width: 120px; flex-shrink: 0; }
+        .header-colon { width: 12px; flex-shrink: 0; }
+        .header-value {
+            flex-grow: 1;
+            border-bottom: 1px solid #000;
+            padding-left: 4px;
+            min-height: 15px;
+        }
+
+        table.mb-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 4px;
+        }
+        table.mb-table th, table.mb-table td {
+            border: 1px solid #000;
+            padding: 5px 8px;
+            font-size: 12px;
+        }
+        table.mb-table th {
+            font-weight: bold;
+            text-align: center;
+        }
+        table.mb-table td.num { text-align: right; }
+        table.mb-table td.mat { text-align: left; }
+        table.mb-table tr.total-row td { font-weight: bold; }
+
+        .signatures {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            column-gap: 24px;
+            margin-top: 30px;
+        }
+        .sig-row {
+            display: flex;
+            font-size: 11px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .sig-label { width: 100px; flex-shrink: 0; }
+        .sig-colon { width: 12px; flex-shrink: 0; }
+        .sig-value {
+            flex-grow: 1;
+            border-bottom: 1px solid #000;
+            padding-left: 4px;
+        }
+
+        .note-box {
+            margin-top: 14px;
+            font-size: 11px;
+        }
+        .note-label { font-weight: bold; }
+        .note-value {
+            border: 1px solid #000;
+            min-height: 26px;
+            padding: 4px 6px;
+            margin-top: 2px;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="sheet">
+        <div class="form-title">EXTRUDER COLOR MATCHING FORM</div>
+        <div class="form-code">FM00006D</div>
+
+        <div class="header-grid">
+            <div class="header-col">
+                <div class="header-row"><span class="header-label">Date</span><span class="header-colon">:</span><span class="header-value">{{ date }}</span></div>
+                <div class="header-row"><span class="header-label">Product Code</span><span class="header-colon">:</span><span class="header-value">{{ product_code }}</span></div>
+                <div class="header-row"><span class="header-label">Customer</span><span class="header-colon">:</span><span class="header-value">{{ customer }}</span></div>
+                <div class="header-row"><span class="header-label">Lot Number</span><span class="header-colon">:</span><span class="header-value">{{ lot_number }}</span></div>
+                <div class="header-row"><span class="header-label">Color</span><span class="header-colon">:</span><span class="header-value">{{ color }}</span></div>
+            </div>
+            <div class="header-col">
+                <div class="header-row"><span class="header-label">CM Form #</span><span class="header-colon">:</span><span class="header-value">{{ cm_form_no }}</span></div>
+                <div class="header-row"><span class="header-label">Resin used</span><span class="header-colon">:</span><span class="header-value">{{ resin_used }}</span></div>
+                <div class="header-row"><span class="header-label">Dosage</span><span class="header-colon">:</span><span class="header-value">{{ dosage }}</span></div>
+                <div class="header-row"><span class="header-label">Mixing Time</span><span class="header-colon">:</span><span class="header-value">{{ mixing_time }}</span></div>
+                <div class="header-row"><span class="header-label">Application</span><span class="header-colon">:</span><span class="header-value">{{ application }}</span></div>
+            </div>
+        </div>
+
+        <table class="mb-table">
+            <thead>
+                <tr>
+                    <th style="width:26%;">Material</th>
+                    <th style="width:18%;">Final %</th>
+                    <th style="width:20%;">Big Scale (kg)</th>
+                    <th style="width:18%;">Small Scale (g)</th>
+                    <th style="width:18%;">Total Weight</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in rows %}
+                <tr>
+                    <td class="mat">{{ row.material }}</td>
+                    <td class="num">{{ row.value }}</td>
+                    <td class="num">&nbsp;</td>
+                    <td class="num">&nbsp;</td>
+                    <td class="num">{% if row.weight %}{{ row.weight }}g{% endif %}</td>
+                </tr>
+                {% endfor %}
+                <tr class="total-row">
+                    <td class="mat">&nbsp;</td>
+                    <td class="num">{{ total_value }}</td>
+                    <td class="num">&nbsp;</td>
+                    <td class="num">&nbsp;</td>
+                    <td class="num">{% if total_weight %}{{ total_weight }}g{% endif %}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="note-box">
+            <span class="note-label">Note:</span>
+            <div class="note-value">{{ note }}</div>
+        </div>
+
+        <div class="signatures">
+            <div class="sig-col">
+                <div class="sig-row"><span class="sig-label">Matched by</span><span class="sig-colon">:</span><span class="sig-value">{{ matched_by }}</span></div>
+                <div class="sig-row"><span class="sig-label">Weighed by</span><span class="sig-colon">:</span><span class="sig-value">{{ weighed_by }}</span></div>
+            </div>
+            <div class="sig-col">
+                <div class="sig-row"><span class="sig-label">Encoded by</span><span class="sig-colon">:</span><span class="sig-value">{{ encoded_by }}</span></div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
