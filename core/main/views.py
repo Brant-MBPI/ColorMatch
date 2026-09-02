@@ -1035,7 +1035,7 @@ def cmf_pending_completed(request):
 
     return render(request, "sidemenu/cmf/pending_completed.html", {"form_data": form_data})
 
-@role_required
+@permission_required(allowed_departments=['Laboratory', 'Information Technology'])
 def master_formula(request):
     form_id = request.GET.get('form_id')
     

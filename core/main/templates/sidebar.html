@@ -93,6 +93,7 @@
                     </ul>
                 </div>
             </li>
+            {% if user.role.department in "Information Technology, Laboratory" %}
             <li class="nav-item">
                 <a href="{% url 'master_formula' %}" 
                    class="nav-link {% if request.resolver_match.url_name == 'master_formula' %}active{% endif %}">
@@ -100,6 +101,7 @@
                     <span>Master Formula</span>
                 </a>
             </li>
+            {% endif %}
             <li class="nav-item">
                 <a href="{% url 'formulation' %}" 
                    class="nav-link {% if request.resolver_match.url_name == 'formulation' %}active{% endif %}">
