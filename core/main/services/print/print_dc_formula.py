@@ -4,11 +4,11 @@ import tempfile
 import threading
 import uuid
 from decimal import Decimal
-
+from django.shortcuts import render
 import pythoncom
 import win32com.client as win32
 from django.contrib import messages
-from django.http import HttpResponse, HttpResponseServerError, JsonResponse
+from django.http import HttpResponse, HttpResponseNotFound, HttpResponseServerError, JsonResponse
 from django.shortcuts import redirect
 from django.views.decorators.clickjacking import xframe_options_exempt
 
@@ -268,6 +268,69 @@ def print_dc_formula_preview(request, formula_id):
 
 print_dc_formula_preview = xframe_options_exempt(print_dc_formula_preview)
 
+def print_dc_formula(request, formula_id):
+    """
+    Renders the DC Formula as plain HTML/CSS (Letter landscape) for
+    native browser print preview — no Word/COM involved.
+    """
+    try:
+        data = _fetch_dc_formula_data(formula_id)
+    except tbl_dc_extruder_formula.DoesNotExist:
+        return HttpResponseNotFound(f"DC Formula '{formula_id}' was not found.")
+
+    header = data['header']
+    dc_materials = data['dc_materials']
+    versions_by_material = data['versions_by_material']
+
+    # Build a fixed 10x10 grid: rows = materials, cols = trial versions 1-10
+    rows = []
+    version_totals = {v: Decimal('0') for v in range(1, MAX_VERSIONS + 1)}
+
+    for i in range(MATERIAL_MAX_ROWS):
+        if i < len(dc_materials):
+            m = dc_materials[i]
+            v_values = versions_by_material.get(m.material_id, {})
+            cells = []
+            for v_no in range(1, MAX_VERSIONS + 1):
+                val = v_values.get(v_no)
+                if val is not None and val != 0:
+                    cells.append(f"{_to_num(val):.4f}")
+                    version_totals[v_no] += Decimal(val)
+                else:
+                    cells.append("")
+            rows.append({'material': m.material or '', 'cells': cells})
+        else:
+            rows.append({'material': '', 'cells': [''] * MAX_VERSIONS})
+
+    totals_row = [
+        f"{_to_num(version_totals[v]):.4f}" if version_totals[v] != 0 else ""
+        for v in range(1, MAX_VERSIONS + 1)
+    ]
+
+    context = {
+        'formula_id': formula_id,
+        'code': header.code.product_code if header.code else "",
+        'cmf': data['parent_no'],
+        'customer': data['customer'],
+        'resin': data['resin'],
+        'color': data['color'],
+        'date_matched': header.date.strftime('%m/%d/%Y') if header.date else "",
+        'dosage': f"{_to_num(data['dosage']):.2f}%",
+        'sample_size': header.sample_size or "",
+        'product_used': data['finished_product'],
+        'mixing_time': header.mixing_time or "",
+        'application': data['application'],
+        'note': header.notes or "",
+        'matched_by': header.matched_by or "",
+        'weighed_by': header.weighted_by or "",
+        'encoded_by': header.encoded_by or "",
+        'rows': rows,
+        'totals_row': totals_row,
+    }
+    return render(request, "print-html/dc_formula_print.html", context)
+
+
+print_dc_formula = xframe_options_exempt(print_dc_formula)
 
 def log_formula_print(request, formula_id):
     try:
