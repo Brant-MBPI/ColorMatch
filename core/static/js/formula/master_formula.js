@@ -234,17 +234,15 @@
 
                 const iframe = document.createElement('iframe');
                 iframe.id = 'mfPrintFrame';
-                iframe.style.position = 'fixed';
-                iframe.style.right = '0';
-                iframe.style.bottom = '0';
-                iframe.style.width = '0';
-                iframe.style.height = '0';
-                iframe.style.border = '0';
+                iframe.style.display = 'none'; // Keep it hidden
                 iframe.src = `/master-formula/print/${formId}/`;
 
                 iframe.onload = function () {
-                    iframe.contentWindow.focus();
-                    iframe.contentWindow.print();
+                    // Small delay to ensure styles are loaded
+                    setTimeout(() => {
+                        iframe.contentWindow.focus();
+                        iframe.contentWindow.print();
+                    }, 500);
                 };
 
                 document.body.appendChild(iframe);

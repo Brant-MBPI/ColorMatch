@@ -49,6 +49,11 @@
             flex-shrink: 0;
         }
         .info-grid .info-col:last-child .info-row:nth-child(5) .info-label { width: 185px; }
+        .info-grid .info-col:last-child .info-row:nth-child(6) .info-label, 
+        .info-grid .info-col:last-child .info-row:nth-child(7) .info-label, 
+        .info-grid .info-col:last-child .info-row:nth-child(8) .info-label, 
+        .info-grid .info-col:last-child .info-row:nth-child(9) .info-label
+        { width: 110px; }
         .info-colon { width: 12px; flex-shrink: 0; }
         .info-value { flex-grow: 1; }
         .info-value.bold { font-weight: bold; }
@@ -128,6 +133,11 @@
                         <span class="info-value bold">{{ f.sum_of_concentration|default:"---" }}</span>
                     </div>
                     <div class="info-row">
+                        <span class="info-label">MATCHED BY</span>
+                        <span class="info-colon">:</span>
+                        <span class="info-value bold">{{ f.matched_by|default:"---" }}</span>
+                    </div>
+                    <div class="info-row">
                         <span class="info-label">ENCODED BY</span>
                         <span class="info-colon">:</span>
                         <span class="info-value bold">{{ f.encoded_by|default:"---" }}</span>
@@ -187,7 +197,7 @@
                     <div class="info-row">
                         <span class="info-label">REMARKS</span>
                         <span class="info-colon">:</span>
-                        <span class="info-value bold">{{ f.notes|default:"---" }}</span>
+                        <span class="info-value bold">{{ f.notes|linebreaksbr }}</span>
                     </div>
                 </div>
             </div>

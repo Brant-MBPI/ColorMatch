@@ -72,7 +72,7 @@ def get_master_formula_details(form_id):
         'application': formula.application or '',
         'cm_no': formula.cm_no or '',
         'colormatch_date': formula.colormatch_date.strftime('%m/%d/%Y') if formula.colormatch_date else '',
-        'notes': formula.notes or '',
+        'notes': formula.notes or '---',
         'html_code_hex': formula.html_code_hex or '',
         'cyan': clean_num(formula.cyan),
         'magenta': clean_num(formula.magenta),
