@@ -3,11 +3,11 @@ import os
 import tempfile
 import threading
 import uuid
-
+from django.shortcuts import render
 import pythoncom
 import win32com.client as win32
 from django.contrib import messages
-from django.http import HttpResponse, HttpResponseServerError, JsonResponse
+from django.http import HttpResponse, HttpResponseNotFound, HttpResponseServerError, JsonResponse
 from django.shortcuts import redirect
 from django.views.decorators.clickjacking import xframe_options_exempt
 
@@ -260,7 +260,112 @@ def print_cmf_preview(request, cm_no):
 
 print_cmf_preview = xframe_options_exempt(print_cmf_preview)
 
+def get_cmf_print_context(cm_no):
+    """Builds the full context dict for the HTML/CSS CMF print template."""
+    data = _fetch_cmf_data(cm_no)
+    cmf = data['cmf']
+    dates = data['dates']
+    formula_info = data['formula_info']
+    color_req_obj = data['color_req_obj']
+    resins = data['resins']
+    process_list = data['process_list']
+    spec_list = data['spec_list']
+    final_prod_code = data['final_prod_code']
 
+    # --- Color Requirement ---
+    c_req_name = (color_req_obj.name if color_req_obj else "") or ""
+    standard_reqs = ['transparent', 'opaque', 'translucent', 'metallic', 'fluorescent', 'pearlescent']
+    color_req_others = c_req_name if c_req_name not in standard_reqs and c_req_name else ""
+
+    # --- Type of Colorant ---
+    is_other_colorant = cmf.colorant_type not in ('MB', 'DC')
+
+    # --- Process ---
+    standard_procs = ['injection', 'blow-molding', 'film', 'pipe-extrusion']
+    other_procs = [p for p in process_list if p not in standard_procs]
+
+    # --- Other Specification ---
+    standard_specs = ['Food Contact', 'Sunlight Exposure']
+    other_specs = [s for s in spec_list if s not in standard_specs]
+
+    return {
+        'cm_no': cmf.cm_no,
+        'customer': formula_info.customer if formula_info else "",
+        'date_submitted': dates.form_made.strftime('%m/%d/%Y') if dates and dates.form_made else "",
+        'date_required': dates.date_required if dates else "",
+        'salesperson': cmf.sm.name if cmf.sm else "",
+
+        'matching_new': cmf.matching_type == 'new',
+        'matching_rematch': cmf.matching_type == 'rematch',
+
+        'status_existing': cmf.product_status == 'existing',
+        'status_new': cmf.product_status == 'new',
+
+        'finished_product': formula_info.finished_product if formula_info else "",
+        'color_description': cmf.color_desc,
+
+        'req_transparent': c_req_name == 'transparent',
+        'req_opaque': c_req_name == 'opaque',
+        'req_translucent': c_req_name == 'translucent',
+        'req_metallic': c_req_name == 'metallic',
+        'req_fluorescent': c_req_name == 'fluorescent',
+        'req_pearlescent': c_req_name == 'pearlescent',
+        'req_others': bool(color_req_others),
+        'req_others_value': color_req_others,
+
+        'sample_available_yes': cmf.is_sample_available is True,
+        'sample_available_no': cmf.is_sample_available is False,
+
+        'colorant_mb': cmf.colorant_type == 'MB',
+        'colorant_dc': cmf.colorant_type == 'DC',
+        'colorant_others': is_other_colorant,
+        'colorant_others_value': cmf.colorant_type if is_other_colorant else "",
+
+        'dosage': formula_info.dosage if formula_info else "",
+        'est_qty_order': cmf.est_qty_order,
+        'resins': resins,
+
+        'proc_injection': 'injection' in process_list,
+        'proc_blow_molding': 'blow-molding' in process_list,
+        'proc_film': 'film' in process_list,
+        'proc_pipe_extrusion': 'pipe-extrusion' in process_list,
+        'proc_others': bool(other_procs),
+        'proc_others_value': ", ".join(other_procs),
+
+        'qty_resin_testing': cmf.qty_resin_testing,
+
+        'resin_provided_yes': cmf.is_resin_provided is True,
+        'resin_provided_no': cmf.is_resin_provided is False,
+
+        'mi_customer_resin': cmf.mi_c_resin,
+
+        'guide_return_yes': cmf.is_guide_to_return is True,
+        'guide_return_no': cmf.is_guide_to_return is False,
+
+        'spec_food_contact': 'Food Contact' in spec_list,
+        'spec_sunlight': 'Sunlight Exposure' in spec_list,
+        'spec_others': bool(other_specs),
+        'spec_others_value': ", ".join(other_specs),
+
+        'temperature': cmf.temperature,
+
+        'low_cost_yes': cmf.is_low_cost is True,
+        'low_cost_no': cmf.is_low_cost is False,
+
+        'remarks': cmf.remarks,
+        'product_code': final_prod_code,
+    }
+
+def print_cmf(request, cm_no):
+    try:
+        context = get_cmf_print_context(cm_no)
+    except tbl_cmf.DoesNotExist:
+        return HttpResponseNotFound(f"CMF No. '{cm_no}' was not found.")
+
+    return render(request, "print-html/cmf_print.html", context)
+
+
+print_cmf = xframe_options_exempt(print_cmf)
 
 def log_cmf_print(request, cm_no):
     try:

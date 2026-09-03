@@ -1,0 +1,270 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Color Matching Form</title>
+    <style>
+        @page {
+            size: 6.5in 8.5in;
+            margin: 0;
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: Calibri, Arial, Helvetica, sans-serif;
+            font-size: 9px;
+            color: #000;
+            margin: 0;
+            padding: 0;
+        }
+        .sheet {
+            width: 100%;
+            height: 100%;
+            padding: 0.2in 0.25in;
+            border: 1px solid black;
+        }
+        .sheet .border {
+            border: 1px solid black;
+        }
+        
+        .header-row {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .header-row img { 
+            height: 55px; 
+            width: 330px;
+        }
+        .form-title {
+            align-items: center;
+            text-align:end;
+            font-size: 16px;
+            font-weight: bold;
+            margin-right: 35px;
+        }
+
+        .field-row {
+            display: flex;
+            align-items: baseline;
+            font-size: 9px;
+            font-weight: bold;
+            padding: 3px 0;
+        }
+        .field-label { width: 155px; flex-shrink: 0; text-transform: uppercase; }
+        .field-colon { width: 8px; flex-shrink: 0; }
+        .field-value {
+            flex-grow: 1;
+            border-bottom: 1px solid #000;
+            padding-left: 4px;
+            min-height: 11px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-left: 163px;
+            padding: 2px 0 4px;
+        }
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            font-weight: normal;
+            font-size: 8.5px;
+        }
+        .checkbox-box {
+            display: inline-block;
+            width: 9px;
+            height: 9px;
+            border: 1px solid #000;
+            text-align: center;
+            line-height: 8px;
+            font-weight: bold;
+            font-size: 8px;
+            flex-shrink: 0;
+        }
+        .checkbox-others-line {
+            border-bottom: 1px solid #000;
+            display: inline-block;
+            min-width: 60px;
+            padding-left: 3px;
+        }
+
+        .section-note {
+            font-size: 7.5px;
+            font-style: italic;
+            margin-left: 163px;
+            margin-bottom: 4px;
+        }
+
+        .remarks-box {
+            margin-top: 6px;
+        }
+        .remarks-label { font-weight: bold; font-size: 9px; }
+        .remarks-sub { font-size: 7.5px; font-style: italic; margin-bottom: 3px; }
+        .remarks-value {
+            border: 1px solid #000;
+            min-height: 45px;
+            padding: 4px;
+            font-size: 8.5px;
+            white-space: pre-wrap;
+        }
+
+        .officer-section {
+            text-align: center;
+            font-weight: bold;
+            font-size: 9px;
+            margin-top: 10px;
+            border-top: 1px solid #000;
+            padding-top: 6px;
+        }
+
+        .product-code-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-top: 30px;
+            font-size: 9px;
+            font-weight: bold;
+        }
+        .product-code-value {
+            border-bottom: 1px solid #000;
+            flex-grow: 1;
+            margin-left: 6px;
+            min-height: 12px;
+        }
+        .form-code {
+            font-size: 8px;
+            font-weight: normal;
+        }
+    </style>
+</head>
+<body>
+    <div class="sheet">
+        <div class="border">
+            <div class="header-row">
+                <img src="{% static 'image/mbpi_logo/mbpi_no_add.png' %}" alt="MBPI Logo" onerror="this.style.display='none'">
+                <div class="form-title">
+                    COLOR MATCHING FORM 
+                </div> 
+            </div>
+
+            <div class="field-row"><span class="field-label">Color Matching No.</span><span class="field-colon">:</span><span class="field-value">{{ cm_no }}</span></div>
+            <div class="field-row"><span class="field-label">Customer</span><span class="field-colon">:</span><span class="field-value">{{ customer }}</span></div>
+            <div class="field-row"><span class="field-label">Date Submitted</span><span class="field-colon">:</span><span class="field-value">{{ date_submitted }}</span></div>
+            <div class="field-row"><span class="field-label">Date Required</span><span class="field-colon">:</span><span class="field-value">{{ date_required }}</span></div>
+            <div class="field-row"><span class="field-label">Sales Person</span><span class="field-colon">:</span><span class="field-value">{{ salesperson }}</span></div>
+
+            <div class="field-row"><span class="field-label">Matching Type</span><span class="field-colon">:</span></div>
+            <div class="checkbox-group">
+                <span class="checkbox-item"><span class="checkbox-box">{% if matching_new %}/{% endif %}</span> New Matching</span>
+                <span class="checkbox-item"><span class="checkbox-box">{% if matching_rematch %}/{% endif %}</span> Re-Match</span>
+            </div>
+
+            <div class="field-row"><span class="field-label">Product Status</span><span class="field-colon">:</span></div>
+            <div class="checkbox-group">
+                <span class="checkbox-item"><span class="checkbox-box">{% if status_existing %}/{% endif %}</span> Existing (currently used by customer)</span>
+                <span class="checkbox-item"><span class="checkbox-box">{% if status_new %}/{% endif %}</span> New development</span>
+            </div>
+
+            <div class="field-row"><span class="field-label">Finished Product</span><span class="field-colon">:</span><span class="field-value">{{ finished_product }}</span></div>
+            <div class="field-row"><span class="field-label">Color Description</span><span class="field-colon">:</span><span class="field-value">{{ color_description }}</span></div>
+
+            <div class="field-row"><span class="field-label">Color Requirement</span><span class="field-colon">:</span></div>
+            <div class="checkbox-group">
+                <span class="checkbox-item"><span class="checkbox-box">{% if req_transparent %}/{% endif %}</span> Transparent</span>
+                <span class="checkbox-item"><span class="checkbox-box">{% if req_opaque %}/{% endif %}</span> Opaque</span>
+                <span class="checkbox-item"><span class="checkbox-box">{% if req_translucent %}/{% endif %}</span> Translucent</span>
+            </div>
+            <div class="checkbox-group">
+                <span class="checkbox-item"><span class="checkbox-box">{% if req_metallic %}/{% endif %}</span> Metallic</span>
+                <span class="checkbox-item"><span class="checkbox-box">{% if req_fluorescent %}/{% endif %}</span> Fluorescent</span>
+                <span class="checkbox-item"><span class="checkbox-box">{% if req_pearlescent %}/{% endif %}</span> Pearlescent</span>
+            </div>
+            <div class="checkbox-group">
+                <span class="checkbox-item"><span class="checkbox-box">{% if req_others %}/{% endif %}</span> Others: <span class="checkbox-others-line">{{ req_others_value }}</span></span>
+            </div>
+
+            <div class="field-row"><span class="field-label">Is Sample Colorant Available?</span><span class="field-colon">:</span></div>
+            <div class="checkbox-group">
+                <span class="checkbox-item"><span class="checkbox-box">{% if sample_available_yes %}/{% endif %}</span> Yes</span>
+                <span class="checkbox-item"><span class="checkbox-box">{% if sample_available_no %}/{% endif %}</span> No</span>
+            </div>
+
+            <div class="field-row"><span class="field-label">Type of Colorant</span><span class="field-colon">:</span></div>
+            <div class="checkbox-group">
+                <span class="checkbox-item"><span class="checkbox-box">{% if colorant_mb %}/{% endif %}</span> MB</span>
+                <span class="checkbox-item"><span class="checkbox-box">{% if colorant_dc %}/{% endif %}</span> DC</span>
+                <span class="checkbox-item"><span class="checkbox-box">{% if colorant_others %}/{% endif %}</span> Others: <span class="checkbox-others-line">{{ colorant_others_value }}</span></span>
+            </div>
+
+            <div class="field-row"><span class="field-label">Dosage</span><span class="field-colon">:</span><span class="field-value">{{ dosage }}</span></div>
+            <div class="field-row"><span class="field-label">Estimated Qty Per Order</span><span class="field-colon">:</span><span class="field-value">{{ est_qty_order }}</span></div>
+            <div class="field-row"><span class="field-label">Resin</span><span class="field-colon">:</span><span class="field-value">{{ resins }}</span></div>
+
+            <div class="field-row"><span class="field-label">Process</span><span class="field-colon">:</span></div>
+            <div class="checkbox-group">
+                <span class="checkbox-item"><span class="checkbox-box">{% if proc_injection %}/{% endif %}</span> Injection</span>
+                <span class="checkbox-item"><span class="checkbox-box">{% if proc_blow_molding %}/{% endif %}</span> Blow-Molding</span>
+                <span class="checkbox-item"><span class="checkbox-box">{% if proc_film %}/{% endif %}</span> Film</span>
+            </div>
+            <div class="checkbox-group">
+                <span class="checkbox-item"><span class="checkbox-box">{% if proc_pipe_extrusion %}/{% endif %}</span> Pipe Extrusion</span>
+                <span class="checkbox-item"><span class="checkbox-box">{% if proc_others %}/{% endif %}</span> Others: <span class="checkbox-others-line">{{ proc_others_value }}</span></span>
+            </div>
+
+            <div class="field-row"><span class="field-label">Qty. of Resin Used for Testing</span><span class="field-colon">:</span><span class="field-value">{{ qty_resin_testing }}</span></div>
+
+            <div class="field-row"><span class="field-label">Customer Provided Resin?</span><span class="field-colon">:</span></div>
+            <div class="checkbox-group">
+                <span class="checkbox-item"><span class="checkbox-box">{% if resin_provided_yes %}/{% endif %}</span> Yes</span>
+                <span class="checkbox-item"><span class="checkbox-box">{% if resin_provided_no %}/{% endif %}</span> No</span>
+            </div>
+            <div class="section-note">*MI of Customer's resin: If PP or PE, please provide MI parameters that includes test weight & temperature (if possible). For PET, PVC, or other eng'g plastics, pls provide TDS if possible.</div>
+
+            <div class="field-row"><span class="field-label">MI Customer's Resin</span><span class="field-colon">:</span><span class="field-value">{{ mi_customer_resin }}</span></div>
+
+            <div class="field-row"><span class="field-label">Is Color Guide to be Returned?</span><span class="field-colon">:</span></div>
+            <div class="checkbox-group">
+                <span class="checkbox-item"><span class="checkbox-box">{% if guide_return_yes %}/{% endif %}</span> Yes</span>
+                <span class="checkbox-item"><span class="checkbox-box">{% if guide_return_no %}/{% endif %}</span> No</span>
+            </div>
+
+            <div class="field-row"><span class="field-label">Other Specification</span><span class="field-colon">:</span></div>
+            <div class="checkbox-group">
+                <span class="checkbox-item"><span class="checkbox-box">{% if spec_food_contact %}/{% endif %}</span> Food Contact</span>
+                <span class="checkbox-item"><span class="checkbox-box">{% if spec_sunlight %}/{% endif %}</span> Sunlight Exposure</span>
+            </div>
+            <div class="checkbox-group">
+                <span class="checkbox-item"><span class="checkbox-box">{% if spec_others %}/{% endif %}</span> Others: <span class="checkbox-others-line">{{ spec_others_value }}</span></span>
+            </div>
+
+            <div class="field-row"><span class="field-label">Processing Temperature</span><span class="field-colon">:</span><span class="field-value">{{ temperature }}</span></div>
+
+            <div class="field-row"><span class="field-label">Low Cost?</span><span class="field-colon">:</span></div>
+            <div class="checkbox-group">
+                <span class="checkbox-item"><span class="checkbox-box">{% if low_cost_yes %}/{% endif %}</span> Yes</span>
+                <span class="checkbox-item"><span class="checkbox-box">{% if low_cost_no %}/{% endif %}</span> No</span>
+            </div>
+
+            <div class="remarks-box">
+                <span class="remarks-label">REMARKS</span>
+                <div class="remarks-sub">(Please provide any additional information beyond what's stated above)</div>
+                <div class="remarks-value">{{ remarks }}</div>
+            </div>
+
+            <div class="officer-section">TO BE FILLED-UP BY COLOR MATCHING OFFICER</div>
+
+            <div class="product-code-row">
+                <span>PRODUCT CODE :</span>
+                <span class="product-code-value">{{ product_code }}</span>
+                <span class="form-code">FM00004B</span>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
