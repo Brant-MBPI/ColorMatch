@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Color Matching Form</title>
+    <link rel="stylesheet" href="{% static 'css/bootstrap-icons.css' %}">
     <style>
         @page {
             size: 6.5in 8.5in;
@@ -54,6 +55,7 @@
             font-size: 11px;
             font-weight: bold;
             padding: 0 0 0 15px;
+            margin: 2px 0;
         }
         .field-label { width: 155px; flex-shrink: 0; text-transform: uppercase; }
         .field-row:nth-child(12) .field-label { width: 170px; }
@@ -117,38 +119,47 @@
             padding-left: 15px;
         }
         .remarks-value {
-            min-height: 45px;
+            min-height: 90px;
             padding: 4px 4px 4px 15px;
             font-size: 11px;
             white-space: pre-wrap;
         }
-
+        .border:last-child{
+            position: relative;
+            margin-top: 2px;
+        }
         .officer-section {
+            position: absolute;
             text-align: center;
             font-weight: bold;
-            font-size: 9px;
-            margin-top: 10px;
-            border-top: 1px solid #000;
-            padding-top: 6px;
+            font-size: 11px;
+            top: -2px;
+            left: 30px;
+            transform: translateY(-50%);
+            width: 240px;
+            background-color: #fff;
         }
 
         .product-code-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-            margin-top: 30px;
-            font-size: 9px;
+            position: relative;
+            margin: 20px 0 8px;
+            padding-left: 15px;
+            font-size: 11px;
             font-weight: bold;
         }
         .product-code-value {
+            display: inline-block;
             border-bottom: 1px solid #000;
             flex-grow: 1;
             margin-left: 6px;
-            min-height: 12px;
+            width: 100px;
         }
         .form-code {
-            font-size: 8px;
-            font-weight: normal;
+            position: absolute;
+            bottom: 0;
+            right: 15px;
+            font-size: 11px;
+            font-weight: bold;
         }
     </style>
 </head>
@@ -387,8 +398,9 @@
                 <div class="remarks-sub">(Please provide any additional information beyond what's stated above)</div>
                 <div class="remarks-value">{{ remarks|linebreaksbr }}</div>
             </div>
-
-            <div class="officer-section">TO BE FILLED-UP BY COLOR MATCHING OFFICER</div>
+        </div>
+        <div class="border">
+            <div class="officer-section">TO BE FILLED-UP BY COLOR MATCHING OFFICER <span><i class="bi bi-caret-down-fill"></i></span></div>
 
             <div class="product-code-row">
                 <span>PRODUCT CODE :</span>
