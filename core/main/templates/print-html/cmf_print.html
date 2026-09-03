@@ -54,7 +54,6 @@
             font-size: 11px;
             font-weight: bold;
             padding: 0 0 0 15px;
-            margin: 3px 0;
         }
         .field-label { width: 155px; flex-shrink: 0; text-transform: uppercase; }
         .field-row:nth-child(12) .field-label { width: 170px; }
@@ -107,16 +106,20 @@
             right:0;
         }
 
-        .remarks-box {
-            margin-top: 6px;
+        .remarks-label { 
+            font-weight: bold;
+            font-size: 11px; 
+            padding-left: 15px;
         }
-        .remarks-label { font-weight: bold; font-size: 9px; }
-        .remarks-sub { font-size: 7.5px; font-style: italic; margin-bottom: 3px; }
+        .remarks-sub { 
+            font-size: 10.5px; 
+            font-style: italic; 
+            padding-left: 15px;
+        }
         .remarks-value {
-            border: 1px solid #000;
             min-height: 45px;
-            padding: 4px;
-            font-size: 8.5px;
+            padding: 4px 4px 4px 15px;
+            font-size: 11px;
             white-space: pre-wrap;
         }
 
@@ -336,35 +339,53 @@
                 <div class="section-note">*MI of Customer’s resin:  If PP or PE, please provide MI parameters that includes test weight & temperature (if possible). For PET, PVC, or other eng'g plastics, pls provide Technical Data Sheet (TDS) if possible.</div>
             </div>
 
-            <div class="field-row"><span class="field-label">MI Customer's Resin</span><span class="field-colon">:</span><span class="field-value">{{ mi_customer_resin }}</span></div>
-
-            <div class="field-row"><span class="field-label">Is Color Guide to be Returned?</span><span class="field-colon">:</span></div>
-            <div class="checkbox-group">
-                <span class="checkbox-item"><span class="checkbox-box">{% if guide_return_yes %}/{% endif %}</span> Yes</span>
-                <span class="checkbox-item"><span class="checkbox-box">{% if guide_return_no %}/{% endif %}</span> No</span>
+            <div class="field-row"><span class="field-label">MI Customer's Resin</span>
+                <span class="field-colon">:</span>
+                <span class="field-value">{{ mi_customer_resin }}</span>
             </div>
 
-            <div class="field-row"><span class="field-label">Other Specification</span><span class="field-colon">:</span></div>
-            <div class="checkbox-group">
-                <span class="checkbox-item"><span class="checkbox-box">{% if spec_food_contact %}/{% endif %}</span> Food Contact</span>
-                <span class="checkbox-item"><span class="checkbox-box">{% if spec_sunlight %}/{% endif %}</span> Sunlight Exposure</span>
-            </div>
-            <div class="checkbox-group">
-                <span class="checkbox-item"><span class="checkbox-box">{% if spec_others %}/{% endif %}</span> Others: <span class="checkbox-others-line">{{ spec_others_value }}</span></span>
+            <div class="field-row">
+                <span class="field-label">Is Color Guide to be Returned?</span>
+                <span class="field-colon">:</span>
+                <div class="checkbox-group">
+                    <span class="checkbox-item"><span class="checkbox-box">{% if guide_return_yes %}/{% endif %}</span> Yes</span>
+                    <span class="checkbox-item"><span class="checkbox-box">{% if guide_return_no %}/{% endif %}</span> No</span>
+                </div>
             </div>
 
-            <div class="field-row"><span class="field-label">Processing Temperature</span><span class="field-colon">:</span><span class="field-value">{{ temperature }}</span></div>
+            <div class="field-row">
+                <span class="field-label">Other Specification</span>
+                <span class="field-colon">:</span>
+                <div>
+                    <div class="checkbox-group">
+                        <span class="checkbox-item"><span class="checkbox-box">{% if spec_food_contact %}/{% endif %}</span> Food Contact</span>
+                        <span class="checkbox-item"><span class="checkbox-box">{% if spec_sunlight %}/{% endif %}</span> Sunlight Exposure</span>
+                    </div>
+                    <div class="checkbox-group">
+                        <span class="checkbox-item"><span class="checkbox-box">{% if spec_others %}/{% endif %}</span> Others: <span class="checkbox-others-line">{{ spec_others_value }}</span></span>
+                    </div>
+                </div>
+            </div>
 
-            <div class="field-row"><span class="field-label">Low Cost?</span><span class="field-colon">:</span></div>
-            <div class="checkbox-group">
-                <span class="checkbox-item"><span class="checkbox-box">{% if low_cost_yes %}/{% endif %}</span> Yes</span>
-                <span class="checkbox-item"><span class="checkbox-box">{% if low_cost_no %}/{% endif %}</span> No</span>
+            <div class="field-row">
+                <span class="field-label">Processing Temperature</span>
+                <span class="field-colon">:</span>
+                <span class="field-value">{{ temperature }}</span>
+            </div>
+
+            <div class="field-row">
+                <span class="field-label">Low Cost?</span>
+                <span class="field-colon">:</span>
+                <div class="checkbox-group">
+                    <span class="checkbox-item"><span class="checkbox-box">{% if low_cost_yes %}/{% endif %}</span> Yes</span>
+                    <span class="checkbox-item"><span class="checkbox-box">{% if low_cost_no %}/{% endif %}</span> No</span>
+                </div>
             </div>
 
             <div class="remarks-box">
                 <span class="remarks-label">REMARKS</span>
                 <div class="remarks-sub">(Please provide any additional information beyond what's stated above)</div>
-                <div class="remarks-value">{{ remarks }}</div>
+                <div class="remarks-value">{{ remarks|linebreaksbr }}</div>
             </div>
 
             <div class="officer-section">TO BE FILLED-UP BY COLOR MATCHING OFFICER</div>
