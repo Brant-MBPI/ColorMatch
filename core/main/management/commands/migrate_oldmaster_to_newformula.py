@@ -260,3 +260,5 @@ class Command(BaseCommand):
         mf.is_deleted = True
         mf.save(update_fields=["is_deleted"])
         return result
+
+    # python manage.py migrate_oldmaster_to_newformula
