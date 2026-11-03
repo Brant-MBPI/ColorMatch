@@ -120,6 +120,7 @@ Formula Records
                     <option value="100">100 rows</option>
                     <option value="500">500 rows</option>
                     <option value="1000">1000 rows</option>
+                    <option value="5000">5000 rows</option>
                 </select>
                 <small id="tableInfo" class="extra-small fw-bold text-muted"></small>
                 <small id="selectionInfo" class="extra-small fw-bold text-teal d-none"></small>
@@ -495,7 +496,7 @@ $(document).ready(function() {
 
         window.location.href = `${targetUrl}?${params.toString()}`;
     });
-    
+
     if (typeof flatpickr !== "undefined") {
         flatpickr(".date-picker-single", {
             dateFormat: "m/d/Y",

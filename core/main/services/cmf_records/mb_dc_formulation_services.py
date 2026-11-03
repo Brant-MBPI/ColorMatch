@@ -443,7 +443,7 @@ def _old_form_data(old):
     return {
         'read_only': True,
         'old_form_id': old.form_id,   # the id users track old records by
-        'old_source_label': "Master Formula" if old.source == "master_formula" else "Formula",
+        'old_source_label': "Master Formula" if old.source == "master_formula" else "Production Formula",
         'record_type': 'cmf',
         'cm_form_no': cm or "N/A",
         'customer': old.customer or "",
