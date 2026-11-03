@@ -81,4 +81,5 @@ class Command(BaseCommand):
             self.stdout.write(self.style.ERROR(f"Error occurred during lot formatting: {str(e)}"))
 
 
-# to run this. type this in the terminal: python manage.py lot_no_prod_to_prod_formula
+#python manage.py lot_no_prod_to_prod_formula
+# insert/update lot_no into tbl_formula01 from tbl_production01 based on form_id match

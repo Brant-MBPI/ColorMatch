@@ -262,3 +262,7 @@ class Command(BaseCommand):
         return result
 
     # python manage.py migrate_oldmaster_to_newformula
+    # get all master formulas, check if cm_no exists in tbl_cmf, 
+    # check if product code exists in tbl_generated_prod_code, 
+    # check if ingredients exist, check if duplicate exists in MB or DC extruder tables, 
+    # if not, create new MB or DC extruder formula and mark master formula as deleted.
