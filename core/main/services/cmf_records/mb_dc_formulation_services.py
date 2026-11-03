@@ -2,6 +2,7 @@ import json
 import re
 from django.http import JsonResponse
 from django.db.models import Q, Max
+from main.services.cmf_records.cmf_records_services import normalize_hex
 from main.models import (
     old_formula01, old_formula02, tbl_cmf, tbl_cmf_formula, tbl_coding_materials, tbl_dc_extruder_formula, tbl_dc_extruder_materials, tbl_dc_extruder_version, tbl_master_formula_encode, tbl_master_formula_info, tbl_mb_extruder_formula, tbl_mb_extruder_formula02, tbl_resins_selected, 
     tbl_cmf_process02, tbl_master_formula, tbl_generated_prod_code, tbl_field_note
@@ -435,29 +436,35 @@ def _old_form_data(old):
     def fmt_num(v, default=""):
         return f"{float(v):g}" if v is not None else default
 
+    cm = (old.cm_no or "").strip()
+    if not cm.strip("-–—"):
+        cm = ""   # empty or only dashes -> N/A
+
     return {
         'read_only': True,
+        'old_form_id': old.form_id,   # the id users track old records by
+        'old_source_label': "Master Formula" if old.source == "master_formula" else "Formula",
         'record_type': 'cmf',
-        'cm_form_no': (old.cm_no or "").strip() or "N/A",
+        'cm_form_no': cm or "N/A",
         'customer': old.customer or "",
-        'resin_used': old.resin or "",
+        'resin_used': old.resin or "",                 # resin
         'application': (old.application or "").upper(),
-        'dosage': fmt_num(old.ld, "NA"),          # dosage of old records is the LD
+        'dosage': fmt_num(old.ld, "NA"),               # ld
         'color_desc': (old.prod_color or "").upper(),
-        'index_no': old.index_no or "",
-        'product': old.product_code or "",         # MB page
-        'product_code': old.product_code or "",    # DC page
-        'date': fmt_date(old.colormatch_date),     # MB page
-        'date_matched': fmt_date(old.colormatch_date),  # DC page
-        'lot_number': old.lot_no or "",
-        'mixing_time': old.mix_time or "",
-        'note': old.notes or "",
-        'matched_by': old.match_by or "",
-        'encoded_by': old.encoded_by or "",
+        'index_no': old.index_no or "",                # index_no
+        'product': old.product_code or "",             # MB page
+        'product_code': old.product_code or "",        # DC page
+        'date': fmt_date(old.colormatch_date),         # MB page: colormatch_date
+        'date_matched': fmt_date(old.colormatch_date), # DC page: colormatch_date
+        'lot_number': old.lot_no or "",                # lot_no
+        'mixing_time': old.mix_time or "",             # mix_time
+        'note': old.notes or "",                       # notes
+        'matched_by': old.match_by or "",              # match_by
+        'encoded_by': old.encoded_by or "",            # encoded_by
         'total_weight': fmt_num(old.total_concentration),
-        'srgb_hex': old.html_code_hex or "",
-        'cmyk_c': old.cyan,
-        'cmyk_m': old.magenta,
-        'cmyk_y': old.yellow,
-        'cmyk_k': old.black,
+        'srgb_hex': normalize_hex(old.html_code_hex),  # html_code_hex ('#' added)
+        'cmyk_c': old.cyan,                            # cyan
+        'cmyk_m': old.magenta,                         # magenta
+        'cmyk_y': old.yellow,                          # yellow
+        'cmyk_k': old.black,                           # black
     }

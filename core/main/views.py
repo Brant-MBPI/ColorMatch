@@ -713,6 +713,9 @@ def cmf_mb_formula(request):
             old, old_items = _load_old_formula(old_source, old_id)
             if old:
                 form_data = _old_form_data(old)
+                if old:
+                    form_data = _old_form_data(old)
+                    form_data['total_weight'] = 'NONE'   # old formulas have no total weight (MB)
                 ingredients = [
                     {'material': i.material_code or '', 'value': i.concentration, 'weight': None}
                     for i in old_items
