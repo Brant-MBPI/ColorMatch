@@ -3,7 +3,7 @@ import re
 from django.http import JsonResponse
 from django.db.models import Q, Max
 from main.models import (
-    tbl_cmf, tbl_cmf_formula, tbl_coding_materials, tbl_dc_extruder_formula, tbl_dc_extruder_materials, tbl_dc_extruder_version, tbl_master_formula_encode, tbl_master_formula_info, tbl_mb_extruder_formula, tbl_mb_extruder_formula02, tbl_resins_selected, 
+    old_formula01, old_formula02, tbl_cmf, tbl_cmf_formula, tbl_coding_materials, tbl_dc_extruder_formula, tbl_dc_extruder_materials, tbl_dc_extruder_version, tbl_master_formula_encode, tbl_master_formula_info, tbl_mb_extruder_formula, tbl_mb_extruder_formula02, tbl_resins_selected, 
     tbl_cmf_process02, tbl_master_formula, tbl_generated_prod_code, tbl_field_note
 )
 from django.contrib.auth import get_user_model
@@ -413,3 +413,51 @@ def ajax_lookup_formula_by_code(request):
         return JsonResponse({'found': True, 'data': data})
     
     return JsonResponse({'found': False})
+
+
+# for loading old formulas from the old_formula01/02 views
+def _load_old_formula(old_source, old_id):
+    """Returns (old_record, items) from the old_formula01/02 views, or (None, [])."""
+    old = old_formula01.objects.filter(source=old_source, form_id=old_id).first()
+    if not old:
+        return None, []
+    items = list(
+        old_formula02.objects.filter(source=old_source, form_id=old_id).order_by('sequence_no')
+    )
+    return old, items
+
+
+def _old_form_data(old):
+    """form_data for an OLD record. Contains the keys of both the MB and DC pages."""
+    def fmt_date(d):
+        return d.strftime('%m/%d/%Y') if d else ""
+
+    def fmt_num(v, default=""):
+        return f"{float(v):g}" if v is not None else default
+
+    return {
+        'read_only': True,
+        'record_type': 'cmf',
+        'cm_form_no': (old.cm_no or "").strip() or "N/A",
+        'customer': old.customer or "",
+        'resin_used': old.resin or "",
+        'application': (old.application or "").upper(),
+        'dosage': fmt_num(old.ld, "NA"),          # dosage of old records is the LD
+        'color_desc': (old.prod_color or "").upper(),
+        'index_no': old.index_no or "",
+        'product': old.product_code or "",         # MB page
+        'product_code': old.product_code or "",    # DC page
+        'date': fmt_date(old.colormatch_date),     # MB page
+        'date_matched': fmt_date(old.colormatch_date),  # DC page
+        'lot_number': old.lot_no or "",
+        'mixing_time': old.mix_time or "",
+        'note': old.notes or "",
+        'matched_by': old.match_by or "",
+        'encoded_by': old.encoded_by or "",
+        'total_weight': fmt_num(old.total_concentration),
+        'srgb_hex': old.html_code_hex or "",
+        'cmyk_c': old.cyan,
+        'cmyk_m': old.magenta,
+        'cmyk_y': old.yellow,
+        'cmyk_k': old.black,
+    }

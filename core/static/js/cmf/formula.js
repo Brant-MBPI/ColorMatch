@@ -290,6 +290,13 @@
 
     if (saveBtn && form) {
         saveBtn.addEventListener('click', function () {
+            
+            // OLD records are view only: the CMF does not exist yet, so they can't be saved
+            if (form.dataset.readonly === 'true') {
+                Preline.toast('Cannot save: the CMF of this old record does not exist yet.', 'error');
+                return;
+            }
+
             if (!form.reportValidity()) return;
 
             // --- DOSAGE NUMERIC / NA VALIDATION ---
@@ -538,6 +545,21 @@
     //     dialog.addEventListener('close', () => dialog.remove());
     // }
 
+    // --- OLD RECORD (VIEW ONLY): lock every field, keep the Save/New/Print buttons ---
+    const readOnlyForm = document.querySelector('form[data-readonly="true"]');
+    if (readOnlyForm) {
+        const lockForm = () => {
+            readOnlyForm.querySelectorAll('input:not([type="hidden"]), textarea, select').forEach(el => {
+                if (el.tomselect) el.tomselect.disable();
+                el.disabled = true;
+            });
+            const star = readOnlyForm.querySelector('.formula-final-star');
+            if (star) star.style.pointerEvents = 'none';
+        };
+        // Run again shortly after load so TomSelects created late are locked too
+        window.addEventListener('load', () => { lockForm(); setTimeout(lockForm, 500); });
+    }
+    
     // --- 5. INITIALIZATION ---
     const initialTable = document.querySelector('.js-formula-table');
     if(initialTable) calculateFormulaTotals(initialTable);

@@ -469,6 +469,19 @@ $(document).ready(function() {
             return;
         }
 
+        // Old records open read-only: DC page if the product code has a "-", otherwise MB
+        if (rowData.type.startsWith('OLD')) {
+            const code = rowData.product_code || '';
+            const isDcCode = code !== '---' && code.includes('-');
+            const oldUrl = isDcCode ? "{% url 'dc_formula' %}" : "{% url 'mb_formula' %}";
+            const oldParams = new URLSearchParams({
+                old_source: rowData.source,   // "master_formula" or "formula"
+                old_id: rowData.id,
+            });
+            window.location.href = `${oldUrl}?${oldParams.toString()}`;
+            return;
+        }
+
         const targetUrl = rowData.type === 'MB' ? "{% url 'mb_formula' %}" : "{% url 'dc_formula' %}";
         const params = new URLSearchParams({
             formula_id: rowData.id,  // Open directly by formula primary key ID
@@ -482,7 +495,7 @@ $(document).ready(function() {
 
         window.location.href = `${targetUrl}?${params.toString()}`;
     });
-
+    
     if (typeof flatpickr !== "undefined") {
         flatpickr(".date-picker-single", {
             dateFormat: "m/d/Y",

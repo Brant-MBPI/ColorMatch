@@ -12,8 +12,13 @@ Formula DC
         <h4 class="fw-bold m-0 main-title">DRY COLOR MATCHING FORM</h4>
     </div>
 
-    <form id="formulaDcForm" class="js-dc-formula" method="POST">
+    <form id="formulaDcForm" class="js-dc-formula" method="POST" data-readonly="{{ form_data.read_only|yesno:'true,false' }}">
         {% csrf_token %}
+        {% if form_data.read_only %}
+        <div class="alert alert-warning py-2 extra-small fw-bold mb-3">
+            <i class="bi bi-lock-fill me-1"></i> Old formula record (view only). It cannot be saved because its CMF does not exist yet.
+        </div>
+        {% endif %}
         <input type="hidden" name="formula_id" value="{{ form_data.formula_id|default:'' }}">
         <input type="hidden" name="record_id" value="{{ form_data.record_id|default:'' }}">
         <input type="hidden" name="record_type" value="{{ form_data.record_type|default:'cmf' }}">

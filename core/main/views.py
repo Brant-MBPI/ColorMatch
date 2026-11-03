@@ -15,6 +15,7 @@ from datetime import date, datetime, timedelta, time
 from django.urls import reverse
 from django.utils import timezone
 
+from main.services.cmf_records.mb_dc_formulation_services import _load_old_formula, _old_form_data
 from main.services.settings import color_code_services
 from main.services.cmf_records import pending_completed_services
 from main.services.cmf_records import rs_records_services
@@ -704,6 +705,23 @@ def cmf_mb_formula(request):
             else:
                 messages.error(request, f"Formula record not found for ID {formula_id}.")
 
+        # 3. OLD record (tbl_master_formula / tbl_formula01): view only
+        # (same level as "if formula_id:", opened with old_source + old_id, no formula_id)
+        old_source = request.GET.get('old_source')
+        old_id = request.GET.get('old_id')
+        if old_source and old_id:
+            old, old_items = _load_old_formula(old_source, old_id)
+            if old:
+                form_data = _old_form_data(old)
+                ingredients = [
+                    {'material': i.material_code or '', 'value': i.concentration, 'weight': None}
+                    for i in old_items
+                ]
+                # pad to 10 rows, but never cut off old formulas that have more
+                ingredients += [{'material': '', 'value': '', 'weight': ''}] * max(0, 10 - len(ingredients))
+            else:
+                messages.error(request, "Old formula record not found.")
+
     # Fill default rows if empty
     if not ingredients:
         ingredients = [{'material': '', 'value': '', 'weight': ''}] * 10
@@ -731,6 +749,14 @@ def cmf_mb_formula(request):
         .order_by('first_name')
     )
 
+    # OLD record: pick the matcher by name (old records only store the name as text)
+    if form_data.get('read_only'):
+        old_matcher = (form_data.get('matched_by') or '').strip().lower()
+        for u in user_list:
+            if old_matcher and old_matcher in u['full_name'].lower():
+                form_data['matcher_id'] = u['id']
+                break
+
     # Purely CMF numbers (no RS)
     cmf_nos = list(
         tbl_cmf.objects.filter(colorant_type='MB')
@@ -747,10 +773,17 @@ def cmf_mb_formula(request):
         .values('formula_resin_id', 'resin')
         .order_by('resin')
     )
+
+    # OLD record: make sure its material codes exist as dropdown options so they display
+    materials = list(cmf_records_services.get_raw_material_codes())
+    if form_data.get('read_only'):
+        for ing in ingredients:
+            if ing['material'] and ing['material'] not in materials:
+                materials.append(ing['material'])
     
     context = {
         "form_data": form_data,
-        "materials": cmf_records_services.get_raw_material_codes(),
+        "materials": materials,
         "users": list(user_list),
         "primary_color": cmf_records_services.get_color_list(formula=True),
         "colorant_mismatch": colorant_mismatch,
@@ -759,6 +792,7 @@ def cmf_mb_formula(request):
         "formula_resins": formula_resins,
     }
     return render(request, "sidemenu/cmf/formula_mb.html", context)
+
 
 @access_required('DC Formula')
 def cmf_dc_formula(request):
@@ -902,6 +936,24 @@ def cmf_dc_formula(request):
             else:
                 messages.error(request, f"Formula record not found for ID {formula_id}.")
 
+        # 3. OLD record (tbl_master_formula / tbl_formula01): view only
+        # (same level as "if formula_id:", opened with old_source + old_id, no formula_id)
+        old_source = request.GET.get('old_source')
+        old_id = request.GET.get('old_id')
+        if old_source and old_id:
+            old, old_items = _load_old_formula(old_source, old_id)
+            if old:
+                form_data = _old_form_data(old)
+                # Old formulas have a single set of values, so they go in V1
+                material_rows = [
+                    {'material': i.material_code or '', 'versions': [i.concentration] + [None] * 9}
+                    for i in old_items
+                ]
+                while len(material_rows) < 10:
+                    material_rows.append({'material': '', 'versions': [None] * 10})
+            else:
+                messages.error(request, "Old formula record not found.")
+
     # Fallback to default 10 empty rows
     if not material_rows:
         material_rows = [{'material': '', 'versions': [None] * 10} for _ in range(10)]
@@ -929,6 +981,14 @@ def cmf_dc_formula(request):
         .order_by('first_name')
     )
 
+    # OLD record: pick the matcher by name (old records only store the name as text)
+    if form_data.get('read_only'):
+        old_matcher = (form_data.get('matched_by') or '').strip().lower()
+        for u in user_list:
+            if old_matcher and old_matcher in u['full_name'].lower():
+                form_data['matcher_id'] = u['id']
+                break
+
     # Get purely DC CMF numbers
     cmf_nos = list(
         tbl_cmf.objects.filter(colorant_type='DC')
@@ -948,9 +1008,16 @@ def cmf_dc_formula(request):
         .order_by('resin')
     )
 
+    # OLD record: make sure its material codes exist as dropdown options so they display
+    materials = list(cmf_records_services.get_raw_material_codes())
+    if form_data.get('read_only'):
+        for row in material_rows:
+            if row['material'] and row['material'] not in materials:
+                materials.append(row['material'])
+
     context = {
         "form_data": form_data,
-        "materials": cmf_records_services.get_raw_material_codes(),
+        "materials": materials,
         "users": list(user_list),
         "primary_color": cmf_records_services.get_color_list(formula=True),
         "colorant_mismatch": colorant_mismatch,
