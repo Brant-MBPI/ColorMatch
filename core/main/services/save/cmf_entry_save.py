@@ -1,6 +1,9 @@
 from decimal import Decimal, InvalidOperation
 import re
 import json
+from io import StringIO
+from django.contrib import messages
+from django.core.management import call_command
 from django.core.cache import cache
 from django.db import transaction
 from datetime import datetime, date
@@ -46,6 +49,15 @@ def parse_dosage(raw_val):
         return Decimal(cleaned)
     except (ValueError, TypeError, InvalidOperation):
         return None
+
+def _sync_old_master_formula(request, cm_no):
+    """Moves matching old master formulas into the MB/DC extruder tables for this CMF.
+    The CMF is already saved at this point, so a failure only shows a warning."""
+    try:
+        out = StringIO()
+        call_command('migrate_oldmaster_to_newformula', cm_no=cm_no, stdout=out)
+    except Exception as sync_err:
+        messages.warning(request, f"CMF saved, but the old formula sync failed: {sync_err}")
 
 def save_cmf_complete_entry(request):
     data = request.POST

@@ -79,6 +79,10 @@ class Command(BaseCommand):
             "--dry-run", action="store_true",
             help="Show what would happen without saving anything.",
         )
+        parser.add_argument(
+            "--cm-no", type=str, default=None,
+            help="Only process master formulas with this CM number.",
+        )
 
     # ------------------------------------------------------------------
     # Duplicate checks
@@ -113,6 +117,7 @@ class Command(BaseCommand):
     # ------------------------------------------------------------------
     def handle(self, *args, **options):
         dry_run = options["dry_run"]
+        only_cm_no = (options.get("cm_no") or "").strip()
         self.stdout.write(self.style.NOTICE(
             f"Starting Master Formula migration{' (DRY RUN)' if dry_run else ''}..."
         ))
@@ -140,6 +145,8 @@ class Command(BaseCommand):
         }
 
         master_formulas = tbl_master_formula.objects.filter(is_deleted=False).order_by("form_id")
+        if only_cm_no:
+            master_formulas = master_formulas.filter(cm_no__iexact=only_cm_no)
 
         for mf in master_formulas:
             try:
