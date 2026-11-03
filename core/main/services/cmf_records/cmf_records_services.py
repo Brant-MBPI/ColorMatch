@@ -6,7 +6,7 @@ from django.core.cache import cache
 from django.http import JsonResponse
 from main.utils.log_audit_trail import log_audit
 from ...models import (
-    tbl_cmf, tbl_cmf_formula, tbl_cmf_dates, 
+    old_formula01, old_formula02, tbl_cmf, tbl_cmf_formula, tbl_cmf_dates, 
     tbl_cmf_pending_completed, tbl_cmf_salesman, tbl_customer, tbl_dc_extruder_formula, tbl_dc_extruder_materials, tbl_dc_extruder_version, tbl_feedback_details, tbl_generated_prod_code, tbl_internal_color_code, tbl_mb_extruder_formula, tbl_mb_extruder_formula02, tbl_primary_color, tbl_resin, tbl_rm_incoming, tbl_rs, tbl_standalone_formula, tbl_submitted_selected
 )
 
@@ -337,6 +337,33 @@ def get_all_formula_records():
             "in_production": bool(getattr(f, 'in_production_formula', False))   # red dot in the table
         })
 
+    # OLD Formulas (view combining tbl_master_formula + tbl_formula01)
+    # type encodes the source so ids never collide between the two old tables:
+    #   OLD_MF = tbl_master_formula, OLD_F = tbl_formula01
+    for o in old_formula01.objects.all().iterator():
+        cm = (o.cm_no or "").strip()
+        raw_ld = o.ld   # dosage for old records is the LD
+        color = (o.prod_color or "").strip().upper() or "---"
+
+        combined_results.append({
+            "id": o.form_id,
+            "type": "OLD_MF" if o.source == "master_formula" else "OLD_F",
+            "source": o.source,
+            "date": o.colormatch_date,   # old records display the colormatch date
+            "cmf_no": cm or "N/A",
+            "record_type": "cmf",
+            "record_no": cm,
+            "customer": (o.customer or "").strip().upper() or "---",
+            "product_code": (o.product_code or "").strip() or "---",
+            "lot_no": (o.lot_no or "").strip() or "N/A",
+            "color": color,
+            "dosage": float(raw_ld) if raw_ld is not None else None,
+            "dosage_display": f"{float(raw_ld):g}%" if raw_ld is not None else "---",
+            "html": (o.html_code_hex or "").strip(),   # empty = no swatch ("N/A" is shown in the table)
+            "is_final": False,
+            "in_production": False,
+        })
+
     return combined_results
 
 
@@ -434,10 +461,27 @@ def get_formula_materials(request, formula_type, formula_id):
     """
     Fetches ingredients for the breakdown panel. 
     For DC, it pulls the latest trial (highest version_no).
+    For OLD_MF / OLD_F, it reads old_formula02 (master formula info / formula02).
     """
     results = []
+    ftype = formula_type.upper()
 
-    if formula_type.upper() == 'MB':
+    if ftype in ('OLD_MF', 'OLD_F'):
+        # OLD formula items (source decides which original table the rows came from)
+        source = 'master_formula' if ftype == 'OLD_MF' else 'formula'
+        old_items = old_formula02.objects.filter(
+            source=source, form_id=formula_id
+        ).order_by('sequence_no')
+
+        for item in old_items:
+            val = float(item.concentration or 0)
+            results.append({
+                'material': item.material_code or '---',
+                'value': val,
+                'weight': val  # Same as DC: JS falls back to the true value
+            })
+
+    elif ftype == 'MB':
         # MB formula items
         results = list(
             tbl_mb_extruder_formula02.objects
