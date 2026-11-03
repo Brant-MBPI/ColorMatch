@@ -1,4 +1,5 @@
 from datetime import date, datetime
+import re
 from django.db.models import Q, Max, OuterRef, Subquery
 from django.views.decorators.http import require_POST
 from django.db import transaction
@@ -194,6 +195,15 @@ def toggle_final_formula(request, formula_type, formula_id):
     return JsonResponse({'success': True, 'is_final': is_final_now})
 
 
+_HEX_RE = re.compile(r'^#?([0-9A-Fa-f]{3}){1,2}$')
+
+
+def normalize_hex(value):
+    """Returns '#RRGGBB' / '#RGB' for a valid hex (with or without '#'), otherwise ''."""
+    v = (value or "").strip()
+    if not _HEX_RE.match(v):
+        return ""
+    return v if v.startswith("#") else "#" + v
 
 # Formula Records Retrieval for CMF and RS
 # Mapped 1-to-1 with DataTables column indices
@@ -340,8 +350,12 @@ def get_all_formula_records():
     # OLD Formulas (view combining tbl_master_formula + tbl_formula01)
     # type encodes the source so ids never collide between the two old tables:
     #   OLD_MF = tbl_master_formula, OLD_F = tbl_formula01
-    for o in old_formula01.objects.all().iterator():
+    # Old records without a colormatch_date are left out (they mess up the date sorting)
+    for o in old_formula01.objects.filter(colormatch_date__isnull=False).iterator():
         cm = (o.cm_no or "").strip()
+        # No CM number, or only dashes ("-", "--", ...) -> default "N/A"
+        if not cm or not cm.strip("-–—"):
+            cm = ""
         raw_ld = o.ld   # dosage for old records is the LD
         color = (o.prod_color or "").strip().upper() or "---"
 
@@ -352,16 +366,16 @@ def get_all_formula_records():
             "date": o.colormatch_date,   # old records display the colormatch date
             "cmf_no": cm or "N/A",
             "record_type": "cmf",
-            "record_no": cm,
+            "record_no": cm,   # empty when there is no real CM number
             "customer": (o.customer or "").strip().upper() or "---",
             "product_code": (o.product_code or "").strip() or "---",
             "lot_no": (o.lot_no or "").strip() or "N/A",
             "color": color,
             "dosage": float(raw_ld) if raw_ld is not None else None,
             "dosage_display": f"{float(raw_ld):g}%" if raw_ld is not None else "---",
-            "html": (o.html_code_hex or "").strip(),   # empty = no swatch ("N/A" is shown in the table)
+            "html": normalize_hex(o.html_code_hex),   # '#' added if missing; empty = no swatch ("N/A" is shown in the table)
             "is_final": False,
-            "in_production": False,
+            "in_production": o.source == "formula",   # every record from tbl_formula01 counts as in production
         })
 
     return combined_results

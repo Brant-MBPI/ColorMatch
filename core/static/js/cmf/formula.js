@@ -559,7 +559,7 @@
         // Run again shortly after load so TomSelects created late are locked too
         window.addEventListener('load', () => { lockForm(); setTimeout(lockForm, 500); });
     }
-    
+
     // --- 5. INITIALIZATION ---
     const initialTable = document.querySelector('.js-formula-table');
     if(initialTable) calculateFormulaTotals(initialTable);
