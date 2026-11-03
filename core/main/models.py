@@ -939,3 +939,77 @@ class tbl_rm_incoming(models.Model):
 
     def __str__(self):
         return self.material_code or str(self.id)
+
+
+# ==========================================
+# 9. VIEW TABLES FOR MASTER FORMULA + PRODUCTION FORMULA
+# ==========================================
+
+
+class old_formula01(models.Model):
+    """Read-only view: tbl_master_formula + tbl_formula01 (with their encode tables)."""
+    SOURCE_MASTER = "master_formula"
+    SOURCE_FORMULA = "formula"
+
+    view_id = models.CharField(max_length=40, primary_key=True)  # e.g. "master_formula-12"
+    source = models.CharField(max_length=20)                     # "master_formula" or "formula"
+    form_id = models.IntegerField()                              # id in the source table
+
+    index_no = models.CharField(max_length=22, blank=True, null=True)
+    date = models.DateField(blank=True, null=True)
+    customer = models.CharField(max_length=62, blank=True, null=True)
+    product_code = models.CharField(max_length=22, blank=True, null=True)
+    prod_color = models.CharField(max_length=62, blank=True, null=True)
+    dosage = models.DecimalField(max_digits=12, decimal_places=6, null=True, blank=True)
+    total_concentration = models.DecimalField(max_digits=12, decimal_places=6, null=True, blank=True)
+    ld = models.DecimalField(max_digits=12, decimal_places=6, null=True, blank=True)
+    mix_time = models.CharField(max_length=22, blank=True, null=True)
+    resin = models.CharField(max_length=36, blank=True, null=True)
+    application = models.CharField(max_length=36, blank=True, null=True)
+    cm_no = models.CharField(max_length=8, blank=True, null=True)
+    lot_no = models.CharField(max_length=100, blank=True, null=True)
+    colormatch_date = models.DateField(blank=True, null=True)
+    notes = models.CharField(max_length=256, blank=True, null=True)
+    date_modified = models.CharField(max_length=32, blank=True, null=True)
+    is_deleted = models.BooleanField(default=False)
+    is_used = models.BooleanField(default=False)
+
+    # Master formula only (NULL for formula01)
+    html_code_hex = models.CharField(max_length=10, blank=True, null=True)
+    cyan = models.DecimalField(max_digits=12, decimal_places=6, null=True, blank=True)
+    magenta = models.DecimalField(max_digits=12, decimal_places=6, null=True, blank=True)
+    yellow = models.DecimalField(max_digits=12, decimal_places=6, null=True, blank=True)
+    black = models.DecimalField(max_digits=12, decimal_places=6, null=True, blank=True)
+    colorant_type = models.CharField(max_length=5, blank=True, null=True)
+
+    # From the encode tables
+    match_by = models.CharField(max_length=128, blank=True, null=True)
+    encoded_by = models.CharField(max_length=128, blank=True, null=True)
+    updated_by = models.CharField(max_length=128, blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = "old_formula01"
+        ordering = ["colormatch_date"]
+
+    def get_info(self):
+        return old_formula02.objects.filter(source=self.source, form_id=self.form_id)
+
+    def __str__(self):
+        return f"{self.source} #{self.form_id} - {self.product_code}"
+
+
+class old_formula02(models.Model):
+    """Read-only view: tbl_master_formula_info + tbl_formula02."""
+    view_id = models.CharField(max_length=40, primary_key=True)
+    source = models.CharField(max_length=20)
+    form_id = models.IntegerField()
+    sequence_no = models.IntegerField(blank=True, null=True)
+    material_code = models.CharField(max_length=32, blank=True, null=True)
+    concentration = models.DecimalField(max_digits=12, decimal_places=6, null=True, blank=True)
+    is_deleted = models.BooleanField(default=False)
+
+    class Meta:
+        managed = False
+        db_table = "old_formula02"
+        ordering = ["source", "form_id", "sequence_no"]
