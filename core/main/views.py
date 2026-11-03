@@ -749,14 +749,6 @@ def cmf_mb_formula(request):
         .order_by('first_name')
     )
 
-    # OLD record: pick the matcher by name (old records only store the name as text)
-    if form_data.get('read_only'):
-        old_matcher = (form_data.get('matched_by') or '').strip().lower()
-        for u in user_list:
-            if old_matcher and old_matcher in u['full_name'].lower():
-                form_data['matcher_id'] = u['id']
-                break
-
     # Purely CMF numbers (no RS)
     cmf_nos = list(
         tbl_cmf.objects.filter(colorant_type='MB')
@@ -980,14 +972,6 @@ def cmf_dc_formula(request):
         .values('id', 'full_name')
         .order_by('first_name')
     )
-
-    # OLD record: pick the matcher by name (old records only store the name as text)
-    if form_data.get('read_only'):
-        old_matcher = (form_data.get('matched_by') or '').strip().lower()
-        for u in user_list:
-            if old_matcher and old_matcher in u['full_name'].lower():
-                form_data['matcher_id'] = u['id']
-                break
 
     # Get purely DC CMF numbers
     cmf_nos = list(

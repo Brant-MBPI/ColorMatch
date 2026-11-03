@@ -38,7 +38,7 @@
                     <div class="row g-2 align-items-center mb-2">
                         <div class="col-5"><label class="extra-small fw-bold required-label">CMF Number:</label></div>
                         <div class="col-7">
-                            {% if form_data.formula_id %}
+                            {% if form_data.formula_id or form_data.read_only %}
                                 <!-- Editing Mode: Readonly Input (Displays "N/A" if form_data.cm_form_no is "N/A") -->
                                 <input type="text" name="cmf_number" id="id_mb_cmf_number" 
                                     value="{{ form_data.cm_form_no|default:'' }}" 
@@ -249,15 +249,22 @@
                         <div class="row g-2 align-items-center mb-2">
                             <div class="col-5"><label class="extra-small fw-bold required-label">Matched by:</label></div>
                             <div class="col-7">
-                                <select name="matcher_id" id="id_dc_matched_by" class="form-select form-select-sm ts-select" placeholder="Select personnel..." required>
-                                    <option value=""></option>
-                                    {% for u in users %}
-                                        <option value="{{ u.id }}" 
-                                            {% if form_data.matcher_id|add:0 == u.id|add:0 %}selected{% endif %}>
-                                            {{ u.full_name }}
-                                        </option>
-                                    {% endfor %}
-                                </select>
+                                {% if form_data.read_only %}
+                                    <!-- OLD record: show the saved text as is -->
+                                    <input type="text" id="id_dc_matched_by"
+                                        value="{{ form_data.matched_by|default:'' }}"
+                                        class="form-control form-control-sm uniform-input readonly-gray" readonly>
+                                {% else %}
+                                    <select name="matcher_id" id="id_dc_matched_by" class="form-select form-select-sm ts-select" placeholder="Select personnel..." required>
+                                        <option value=""></option>
+                                        {% for u in users %}
+                                            <option value="{{ u.id }}" 
+                                                {% if form_data.matcher_id|add:0 == u.id|add:0 %}selected{% endif %}>
+                                                {{ u.full_name }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                {% endif %}
                             </div>
                         </div>
 
