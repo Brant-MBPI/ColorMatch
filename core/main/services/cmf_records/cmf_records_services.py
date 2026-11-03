@@ -388,12 +388,16 @@ def formula_records_data(request):
     global_search = request.GET.get('search[value]', '').strip()
     only_final = request.GET.get('only_final') == '1'
     only_production = request.GET.get('only_production') == '1'
+    only_master_new = request.GET.get('only_master_new') == '1'
 
     all_records = get_all_formula_records()
     if only_final:
         all_records = [item for item in all_records if item.get('is_final')]
     if only_production:
         all_records = [item for item in all_records if item.get('in_production')]
+    if only_master_new:
+        # Master formula (OLD_MF) + newly entered MB / DC records; hides the old production "formula" (OLD_F) records
+        all_records = [item for item in all_records if item.get('type') in ('MB', 'DC', 'OLD_MF')]
     total_unfiltered = len(all_records)
 
     for item in all_records:

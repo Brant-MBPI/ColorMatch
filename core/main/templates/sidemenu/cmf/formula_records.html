@@ -45,6 +45,9 @@ Formula Records
             <button class="btn btn-sm btn-outline-teal px-3" id="btnToggleSelection">
                 <i class="bi bi-list-check"></i> Multi-Select
             </button>
+            <button class="btn btn-sm btn-outline-teal px-3" id="btnToggleMaster" title="Show only Master Formula + newly entered formulas">
+                <i class="bi bi-funnel"></i> Master + New
+            </button>
             <button class="btn btn-sm btn-primary px-2" id="btnRefreshTable"><i class="bi bi-arrow-clockwise"></i></button>
         </div>
     </div>
@@ -148,6 +151,7 @@ $(document).ready(function() {
     let selectedIds = new Set();
     let onlyFinalFilter = false;
     let onlyProductionFilter = false;
+    let onlyMasterNewFilter = false;
 
     const CHECKBOX_COL_INDEX = 0;
 
@@ -161,6 +165,7 @@ $(document).ready(function() {
                 d.length = $('#tableLength').val();
                 d.only_final = onlyFinalFilter ? 1 : 0;
                 d.only_production = onlyProductionFilter ? 1 : 0;
+                d.only_master_new = onlyMasterNewFilter ? 1 : 0;
             }
         },
         columns: [
@@ -388,6 +393,18 @@ $(document).ready(function() {
             if (typeof Preline !== 'undefined' && typeof Preline.toast === 'function') {
                 Preline.toast('Showing all formulas', 'info');
             }
+        }
+
+        // Reload table data from server
+        table.ajax.reload();
+    });
+
+    $('#btnToggleMaster').on('click', function() {
+        onlyMasterNewFilter = !onlyMasterNewFilter;
+        $(this).toggleClass('active', onlyMasterNewFilter);
+
+        if (typeof Preline !== 'undefined' && typeof Preline.toast === 'function') {
+            Preline.toast(onlyMasterNewFilter ? 'Showing Master Formula + new formulas only' : 'Showing all formulas', 'info');
         }
 
         // Reload table data from server
@@ -701,6 +718,8 @@ $(document).ready(function() {
         }
         return cookieValue;
     }
+
+
 });
 </script>
 {% endblock %}
