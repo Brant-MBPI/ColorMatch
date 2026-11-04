@@ -1,13 +1,23 @@
 import json
 import re
+from django.core.cache import cache
+from django.db import transaction
 from django.http import JsonResponse
 from django.db.models import Q, Max
+from main.utils.log_audit_trail import log_audit
 from main.services.cmf_records.cmf_records_services import normalize_hex
 from main.models import (
-    old_formula01, old_formula02, tbl_cmf, tbl_cmf_formula, tbl_coding_materials, tbl_dc_extruder_formula, tbl_dc_extruder_materials, tbl_dc_extruder_version, tbl_master_formula_encode, tbl_master_formula_info, tbl_mb_extruder_formula, tbl_mb_extruder_formula02, tbl_resins_selected, 
+    old_formula01, old_formula02, tbl_cmf, tbl_cmf_formula, tbl_cmf_is_deleted, tbl_coding_materials, tbl_dc_extruder_formula, tbl_dc_extruder_materials, tbl_dc_extruder_version, tbl_master_formula_encode, tbl_master_formula_info, tbl_mb_extruder_formula, tbl_mb_extruder_formula02, tbl_resins_selected, 
     tbl_cmf_process02, tbl_master_formula, tbl_generated_prod_code, tbl_field_note
 )
 from django.contrib.auth import get_user_model
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from main.models import tbl_cmf_is_deleted
+from django.contrib import messages
+from main.decorators import access_required
+
+
 User = get_user_model()
 
 def get_formulation_details(request):
@@ -468,3 +478,46 @@ def _old_form_data(old):
         'cmyk_y': old.yellow,                          # yellow
         'cmyk_k': old.black,                           # black
     }
+
+
+# -----------------------------
+# soft delete MB/DC formulas (mark as deleted, but keep the record)
+# -----------------------------
+
+def _soft_delete_formula(request, formula_type, formula_id):
+    """Marks an MB / DC extruder formula as deleted (row in tbl_cmf_is_deleted). The formula itself is kept."""
+    reason = (request.POST.get('reason') or '').strip()
+    if not reason:
+        return JsonResponse({'success': False, 'error': 'Please enter a reason for deleting.'}, status=400)
+
+    is_mb = formula_type == 'MB'
+    model = tbl_mb_extruder_formula if is_mb else tbl_dc_extruder_formula
+    formula = model.objects.filter(pk=formula_id).first()
+    if not formula:
+        return JsonResponse({'success': False, 'error': 'Formula not found.'}, status=404)
+
+    link = {'mb_no': formula} if is_mb else {'dc_no': formula}
+    if tbl_cmf_is_deleted.objects.filter(**link).exists():
+        return JsonResponse({'success': False, 'error': 'This formula is already deleted.'}, status=400)
+
+    with transaction.atomic():
+        # cm_no is left empty on purpose: that column is for deleted CMFs later
+        tbl_cmf_is_deleted.objects.create(reason=reason, **link)
+
+    label = f"{formula_type} #{formula_id}" + (f" (CMF {formula.cm_no.cm_no})" if formula.cm_no else "")
+    cache.delete('cmf_records_list')
+    log_audit(request, "Deleted", f"{label}. Reason: {reason}")
+    messages.success(request, f"{label} deleted.")
+    return JsonResponse({'success': True})
+
+
+@access_required('MB Formula')
+@require_POST
+def delete_mb_formula(request, formula_id):
+    return _soft_delete_formula(request, 'MB', formula_id)
+
+
+@access_required('DC Formula')
+@require_POST
+def delete_dc_formula(request, formula_id):
+    return _soft_delete_formula(request, 'DC', formula_id)

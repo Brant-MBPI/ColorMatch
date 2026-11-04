@@ -45,6 +45,8 @@ urlpatterns = [
     path('settings/password-requests/', views.admin_password_requests, name='admin_password_requests'),
     path('settings/color-codes/', views.manage_color_codes, name='manage_color_codes'),
     path('permission-access/', views.permission_access, name='permission_access'),
+    path('cmf/mb-formula/delete/<int:formula_id>/', mb_dc_formulation_services.delete_mb_formula, name='delete_mb_formula'),
+    path('cmf/dc-formula/delete/<int:formula_id>/', mb_dc_formulation_services.delete_dc_formula, name='delete_dc_formula'),
 
 
     # export

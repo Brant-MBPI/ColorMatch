@@ -241,8 +241,12 @@ def get_all_formula_records():
     dc_standalone_map = {sa.dc_no_id: sa for sa in tbl_standalone_formula.objects.filter(dc_no__isnull=False)}
 
     # select_related pulls the colors in the same query (no extra query per row)
-    mb_qs = tbl_mb_extruder_formula.objects.select_related('code', 'cm_no', 'cm_no__in_code_no', 'internal_color')
-    dc_qs = tbl_dc_extruder_formula.objects.select_related('code', 'cm_no', 'cm_no__in_code_no')
+    mb_qs = tbl_mb_extruder_formula.objects.filter(
+        tbl_cmf_is_deleted__isnull=True
+    ).select_related('code', 'cm_no', 'cm_no__in_code_no', 'internal_color')
+    dc_qs = tbl_dc_extruder_formula.objects.filter(
+        tbl_cmf_is_deleted__isnull=True
+    ).select_related('code', 'cm_no', 'cm_no__in_code_no')
 
     combined_results = []
 
