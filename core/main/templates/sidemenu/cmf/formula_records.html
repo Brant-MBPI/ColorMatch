@@ -14,19 +14,22 @@ Formula Records
 
     /* Checkbox column: only as wide as the checkbox itself */
     .col-check { width: 1%; white-space: nowrap; }
+
+    /* Deleted formulas: light red row */
+    #formulaRecordsTable tbody tr.row-deleted > td { --bs-table-bg: #fdecec; background-color: #fdecec; }
 </style>
 <div class="container-fluid h-100 d-flex flex-column p-3 bg-light">
     <!-- HEADER -->
-    <div class="row g-2 mb-3 align-items-center flex-shrink-0">
-        <div class="col">
+    <div class="row g-2 mb-3 align-items-center flex-shrink-0 flex-lg-nowrap">
+        <div class="col" style="min-width: 0;">
             <div id="selectedRecordLabel" class="extra-small d-flex align-items-center gap-2 mt-1">
                 <span class="text-muted italic">Select a record to view details</span>
             </div>
         </div>
 
-        <div class="col-md-6">
+        <div class="col-auto" style="width: 340px;">
             <div class="input-group input-group-sm shadow-sm">
-                <select id="searchColumnFilter" class="form-select form-select-sm uniform-input" style="max-width: 180px;">
+                <select id="searchColumnFilter" class="form-select form-select-sm uniform-input" style="max-width: 120px;">
                     <option value="-1" selected>All Columns</option>
                     <option value="2">Date</option>
                     <option value="3">CMF No</option>
@@ -36,17 +39,20 @@ Formula Records
                     <option value="7">Internal Color</option>
                     <option value="8">Dosage</option>
                 </select>
-                <input type="text" id="recordSearchInput" class="form-control uniform-input" placeholder="Search CMF, Code, Customer, Color, or Lot...">
+                <input type="text" id="recordSearchInput" class="form-control uniform-input" placeholder="Search...">
                 <span class="input-group-text uniform-input bg-white"><i class="bi bi-search"></i></span>
             </div>
         </div>
 
-        <div class="col-auto">
-            <button class="btn btn-sm btn-outline-teal px-3" id="btnToggleSelection">
+        <div class="col-auto d-flex flex-nowrap gap-1">
+            <button class="btn btn-sm btn-outline-teal px-3 text-nowrap" id="btnToggleSelection">
                 <i class="bi bi-list-check"></i> Multi-Select
             </button>
-            <button class="btn btn-sm btn-outline-teal px-3" id="btnToggleMaster" title="Show only Master Formula + newly entered formulas">
-                <i class="bi bi-funnel"></i> Master + New
+            <button class="btn btn-sm btn-outline-teal px-3 text-nowrap" id="btnToggleMaster" title="Show only Master Formula + newly entered formulas">
+                <i class="bi bi-funnel"></i> Master & New
+            </button>
+            <button class="btn btn-sm btn-outline-danger px-3" id="btnToggleDeleted" title="Show only deleted formulas">
+                <i class="bi bi-trash"></i>
             </button>
             <button class="btn btn-sm btn-primary px-2" id="btnRefreshTable"><i class="bi bi-arrow-clockwise"></i></button>
         </div>
@@ -152,6 +158,7 @@ $(document).ready(function() {
     let onlyFinalFilter = false;
     let onlyProductionFilter = false;
     let onlyMasterNewFilter = false;
+    let onlyDeletedFilter = false;
 
     const CHECKBOX_COL_INDEX = 0;
 
@@ -166,6 +173,7 @@ $(document).ready(function() {
                 d.only_final = onlyFinalFilter ? 1 : 0;
                 d.only_production = onlyProductionFilter ? 1 : 0;
                 d.only_master_new = onlyMasterNewFilter ? 1 : 0;
+                d.only_deleted = onlyDeletedFilter ? 1 : 0;
             }
         },
         columns: [
@@ -237,6 +245,12 @@ $(document).ready(function() {
         pageLength: 100,
         scrollY: 'calc(70vh - 110px)',
         scrollCollapse: true,
+        createdRow: function(row, data) {
+            if (data.is_deleted) {
+                $(row).addClass('row-deleted');
+                $(row).attr('title', 'Deleted: ' + (data.delete_reason || 'no reason given'));
+            }
+        },
         order: [[2, 'desc']],
         language: {
             processing: '<div class="spinner-border text-teal spinner-border-sm"></div>'
@@ -268,9 +282,10 @@ $(document).ready(function() {
         resizeObserver.observe(tableContainer);
     }
 
-    $('#recordSearchInput').on('input', function() {
+    // Debounced search: waits until typing stops before asking the server
+    const handleRecordSearch = debounce(function() {
         const colIndex = parseInt($('#searchColumnFilter').val(), 10);
-        const value = $(this).val();
+        const value = $('#recordSearchInput').val();
 
         table.columns().search('');
         table.search('');
@@ -280,7 +295,9 @@ $(document).ready(function() {
         } else {
             table.column(colIndex).search(value).draw();
         }
-    });
+    }, 500);
+
+    $('#recordSearchInput').on('input', handleRecordSearch);
 
     $('#searchColumnFilter').on('change', function() {
         $('#recordSearchInput').val('');
@@ -719,7 +736,17 @@ $(document).ready(function() {
         return cookieValue;
     }
 
+    $('#btnToggleDeleted').on('click', function() {
+        onlyDeletedFilter = !onlyDeletedFilter;
+        $(this).toggleClass('active', onlyDeletedFilter);
 
+        if (typeof Preline !== 'undefined' && typeof Preline.toast === 'function') {
+            Preline.toast(onlyDeletedFilter ? 'Showing deleted formulas only' : 'Showing all formulas', 'info');
+        }
+
+        // Reload table data from server
+        table.ajax.reload();
+    });
 });
 </script>
 {% endblock %}

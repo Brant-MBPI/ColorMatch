@@ -7,7 +7,7 @@ from django.core.cache import cache
 from django.http import JsonResponse
 from main.utils.log_audit_trail import log_audit
 from ...models import (
-    old_formula01, old_formula02, tbl_cmf, tbl_cmf_formula, tbl_cmf_dates, 
+    old_formula01, old_formula02, tbl_cmf, tbl_cmf_formula, tbl_cmf_dates, tbl_cmf_is_deleted, 
     tbl_cmf_pending_completed, tbl_cmf_salesman, tbl_customer, tbl_dc_extruder_formula, tbl_dc_extruder_materials, tbl_dc_extruder_version, tbl_feedback_details, tbl_generated_prod_code, tbl_internal_color_code, tbl_mb_extruder_formula, tbl_mb_extruder_formula02, tbl_primary_color, tbl_resin, tbl_rm_incoming, tbl_rs, tbl_standalone_formula, tbl_submitted_selected
 )
 
@@ -229,7 +229,7 @@ SORTABLE_COLUMNS = {
 }
 
 
-def get_all_formula_records():
+def get_all_formula_records(only_deleted=False):
     # 1. Preload customer and dosage from tbl_cmf_formula in 1 query for instant O(1) lookup
     formula_map = {}
     for f in tbl_cmf_formula.objects.all().only('cm_no', 'customer', 'dosage'):
@@ -240,12 +240,19 @@ def get_all_formula_records():
     mb_standalone_map = {sa.mb_no_id: sa for sa in tbl_standalone_formula.objects.filter(mb_no__isnull=False)}
     dc_standalone_map = {sa.dc_no_id: sa for sa in tbl_standalone_formula.objects.filter(dc_no__isnull=False)}
 
+    # Deleted view: preload the delete reasons (shown as a tooltip on the row)
+    mb_deleted_map, dc_deleted_map = {}, {}
+    if only_deleted:
+        mb_deleted_map = {d.mb_no_id: (d.reason or "") for d in tbl_cmf_is_deleted.objects.filter(mb_no__isnull=False)}
+        dc_deleted_map = {d.dc_no_id: (d.reason or "") for d in tbl_cmf_is_deleted.objects.filter(dc_no__isnull=False)}
+
     # select_related pulls the colors in the same query (no extra query per row)
+    # Normal view: only formulas that are NOT deleted. Deleted view: only the deleted ones.
     mb_qs = tbl_mb_extruder_formula.objects.filter(
-        tbl_cmf_is_deleted__isnull=True
+        tbl_cmf_is_deleted__isnull=not only_deleted
     ).select_related('code', 'cm_no', 'cm_no__in_code_no', 'internal_color')
     dc_qs = tbl_dc_extruder_formula.objects.filter(
-        tbl_cmf_is_deleted__isnull=True
+        tbl_cmf_is_deleted__isnull=not only_deleted
     ).select_related('code', 'cm_no', 'cm_no__in_code_no')
 
     combined_results = []
@@ -299,7 +306,9 @@ def get_all_formula_records():
             "dosage_display": dosage_display,
             "html": (f.html or "").strip(),   # empty = no swatch ("N/A" is shown in the table)
             "is_final": bool(getattr(f, 'is_final', False)),
-            "in_production": bool(getattr(f, 'in_production_formula', False))   # red dot in the table
+            "in_production": bool(getattr(f, 'in_production_formula', False)),   # red dot in the table
+            "is_deleted": only_deleted,   # light red row in the table
+            "delete_reason": mb_deleted_map.get(f.mb_no, ""),
         })
 
     # DC Formulas
@@ -348,14 +357,18 @@ def get_all_formula_records():
             "dosage_display": dosage_display,
             "html": (f.html or "").strip(),   # empty = no swatch ("N/A" is shown in the table)
             "is_final": bool(getattr(f, 'is_final', False)),
-            "in_production": bool(getattr(f, 'in_production_formula', False))   # red dot in the table
+            "in_production": bool(getattr(f, 'in_production_formula', False)),   # red dot in the table
+            "is_deleted": only_deleted,   # light red row in the table
+            "delete_reason": dc_deleted_map.get(f.dc_no, ""),
         })
 
     # OLD Formulas (view combining tbl_master_formula + tbl_formula01)
     # type encodes the source so ids never collide between the two old tables:
     #   OLD_MF = tbl_master_formula, OLD_F = tbl_formula01
     # Old records without a colormatch_date are left out (they mess up the date sorting)
-    for o in old_formula01.objects.filter(colormatch_date__isnull=False).iterator():
+    # Old records can't be deleted, so they are left out of the deleted view
+    old_records = [] if only_deleted else old_formula01.objects.filter(colormatch_date__isnull=False).iterator()
+    for o in old_records:
         cm = (o.cm_no or "").strip()
         # No CM number, or only dashes ("-", "--", ...) -> default "N/A"
         if not cm or not cm.strip("-–—"):
@@ -380,6 +393,8 @@ def get_all_formula_records():
             "html": normalize_hex(o.html_code_hex),   # '#' added if missing; empty = no swatch ("N/A" is shown in the table)
             "is_final": False,
             "in_production": o.source == "formula",   # every record from tbl_formula01 counts as in production
+            "is_deleted": False,
+            "delete_reason": "",
         })
 
     return combined_results
@@ -393,8 +408,9 @@ def formula_records_data(request):
     only_final = request.GET.get('only_final') == '1'
     only_production = request.GET.get('only_production') == '1'
     only_master_new = request.GET.get('only_master_new') == '1'
+    only_deleted = request.GET.get('only_deleted') == '1'
 
-    all_records = get_all_formula_records()
+    all_records = get_all_formula_records(only_deleted=only_deleted)
     if only_final:
         all_records = [item for item in all_records if item.get('is_final')]
     if only_production:
