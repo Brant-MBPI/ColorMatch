@@ -1013,3 +1013,44 @@ class old_formula02(models.Model):
         managed = False
         db_table = "old_formula02"
         ordering = ["source", "form_id", "sequence_no"]
+
+
+
+# ==========================================
+# 10. is deleted table for CMF, MB, DC
+# ==========================================
+
+class tbl_cmf_is_deleted(models.Model):
+    id = models.AutoField(primary_key=True)
+    reason = models.TextField(blank=True, null=True)
+    
+    # Foreign Keys
+    mb_no = models.ForeignKey(
+        'tbl_mb_extruder_formula', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        db_column="mb_no"
+    )
+    dc_no = models.ForeignKey(
+        'tbl_dc_extruder_formula', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        db_column="dc_no"
+    )
+    cm_no = models.ForeignKey(
+        'tbl_cmf', 
+        to_field="cm_no", 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        db_column="cm_no"
+    )
+
+    class Meta:
+        db_table = "tbl_cmf_is_deleted"
+
+    def __str__(self):
+        target = self.cm_no_id or (f"MB #{self.mb_no_id}" if self.mb_no_id else f"DC #{self.dc_no_id}")
+        return f"Deletion Record #{self.id} for {target}"
