@@ -50,6 +50,19 @@ def parse_dosage(raw_val):
     except (ValueError, TypeError, InvalidOperation):
         return None
 
+def build_specifications(data):
+    """Builds the specification names from the radios + Others text.
+    Falls back to 'Indoor Use' when nothing is selected."""
+    specs = []
+    if data.get('spec_food_contact') == 'Y':
+        specs.append('Food Contact')
+    if data.get('spec_outdoor_use') == 'Y':
+        specs.append('Outdoor Use')
+    other = (data.get('specificationOther') or '').strip()
+    if other:
+        specs.append(other)
+    return specs or ['Indoor Use']
+
 def _sync_old_master_formula(request, cm_no):
     """Moves matching old master formulas into the MB/DC extruder tables for this CMF.
     The CMF is already saved at this point, so a failure only shows a warning."""
@@ -65,7 +78,7 @@ def save_cmf_complete_entry(request):
     # --- 1. CLEAN AND VALIDATE LISTS ---
     selected_resins = [r for r in data.getlist('resin') if r.strip()]
     selected_processes = [p for p in data.getlist('process') if p.strip()]
-    selected_specs = [s for s in data.getlist('specification') if s.strip()]
+    new_specs = build_specifications(data)
 
     if not selected_resins:
         raise Exception("Selection Required: At least one Resin Type must be selected.")
@@ -152,12 +165,9 @@ def save_cmf_complete_entry(request):
             resin_ref = tbl_resin.objects.get(resin_no=r_id)
             tbl_resins_selected.objects.create(cm_no=cmf_main, resin_no=resin_ref)
 
-        for s_name in selected_specs:
-            s_name = data.get('specificationOther') if s_name == "Others" else s_name
-            if s_name:
-                # Links to 'Not Specified' (or any standard/custom spec) by its spec_no
-                s_ref, _ = tbl_cmf_specification.objects.get_or_create(name=s_name.strip())
-                tbl_cmf_specification02.objects.create(cm_no=cmf_main, spec_no=s_ref)
+        for s_name in new_specs:
+            s_ref, _ = tbl_cmf_specification.objects.get_or_create(name=s_name)
+            tbl_cmf_specification02.objects.create(cm_no=cmf_main, spec_no=s_ref)
 
         # --- RESOLVE PRODUCT CODE ---
         prod_code_val = (data.get('product_code') or '').strip()
@@ -253,7 +263,6 @@ def update_cmf_complete_entry(request, original_cmf_no):
     # --- 2. PREPARE INPUTS ---
     selected_resins = [r for r in data.getlist('resin') if r.strip()]
     selected_processes = [p for p in data.getlist('process') if p.strip()]
-    selected_specs = [s for s in data.getlist('specification') if s.strip()]
 
     with transaction.atomic():
         old_cmf = tbl_cmf.objects.filter(cm_no=original_cmf_no).first()
@@ -369,7 +378,7 @@ def update_cmf_complete_entry(request, original_cmf_no):
 
         # Specifications
         curr_specs = ", ".join(sorted(tbl_cmf_specification02.objects.filter(cm_no=old_cmf).values_list('spec_no__name', flat=True)))
-        new_specs_list = sorted([data.get('specificationOther', '').strip() if s == "Others" else s.strip() for s in selected_specs if s.strip()])
+        new_specs_list = sorted(build_specifications(data))
         new_specs_str = ", ".join(new_specs_list)
         if curr_specs != new_specs_str:
             diff_logs.append(f"Specifications ({curr_specs or 'None'} -> {new_specs_str or 'None'})")
