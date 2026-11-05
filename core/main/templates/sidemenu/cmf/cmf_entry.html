@@ -347,7 +347,7 @@ CMF Entry
 
                             <div class="row g-2">
                                 <!-- Food Contact -->
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <label class="extra-small d-block mb-1">Food Contact:</label>
                                     <div class="d-flex gap-3">
                                         <div class="form-check form-check-inline mb-0">
@@ -364,7 +364,7 @@ CMF Entry
                                 </div>
 
                                 <!-- Outdoor Use -->
-                                <div class="col-md-4 border-start ps-3">
+                                <div class="col-md-3 border-start ps-3">
                                     <label class="extra-small d-block mb-1">Outdoor Use:</label>
                                     <div class="d-flex gap-3">
                                         <div class="form-check form-check-inline mb-0">
@@ -380,18 +380,28 @@ CMF Entry
                                     </div>
                                 </div>
 
-                                <!-- Others -->
-                                <div class="col-md-4 border-start ps-3">
+                                <!-- Others (multiple) -->
+                                <div class="col-md-6 border-start ps-3">
                                     <label class="extra-small d-block mb-1">Others:</label>
-                                    <input type="text" class="form-control form-control-sm uniform-input" name="specificationOther"
-                                        id="specificationOtherInput" value="{{ form_data.specificationOther|default:'' }}"
-                                        placeholder="Specify (optional)" autocomplete="off">
+                                    <select class="form-select form-select-sm ts-select" name="specificationOther"
+                                            id="specificationOtherInput" data-create="true" multiple
+                                            placeholder="Select or type new (optional)">
+                                        <option value=""></option>
+                                        {% for name in spec_names %}
+                                            <option value="{{ name }}" {% if name in form_data.specificationOther %}selected{% endif %}>{{ name }}</option>
+                                        {% endfor %}
+                                        {% for name in form_data.specificationOther %}
+                                            {% if name not in spec_names %}
+                                                <option value="{{ name }}" selected>{{ name }}</option>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </select>
                                 </div>
                             </div>
 
                             <div class="extra-small text-muted mt-1"><span class="text-danger">*</span> If Food Contact and Outdoor Use are both "No" and Others is empty, this is saved as Indoor Use.</div>
                         </div>
-
+                        
                         <!-- Processing Temp + Is Low Cost -->
                         <div class="row g-2">
                             <div class="col-6">

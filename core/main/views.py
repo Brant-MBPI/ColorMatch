@@ -286,19 +286,22 @@ def cmf_entry(request):
                     tbl_cmf_specification02.objects.filter(cm_no=cmf)
                     .values_list('spec_no__name', flat=True)
                 )
-                STANDARD_SPECS = {'food contact', 'sunlight exposure', 'not specified'}
+                STANDARD_SPECS = {
+                    'food contact': 'Food Contact',
+                    'outdoor use': 'Outdoor Use',
+                    'indoor use': 'Indoor Use',
+                }
                 selected_specs = []
-                other_spec_val = ""
+                other_specs = []
 
                 for s in spec_names_raw:
-                    s_clean = s.strip()
+                    s_clean = (s or '').strip()
+                    if not s_clean or s_clean.lower() == 'n/a':
+                        continue
                     if s_clean.lower() in STANDARD_SPECS:
-                        if s_clean.lower() == 'food contact': selected_specs.append('Food Contact')
-                        elif s_clean.lower() == 'sunlight exposure': selected_specs.append('Sunlight Exposure')
-                        elif s_clean.lower() == 'not specified': selected_specs.append('Not Specified')
+                        selected_specs.append(STANDARD_SPECS[s_clean.lower()])
                     else:
-                        selected_specs.append('Others')
-                        other_spec_val = s_clean
+                        other_specs.append(s_clean)
                 
                 form_data = {
                     'is_new': '1' if cm_no_override else '0',
@@ -347,7 +350,7 @@ def cmf_entry(request):
                     'process': selected_processes,
                     'otherProcess': other_process_val,
                     'specification': selected_specs,
-                    'specificationOther': other_spec_val,
+                    'specificationOther': other_specs,
                 }
                 # show the "View Files" button, and to populate its modal.
                 attachments = list(
@@ -357,6 +360,13 @@ def cmf_entry(request):
                 )
     allowed_departments = ['Laboratory', 'Information Technology', 'Sales']
     is_allowed = request.user.role.department in allowed_departments or request.user.is_superuser
+
+    spec_names = list(
+        tbl_cmf_specification.objects
+        .exclude(name__isnull=True).exclude(name__exact='')
+        .values_list('name', flat=True)
+    )
+    
     context = {
         "customers": cmf_records_services.get_customer_list(), 
         "salesman": cmf_records_services.get_salesman_list(),
@@ -364,6 +374,7 @@ def cmf_entry(request):
         "resin": cmf_records_services.get_resin_list(),
         "codes": cmf_records_services.get_color_code_list(),
         "form_data": form_data,
+        'spec_names': spec_names,
         "attachments": attachments,
         'is_allowed': is_allowed,
     }

@@ -51,17 +51,32 @@ def parse_dosage(raw_val):
         return None
 
 def build_specifications(data):
-    """Builds the specification names from the radios + Others text.
-    Falls back to 'Indoor Use' when nothing is selected."""
+    """Radios + Others (multiple) -> unique spec names. Falls back to 'Indoor Use'."""
     specs = []
     if data.get('spec_food_contact') == 'Y':
         specs.append('Food Contact')
     if data.get('spec_outdoor_use') == 'Y':
         specs.append('Outdoor Use')
-    other = (data.get('specificationOther') or '').strip()
-    if other:
-        specs.append(other)
-    return specs or ['Indoor Use']
+    specs.extend(o.strip() for o in data.getlist('specificationOther') if o.strip())
+
+    # De-duplicate (case-insensitive)
+    seen, result = set(), []
+    for s in specs:
+        if s.lower() not in seen:
+            seen.add(s.lower())
+            result.append(s)
+
+    # Indoor Use only makes sense on its own
+    if len(result) > 1:
+        result = [s for s in result if s.lower() != 'indoor use']
+
+    return result or ['Indoor Use']
+
+
+def get_or_create_spec(name):
+    """Reuses the existing spec row (case-insensitive), creates it only if new."""
+    obj = tbl_cmf_specification.objects.filter(name__iexact=name).first()
+    return obj or tbl_cmf_specification.objects.create(name=name)
 
 def _sync_old_master_formula(request, cm_no):
     """Moves matching old master formulas into the MB/DC extruder tables for this CMF.
@@ -166,7 +181,7 @@ def save_cmf_complete_entry(request):
             tbl_resins_selected.objects.create(cm_no=cmf_main, resin_no=resin_ref)
 
         for s_name in new_specs:
-            s_ref, _ = tbl_cmf_specification.objects.get_or_create(name=s_name)
+            s_ref = get_or_create_spec(s_name)
             tbl_cmf_specification02.objects.create(cm_no=cmf_main, spec_no=s_ref)
 
         # --- RESOLVE PRODUCT CODE ---
@@ -455,7 +470,7 @@ def update_cmf_complete_entry(request, original_cmf_no):
 
         tbl_cmf_specification02.objects.filter(cm_no=cmf_main).delete()
         for name in new_specs_list:
-            s_ref, _ = tbl_cmf_specification.objects.get_or_create(name=name)
+            s_ref = get_or_create_spec(name)
             tbl_cmf_specification02.objects.create(cm_no=cmf_main, spec_no=s_ref)
 
         # Update or Create Product Code on Tracking & Feedback
