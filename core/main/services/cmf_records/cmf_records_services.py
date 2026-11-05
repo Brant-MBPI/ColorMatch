@@ -194,7 +194,6 @@ def toggle_final_formula(request, formula_type, formula_id):
     
     return JsonResponse({'success': True, 'is_final': is_final_now})
 
-
 _HEX_RE = re.compile(r'^#?([0-9A-Fa-f]{3}){1,2}$')
 
 
@@ -204,6 +203,7 @@ def normalize_hex(value):
     if not _HEX_RE.match(v):
         return ""
     return v if v.startswith("#") else "#" + v
+
 
 # Formula Records Retrieval for CMF and RS
 # Mapped 1-to-1 with DataTables column indices
@@ -228,15 +228,46 @@ SORTABLE_COLUMNS = {
     8: 'dosage',
 }
 
+# --- Cache settings ---
+NEW_TTL = 300      # MB/DC records: 5 min (also cleared on save, see clear_formula_records_cache)
+OLD_TTL = 3600     # legacy records: 1 hour (also cleared on legacy sync)
+KEY_NEW = 'formula_records_new'
+KEY_NEW_DELETED = 'formula_records_new_deleted'
+KEY_OLD = 'formula_records_old'
 
-def get_all_formula_records(only_deleted=False):
+
+def clear_formula_records_cache(include_old=False):
+    """Call after anything that changes what the Formula Records table shows."""
+    cache.delete_many([KEY_NEW, KEY_NEW_DELETED])
+    if include_old:
+        cache.delete(KEY_OLD)
+
+
+def _resolve_color(f, cm_obj):
+    """Color Resolution: formula customer_color -> CMF color_desc -> '---'."""
+    if f.customer_color and f.customer_color.strip():
+        return f.customer_color.strip().upper()
+    if cm_obj and cm_obj.color_desc and cm_obj.color_desc.strip():
+        return cm_obj.color_desc.strip().upper()
+    return "---"
+
+
+def _with_display(records):
+    """Adds date_display once, before caching (instead of on every request)."""
+    for item in records:
+        item['date_display'] = item['date'].strftime('%m/%d/%Y') if item['date'] else "---"
+    return records
+
+
+def _build_new_records(only_deleted=False):
+    """MB + DC formulas (the slow DB part, so the result gets cached)."""
     # 1. Preload customer and dosage from tbl_cmf_formula in 1 query for instant O(1) lookup
     formula_map = {}
     for f in tbl_cmf_formula.objects.all().only('cm_no', 'customer', 'dosage'):
         if f.cm_no_id:
             formula_map[str(f.cm_no_id)] = f
 
-    # --- ADDED: Preload standalone formulas for N/A records ---
+    # Preload standalone formulas for N/A records
     mb_standalone_map = {sa.mb_no_id: sa for sa in tbl_standalone_formula.objects.filter(mb_no__isnull=False)}
     dc_standalone_map = {sa.dc_no_id: sa for sa in tbl_standalone_formula.objects.filter(dc_no__isnull=False)}
 
@@ -246,7 +277,7 @@ def get_all_formula_records(only_deleted=False):
         mb_deleted_map = {d.mb_no_id: (d.reason or "") for d in tbl_cmf_is_deleted.objects.filter(mb_no__isnull=False)}
         dc_deleted_map = {d.dc_no_id: (d.reason or "") for d in tbl_cmf_is_deleted.objects.filter(dc_no__isnull=False)}
 
-    # select_related pulls the colors in the same query (no extra query per row)
+    # select_related pulls the related rows in the same query (no extra query per row)
     # Normal view: only formulas that are NOT deleted. Deleted view: only the deleted ones.
     mb_qs = tbl_mb_extruder_formula.objects.filter(
         tbl_cmf_is_deleted__isnull=not only_deleted
@@ -255,30 +286,13 @@ def get_all_formula_records(only_deleted=False):
         tbl_cmf_is_deleted__isnull=not only_deleted
     ).select_related('code', 'cm_no', 'cm_no__in_code_no')
 
-    combined_results = []
+    results = []
 
     # MB Formulas
     for f in mb_qs:
         cm_obj = f.cm_no
         cmf_no = cm_obj.cm_no if cm_obj else "N/A"
-        # color = cm_obj.color_desc if (cm_obj and cm_obj.color_desc) else "---" COLOR DESC
-        # Show the internal color saved on THIS formula, not the CMF's color.
-        # Fall back to the CMF's primary color if the formula has none, then to "---".
-        
-        # if f.internal_color and f.internal_color.color:
-        #     color = f.internal_color.color
-        # elif cm_obj and cm_obj.in_code_no and cm_obj.in_code_no.color:
-        #     color = cm_obj.in_code_no.color
-        # else:
-        #     color = "---"
-
-        # Color Resolution: formula customer_color -> CMF color_desc -> "---"
-        if f.customer_color and f.customer_color.strip():
-            color = f.customer_color.strip().upper()
-        elif cm_obj and cm_obj.color_desc and cm_obj.color_desc.strip():
-            color = cm_obj.color_desc.strip().upper()
-        else:
-            color = "---"
+        color = _resolve_color(f, cm_obj)
 
         if cm_obj:
             f_info = formula_map.get(str(cm_obj.cm_no))
@@ -288,10 +302,10 @@ def get_all_formula_records(only_deleted=False):
             sa_info = mb_standalone_map.get(f.mb_no)
             customer = sa_info.customer.upper() if (sa_info and sa_info.customer) else "N/A"
             raw_dosage = sa_info.dosage if sa_info else None
-        
+
         dosage_display = f"{float(raw_dosage):g}%" if raw_dosage is not None else "---"
 
-        combined_results.append({
+        results.append({
             "id": f.mb_no,
             "type": "MB",
             "date": f.date,
@@ -315,21 +329,7 @@ def get_all_formula_records(only_deleted=False):
     for f in dc_qs:
         cm_obj = f.cm_no
         cmf_no = cm_obj.cm_no if cm_obj else "N/A"
-        
-        # if f.internal_color and f.internal_color.color:
-        #     color = f.internal_color.color
-        # elif cm_obj and cm_obj.in_code_no and cm_obj.in_code_no.color:
-        #     color = cm_obj.in_code_no.color
-        # else:
-        #     color = "---"
-
-        # Color Resolution: formula customer_color -> CMF color_desc -> "---"
-        if f.customer_color and f.customer_color.strip():
-            color = f.customer_color.strip().upper()
-        elif cm_obj and cm_obj.color_desc and cm_obj.color_desc.strip():
-            color = cm_obj.color_desc.strip().upper()
-        else:
-            color = "---"
+        color = _resolve_color(f, cm_obj)
 
         if cm_obj:
             f_info = formula_map.get(str(cm_obj.cm_no))
@@ -342,7 +342,7 @@ def get_all_formula_records(only_deleted=False):
 
         dosage_display = f"{float(raw_dosage):g}%" if raw_dosage is not None else "NA"
 
-        combined_results.append({
+        results.append({
             "id": f.dc_no,
             "type": "DC",
             "date": f.date,
@@ -355,20 +355,24 @@ def get_all_formula_records(only_deleted=False):
             "color": color,
             "dosage": float(raw_dosage) if raw_dosage is not None else None,
             "dosage_display": dosage_display,
-            "html": (f.html or "").strip(),   # empty = no swatch ("N/A" is shown in the table)
+            "html": (f.html or "").strip(),
             "is_final": bool(getattr(f, 'is_final', False)),
-            "in_production": bool(getattr(f, 'in_production_formula', False)),   # red dot in the table
-            "is_deleted": only_deleted,   # light red row in the table
+            "in_production": bool(getattr(f, 'in_production_formula', False)),
+            "is_deleted": only_deleted,
             "delete_reason": dc_deleted_map.get(f.dc_no, ""),
         })
 
-    # OLD Formulas (view combining tbl_master_formula + tbl_formula01)
-    # type encodes the source so ids never collide between the two old tables:
-    #   OLD_MF = tbl_master_formula, OLD_F = tbl_formula01
-    # Old records without a colormatch_date are left out (they mess up the date sorting)
-    # Old records can't be deleted, so they are left out of the deleted view
-    old_records = [] if only_deleted else old_formula01.objects.filter(colormatch_date__isnull=False).iterator()
-    for o in old_records:
+    return results
+
+
+def _build_old_records():
+    """OLD formulas (view combining tbl_master_formula + tbl_formula01).
+    type encodes the source so ids never collide between the two old tables:
+      OLD_MF = tbl_master_formula, OLD_F = tbl_formula01
+    Old records without a colormatch_date are left out (they mess up the date sorting).
+    """
+    results = []
+    for o in old_formula01.objects.filter(colormatch_date__isnull=False).iterator():
         cm = (o.cm_no or "").strip()
         # No CM number, or only dashes ("-", "--", ...) -> default "N/A"
         if not cm or not cm.strip("-–—"):
@@ -376,7 +380,7 @@ def get_all_formula_records(only_deleted=False):
         raw_ld = o.ld   # dosage for old records is the LD
         color = (o.prod_color or "").strip().upper() or "---"
 
-        combined_results.append({
+        results.append({
             "id": o.form_id,
             "type": "OLD_MF" if o.source == "master_formula" else "OLD_F",
             "source": o.source,
@@ -390,14 +394,33 @@ def get_all_formula_records(only_deleted=False):
             "color": color,
             "dosage": float(raw_ld) if raw_ld is not None else None,
             "dosage_display": f"{float(raw_ld):g}%" if raw_ld is not None else "---",
-            "html": normalize_hex(o.html_code_hex),   # '#' added if missing; empty = no swatch ("N/A" is shown in the table)
+            "html": normalize_hex(o.html_code_hex),   # '#' added if missing; empty = no swatch
             "is_final": False,
             "in_production": o.source == "formula",   # every record from tbl_formula01 counts as in production
             "is_deleted": False,
             "delete_reason": "",
         })
+    return results
 
-    return combined_results
+
+def get_all_formula_records(only_deleted=False):
+    """Cached: MB/DC for NEW_TTL, legacy records for OLD_TTL."""
+    new_key = KEY_NEW_DELETED if only_deleted else KEY_NEW
+    new_records = cache.get(new_key)
+    if new_records is None:
+        new_records = _with_display(_build_new_records(only_deleted))
+        cache.set(new_key, new_records, NEW_TTL)
+
+    # Old records can't be deleted, so they are left out of the deleted view
+    if only_deleted:
+        return list(new_records)
+
+    old_records = cache.get(KEY_OLD)
+    if old_records is None:
+        old_records = _with_display(_build_old_records())
+        cache.set(KEY_OLD, old_records, OLD_TTL)
+
+    return new_records + old_records   # a new list, so the cached lists are never mutated
 
 
 def formula_records_data(request):
@@ -420,9 +443,6 @@ def formula_records_data(request):
         all_records = [item for item in all_records if item.get('type') in ('MB', 'DC', 'OLD_MF')]
     total_unfiltered = len(all_records)
 
-    for item in all_records:
-        item['date_display'] = item['date'].strftime('%m/%d/%Y') if item['date'] else "---"
-
     # --- Per-column search ---
     active_column_filters = {}
     for idx, field in SEARCHABLE_COLUMNS.items():
@@ -442,7 +462,7 @@ def formula_records_data(request):
             if any(query in str(item.get(field, '')).lower() for field in SEARCHABLE_COLUMNS.values())
         ]
     else:
-        filtered = all_records
+        filtered = list(all_records)   # copy, so the sort below never touches the cached list
 
     # --- Sorting: read DataTables' order[0][column] / order[0][dir] ---
     order_col_index = request.GET.get('order[0][column]')
@@ -456,7 +476,7 @@ def formula_records_data(request):
             sort_field = None
 
     if sort_field:
-        # ✅ TYPE-SAFE COMPARATOR (Never mixes floats, dates, or strings)
+        # TYPE-SAFE COMPARATOR (never mixes floats, dates, or strings)
         def get_sort_key(item):
             val = item.get(sort_field)
 
@@ -497,7 +517,7 @@ def formula_records_data(request):
 
 def get_formula_materials(request, formula_type, formula_id):
     """
-    Fetches ingredients for the breakdown panel. 
+    Fetches ingredients for the breakdown panel.
     For DC, it pulls the latest trial (highest version_no).
     For OLD_MF / OLD_F, it reads old_formula02 (master formula info / formula02).
     """
@@ -526,7 +546,7 @@ def get_formula_materials(request, formula_type, formula_id):
             .filter(mb_id=formula_id)
             .values('material', 'value', 'weight')
         )
-    
+
     else:
         # DC LOGIC: Find latest trial/version
         # 1. Identify the highest version number for this DC formula
@@ -537,7 +557,7 @@ def get_formula_materials(request, formula_type, formula_id):
         if max_v is not None:
             # 2. Pull materials and values for that latest version
             version_data = tbl_dc_extruder_version.objects.filter(
-                material__dc_id=formula_id, 
+                material__dc_id=formula_id,
                 version_no=max_v
             ).select_related('material').order_by('id')
 
@@ -550,7 +570,6 @@ def get_formula_materials(request, formula_type, formula_id):
                 })
 
     return JsonResponse({'materials': results})
-
 
 #
 # new cmf records

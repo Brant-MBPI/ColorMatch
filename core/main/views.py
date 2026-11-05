@@ -193,6 +193,7 @@ def cmf_entry(request):
                 saved_record = cmf_entry_save.update_cmf_complete_entry(request, original_cmf_no)
                 messages.success(request, f"Successfully updated CMF No. {saved_record.cm_no}")
                 cache.delete('cmf_records_list')
+                cmf_records_services.clear_formula_records_cache(include_old=True)
                 # CMF may have been renamed, so sync with the saved (new) number
                 cmf_entry_save._sync_old_master_formula(request, saved_record.cm_no)
                 return redirect('cmf_records')
@@ -200,6 +201,7 @@ def cmf_entry(request):
                 saved_record = cmf_entry_save.save_cmf_complete_entry(request)
                 messages.success(request, f"Successfully saved CMF No. {saved_record.cm_no}")
                 cache.delete('cmf_records_list')
+                cmf_records_services.clear_formula_records_cache(include_old=True)
                 cmf_entry_save._sync_old_master_formula(request, saved_record.cm_no)
                 return redirect('cmf_entry')
             
@@ -554,6 +556,7 @@ def cmf_mb_formula(request):
             parent_display = saved_record.cm_no.cm_no if saved_record.cm_no else f"MB #{saved_record.mb_no}"
             messages.success(request, f"Successfully saved MB Formula for {parent_display}")
             cache.delete('cmf_records_list')
+            cmf_records_services.clear_formula_records_cache()
             return redirect('mb_formula')
         except Exception as e:
             messages.error(request, f"Error saving formula: {str(e)}")
@@ -814,6 +817,7 @@ def cmf_dc_formula(request):
             parent_display = saved_record.cm_no.cm_no if saved_record.cm_no else f"DC #{saved_record.dc_no}"
             messages.success(request, f"Successfully saved DC Formula for {parent_display}")
             cache.delete('cmf_records_list')
+            cmf_records_services.clear_formula_records_cache()
             return redirect('dc_formula')
         except Exception as e:
             messages.error(request, f"Error saving formula: {str(e)}")
@@ -1456,6 +1460,7 @@ def trigger_legacy_sync(request):
         if sync_type:
             # Equivalent to: python manage.py sync_dbf --only <sync_type>
             call_command('sync_dbf', only=sync_type)
+            
         else:
             # Equivalent to: python manage.py sync_dbf
             call_command('sync_dbf')
