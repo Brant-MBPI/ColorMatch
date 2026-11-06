@@ -1340,7 +1340,7 @@ def admin_password_requests(request):
         if action == 'approve':
             success, message = settings_services.approve_request(request_id, request.user, request)
         elif action == 'reject':
-            success, message = settings_services.reject_request(request_id, request.user)
+            success, message = settings_services.reject_request(request_id, request.user, request)
         else:
             success, message = False, "Unknown action."
 
@@ -1373,6 +1373,7 @@ def manage_color_codes(request):
         elif action == 'delete':
             code_id = request.POST.get('code_id')
             success, message = color_code_services.soft_delete_color_code(request, code_id)
+        
         else:
             success, message = False, "Invalid action."
 
