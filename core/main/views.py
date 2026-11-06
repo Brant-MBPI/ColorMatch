@@ -204,7 +204,7 @@ def cmf_entry(request):
                 cmf_records_services.clear_formula_records_cache(include_old=True)
                 cmf_entry_save._sync_old_master_formula(request, saved_record.cm_no)
                 return redirect('cmf_entry')
-            
+
         except Exception as e:
             messages.error(request, str(e))
             form_data = request.POST
@@ -212,6 +212,7 @@ def cmf_entry(request):
     else:
         cm_no = request.GET.get('no')
         cm_no_override = request.GET.get('new_no')
+        is_autofill = bool(cm_no_override)   # auto-fill from a previous CMF (e.g. A1234a -> A1234b)
 
         # 1. Capture query parameters from auto-fill redirect
         url_is_for_rs = request.GET.get('is_for_rs') == '1'
@@ -242,7 +243,7 @@ def cmf_entry(request):
 
                 # --- CHECK IF COMPLETED & GET AR_NO ---
                 pending_obj = None
-                if not cm_no_override:
+                if not is_autofill:
                     pending_obj = tbl_cmf_pending_completed.objects.filter(cm_no=cmf).select_related('code').first()
                     if pending_obj and pending_obj.is_completed:
                         ar_no = pending_obj.ar_no or ""
@@ -252,9 +253,9 @@ def cmf_entry(request):
                     final_prod_code = pending_obj.code.product_code
 
                 # Base product code resolution
-                resolved_prod_code = selected_code_display if selected_code_display else ("" if cm_no_override else final_prod_code)
+                resolved_prod_code = selected_code_display if selected_code_display else ("" if is_autofill else final_prod_code)
 
-                # 🛑 NEW FALLBACK LOGIC:
+                # 🛑 FALLBACK LOGIC:
                 # If product code is None/empty AND AR No is None/empty:
                 # Check tbl_submitted_selected for any custom value (not Sample, Chips, or Price)
                 if not resolved_prod_code and not ar_no and pending_obj:
@@ -304,26 +305,27 @@ def cmf_entry(request):
                         selected_specs.append(STANDARD_SPECS[s_clean.lower()])
                     else:
                         other_specs.append(s_clean)
-                
+
                 form_data = {
-                    'is_new': '1' if cm_no_override else '0',
-                    'cmf_no': cm_no_override if cm_no_override else cmf.cm_no,
+                    'is_new': '1' if is_autofill else '0',
+                    'cmf_no': cm_no_override if is_autofill else cmf.cm_no,
                     # 2. Keep "For RS" toggled ON
                     'is_for_rs': url_is_for_rs,
                     'has_formula': has_formula,
                     'customer': formula_info.customer if formula_info else "",
 
+                    # Dates: left blank on auto-fill so the encoder enters the new ones.
                     # DateField — needs strftime
-                    'date_created': dates.form_made.strftime('%m/%d/%Y') if dates and dates.form_made else "",
-                    'due_date': dates.due_date_lab.strftime('%m/%d/%Y') if dates and dates.due_date_lab else "",
+                    'date_created': "" if is_autofill else (dates.form_made.strftime('%m/%d/%Y') if dates and dates.form_made else ""),
+                    'due_date': "" if is_autofill else (dates.due_date_lab.strftime('%m/%d/%Y') if dates and dates.due_date_lab else ""),
 
                     # CharField — stored exactly as Flatpickr formatted it, pass through as-is
                     # (could be "ASAP" for required_date, or "MM/DD/YYYY, MM/DD/YYYY" for date_received)
-                    'required_date': dates.date_required if dates else "",
-                    'date_received': dates.date_received_lab if dates else "",
-                    'submit_to_lab': dates.submit_to_lab if dates else "",
+                    'required_date': "" if is_autofill else (dates.date_required if dates else ""),
+                    'date_received': "" if is_autofill else (dates.date_received_lab if dates else ""),
+                    'submit_to_lab': "" if is_autofill else (dates.submit_to_lab if dates else ""),
 
-                    'matchType': 'new' if url_is_for_rs else ('rematch' if cm_no_override else cmf.matching_type),
+                    'matchType': 'new' if url_is_for_rs else ('rematch' if is_autofill else cmf.matching_type),
                     'product_status': cmf.product_status,
                     'est_qty_order': cmf.est_qty_order,
                     'salesman': cmf.sm.name if cmf.sm else "",
@@ -341,12 +343,12 @@ def cmf_entry(request):
                     'processing_temp': cmf.temperature,
                     'color_guide_return': 'Y' if cmf.is_guide_to_return else ('N' if cmf.is_guide_to_return is False else ''),
                     'is_low_cost': 'Y' if cmf.is_low_cost else ('N' if cmf.is_low_cost is False else ''),
-                    'remarks': cmf.remarks,
+                    'remarks': "" if is_autofill else cmf.remarks,
                     'product_code': resolved_prod_code,
                     "ar_no": ar_no,
                     'dosage_note': dosage_note_obj.note if dosage_note_obj else "",
                     'resin_note': resin_note_obj.note if resin_note_obj else "",
-                    
+
                     # plain lists — NOT a QueryDict, template must use "in form_data.resin" (not .getlist.resin)
                     'resin': [str(rid) for rid in resin_ids],
                     'process': selected_processes,
@@ -363,14 +365,17 @@ def cmf_entry(request):
     allowed_departments = ['Laboratory', 'Information Technology', 'Sales']
     is_allowed = request.user.role.department in allowed_departments or request.user.is_superuser
 
-    spec_names = list(
-        tbl_cmf_specification.objects
-        .exclude(name__isnull=True).exclude(name__exact='')
-        .values_list('name', flat=True)
-    )
-    
+    # Suggestions for the "Others" dropdown: the standard ones are covered by the radios
+    HIDDEN_SPECS = {'food contact', 'outdoor use', 'indoor use', 'n/a'}
+    spec_names = [
+        n for n in tbl_cmf_specification.objects
+            .exclude(name__isnull=True).exclude(name__exact='')
+            .values_list('name', flat=True)
+        if n.strip().lower() not in HIDDEN_SPECS
+    ]
+
     context = {
-        "customers": cmf_records_services.get_customer_list(), 
+        "customers": cmf_records_services.get_customer_list(),
         "salesman": cmf_records_services.get_salesman_list(),
         "primary_color": cmf_records_services.get_color_list(),
         "resin": cmf_records_services.get_resin_list(),
