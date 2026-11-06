@@ -63,9 +63,14 @@ def save_dc_complete_formula(request):
 
     try:
         with transaction.atomic():
-            # 1. Resolve Color Selection first so it can be bound to product code
-            color_id = post_data.get('color')
-            color_obj = tbl_internal_color_code.objects.filter(pk=color_id).first() if color_id else None
+            # 1. Resolve Color Selection First (accepts an ID or a color name)
+            color_raw = (post_data.get('color') or '').strip()
+            color_obj = None
+            if color_raw:
+                if color_raw.isdigit():
+                    color_obj = tbl_internal_color_code.objects.filter(pk=int(color_raw)).first()
+                else:
+                    color_obj = tbl_internal_color_code.objects.filter(color__iexact=color_raw).first()
 
             # 2. Resolve Product Code and bind internal color code relation
             prod_code_str = post_data.get('product_code', '').strip()
