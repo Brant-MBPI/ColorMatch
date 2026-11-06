@@ -234,6 +234,13 @@ OLD_TTL = 3600     # legacy records: 1 hour (also cleared on legacy sync)
 KEY_NEW = 'formula_records_new'
 KEY_NEW_DELETED = 'formula_records_new_deleted'
 KEY_OLD = 'formula_records_old'
+# Source filter (dropdown on the records page) -> which record types to keep
+#   MB / DC = newly entered formulas, OLD_MF = master formula, OLD_F = old production formula
+SOURCE_FILTER_TYPES = {
+    'master_new': ('MB', 'DC', 'OLD_MF'),
+    'new': ('MB', 'DC'),
+    'master': ('OLD_MF',),
+}
 
 
 def clear_formula_records_cache(include_old=False):
@@ -430,17 +437,21 @@ def formula_records_data(request):
     global_search = request.GET.get('search[value]', '').strip()
     only_final = request.GET.get('only_final') == '1'
     only_production = request.GET.get('only_production') == '1'
-    only_master_new = request.GET.get('only_master_new') == '1'
+    source_filter = request.GET.get('source_filter', '').strip()
     only_deleted = request.GET.get('only_deleted') == '1'
 
+     # Refresh button: clear the cache so the data is rebuilt fresh from the database
+    if request.GET.get('refresh') == '1':
+        clear_formula_records_cache(include_old=True)
+        
     all_records = get_all_formula_records(only_deleted=only_deleted)
     if only_final:
         all_records = [item for item in all_records if item.get('is_final')]
     if only_production:
         all_records = [item for item in all_records if item.get('in_production')]
-    if only_master_new:
-        # Master formula (OLD_MF) + newly entered MB / DC records; hides the old production "formula" (OLD_F) records
-        all_records = [item for item in all_records if item.get('type') in ('MB', 'DC', 'OLD_MF')]
+    allowed_types = SOURCE_FILTER_TYPES.get(source_filter)
+    if allowed_types:
+        all_records = [item for item in all_records if item.get('type') in allowed_types]
     total_unfiltered = len(all_records)
 
     # --- Per-column search ---

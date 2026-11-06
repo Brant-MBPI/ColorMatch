@@ -27,9 +27,9 @@ Formula Records
             </div>
         </div>
 
-        <div class="col-auto" style="width: 340px;">
+        <div class="col-auto" style="width: 360px;">
             <div class="input-group input-group-sm shadow-sm">
-                <select id="searchColumnFilter" class="form-select form-select-sm uniform-input" style="max-width: 120px;">
+                <select id="searchColumnFilter" class="form-select form-select-sm uniform-input" style="max-width: 145px;">
                     <option value="-1" selected>All Columns</option>
                     <option value="2">Date</option>
                     <option value="3">CMF No</option>
@@ -48,9 +48,18 @@ Formula Records
             <button class="btn btn-sm btn-outline-teal px-3 text-nowrap" id="btnToggleSelection">
                 <i class="bi bi-list-check"></i> Multi-Select
             </button>
-            <button class="btn btn-sm btn-outline-teal px-3 text-nowrap" id="btnToggleMaster" title="Show only Master Formula + newly entered formulas">
-                <i class="bi bi-funnel"></i> Master & New
-            </button>
+            <div class="dropdown">
+                <button class="btn btn-sm btn-outline-teal px-3 text-nowrap dropdown-toggle" type="button"
+                        id="btnSourceFilter" data-bs-toggle="dropdown" aria-expanded="false" style="min-width: 150px;">
+                    <i class="bi bi-funnel"></i> <span id="sourceFilterLabel">All Formulas</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end source-filter-menu">
+                    <li><a class="dropdown-item source-filter-item active" href="#" data-value="">All Formulas</a></li>
+                    <li><a class="dropdown-item source-filter-item" href="#" data-value="master_new">Master + New</a></li>
+                    <li><a class="dropdown-item source-filter-item" href="#" data-value="new">New only</a></li>
+                    <li><a class="dropdown-item source-filter-item" href="#" data-value="master">Master only</a></li>
+                </ul>
+            </div>
             <button class="btn btn-sm btn-outline-danger px-3" id="btnToggleDeleted" title="Show only deleted formulas">
                 <i class="bi bi-trash"></i>
             </button>
@@ -106,7 +115,7 @@ Formula Records
                 </div>
                 <div class="flex-grow-1 overflow-auto">
                     <table class="table table-sm align-middle mb-0">
-                        <thead class="bg-white sticky-top shadow-sm">
+                        <thead class="bg-white shadow-sm">
                             <tr class="extra-small">
                                 <th class="ps-2">Material</th>
                                 <th class="text-end pe-2">Value</th>
@@ -157,8 +166,9 @@ $(document).ready(function() {
     let selectedIds = new Set();
     let onlyFinalFilter = false;
     let onlyProductionFilter = false;
-    let onlyMasterNewFilter = false;
+    let sourceFilter = '';
     let onlyDeletedFilter = false;
+    let forceRefresh = false;
 
     const CHECKBOX_COL_INDEX = 0;
 
@@ -172,8 +182,12 @@ $(document).ready(function() {
                 d.length = $('#tableLength').val();
                 d.only_final = onlyFinalFilter ? 1 : 0;
                 d.only_production = onlyProductionFilter ? 1 : 0;
-                d.only_master_new = onlyMasterNewFilter ? 1 : 0;
+                d.source_filter = sourceFilter;
                 d.only_deleted = onlyDeletedFilter ? 1 : 0;
+                if (forceRefresh) {
+                    d.refresh = 1;
+                    forceRefresh = false;   // only for this one request
+                }
             }
         },
         columns: [
@@ -416,13 +430,14 @@ $(document).ready(function() {
         table.ajax.reload();
     });
 
-    $('#btnToggleMaster').on('click', function() {
-        onlyMasterNewFilter = !onlyMasterNewFilter;
-        $(this).toggleClass('active', onlyMasterNewFilter);
+    $('.source-filter-item').on('click', function(e) {
+        e.preventDefault();
+        sourceFilter = $(this).data('value') || '';
 
-        if (typeof Preline !== 'undefined' && typeof Preline.toast === 'function') {
-            Preline.toast(onlyMasterNewFilter ? 'Showing Master Formula + new formulas only' : 'Showing all formulas', 'info');
-        }
+        $('.source-filter-item').removeClass('active');
+        $(this).addClass('active');
+        $('#sourceFilterLabel').text($(this).text().trim());
+        $('#btnSourceFilter').toggleClass('active', sourceFilter !== '');
 
         // Reload table data from server
         table.ajax.reload();
@@ -537,8 +552,11 @@ $(document).ready(function() {
             allowInput: true
         });
     }
-
-    $('#btnRefreshTable').on('click', () => table.ajax.reload());
+    
+    $('#btnRefreshTable').on('click', function() {
+        forceRefresh = true;
+        table.ajax.reload();
+    });
 
     // --- PRICE FIRST MODAL TRIGGER ---
     $('#btnPriceFirst').on('click', function() {

@@ -86,3 +86,32 @@ body.dark-mode #formulaRecordsTable tbody td.text-teal,
 .dark-mode #formulaRecordsTable tbody td.text-teal {
     color: #2dd4bf !important; /* Bright teal (or #38b2ac / #00c896) */
 }
+
+/* Source filter dropdown */
+.source-filter-menu {
+    --src-teal: #0f766e;          /* change to your theme's teal */
+    --src-teal-soft: #e6f4f1;     /* light teal for hover */
+    z-index: 2000;                /* above the sticky table headers (1020) */
+    min-width: 170px;
+    padding: 4px;
+    border: 1px solid #dbe3ea;
+    border-radius: 8px;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
+}
+.source-filter-menu .dropdown-item {
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #334155;
+}
+.source-filter-menu .dropdown-item:hover,
+.source-filter-menu .dropdown-item:focus {
+    background-color: var(--src-teal-soft);
+    color: var(--src-teal);
+}
+.source-filter-menu .dropdown-item.active,
+.source-filter-menu .dropdown-item:active {
+    background-color: var(--src-teal);
+    color: #fff;
+}
