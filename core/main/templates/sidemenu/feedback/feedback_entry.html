@@ -1,8 +1,11 @@
 <div class="feedback-entry-form-container">
-    <form id="feedbackEntryForm" method="POST">
+    <form id="feedbackEntryForm" method="POST"
+          data-rs-count="{{ form_data.pending_rs|length }}"
+          data-rs-list="{{ form_data.pending_rs|join:', ' }}">
         {% csrf_token %}
         <input type="hidden" name="feedback_no" value="{{ form_data.feedback_no|default:'' }}">
         <input type="hidden" name="record_type" value="{{ form_data.record_type|default:'cmf' }}">
+        <input type="hidden" name="update_rs" id="id_update_rs" value="0">
         
         <div class="row g-3">
             <!-- ==================== LEFT COLUMN: READONLY / REFERENCE INFO ==================== -->
@@ -352,6 +355,25 @@
             </button>
         </div>
     </form>
+    <!-- Apply to RS question: Yes (left, no background) / No (right, red) -->
+    <div class="modal fade" id="applyRsModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
+            <div class="modal-content">
+                <div class="modal-body px-4 pt-4 pb-2">
+                    <div class="rs-icon"><i class="bi bi-question-lg"></i></div>
+                    <div class="rs-title">Update related RS?</div>
+                    <p class="rs-text">
+                        Do you also want to apply this feedback to the RS under the same CMF that have no feedback status yet?
+                    </p>
+                    <div id="applyRsList" class="rs-list"></div>
+                    <div class="d-flex gap-3">
+                        <button type="button" class="btn rs-btn rs-btn-yes" id="btnApplyRsYes">Yes</button>
+                        <button type="button" class="btn rs-btn rs-btn-no" id="btnApplyRsNo">No</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Dynamic Visibility Script for Submitted options & Feedback Status -->

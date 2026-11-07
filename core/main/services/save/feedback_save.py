@@ -1,5 +1,5 @@
 from datetime import date, datetime
-
+from django.db.models.functions import Lower
 from django.core.cache import cache
 from django.db import transaction
 from django.http import JsonResponse
@@ -217,6 +217,11 @@ def get_feedback_form_data(feedback_no):
         'storage_details': fb.storage_details or '',
     }
 
+    # RS records under the same CMF that have no feedback status yet (used by the Save question)
+    form_data['pending_rs'] = [
+        (r.rs_no.rs_no or f"RS #{r.rs_no_id}") for r in _get_pending_rs_feedback(cmf, exclude_pk=fb.pk)
+    ] if (cmf and not is_rs) else []
+
     # 6. Compute the allowed status choices for this record
     form_data['status_choices'] = get_feedback_status_choices(selected_names)
 
@@ -417,6 +422,52 @@ def get_feedback_records_data(request):
         "data": data,
     })
 
+# Statuses that mean "no feedback yet" (the default is 'waiting for result')
+NO_FEEDBACK_STATUSES = ['pending', 'waiting for result']
+
+
+def _get_pending_rs_feedback(cmf, exclude_pk=None):
+    """RS feedback rows linked to this CMF that have no feedback status yet."""
+    qs = (
+        tbl_feedback_details.objects
+        .filter(rs_no__cm_no=cmf)
+        .annotate(status_lc=Lower('status'))
+        .filter(Q(status__isnull=True) | Q(status='') | Q(status_lc__in=NO_FEEDBACK_STATUSES))
+        .select_related('rs_no')
+        .order_by('rs_no__rs_no')
+    )
+    if exclude_pk:
+        qs = qs.exclude(pk=exclude_pk)
+    return list(qs)
+
+def _apply_to_rs_feedback(source_fb):
+    """
+    Copies the saved CMF feedback to the RS records under the same CMF that have no status yet.
+    An RS is skipped when the status isn't allowed for its own submitted items (Sample / Chips / Price).
+    Returns (updated_rs_numbers, skipped_rs_numbers).
+    """
+    updated, skipped = [], []
+    for rs_fb in _get_pending_rs_feedback(source_fb.cm_no, exclude_pk=source_fb.pk):
+        label = rs_fb.rs_no.rs_no or f"RS #{rs_fb.rs_no_id}"
+
+        tracking = tbl_cmf_pending_completed.objects.filter(rs_no=rs_fb.rs_no).first()
+        allowed = get_feedback_status_choices(_get_selected_option_names(tracking))
+        if source_fb.status not in allowed:
+            skipped.append(label)
+            continue
+
+        rs_fb.status = source_fb.status
+        rs_fb.abandoned_reason = source_fb.abandoned_reason
+        rs_fb.order_form_no = source_fb.order_form_no
+        rs_fb.date_sample_received = source_fb.date_sample_received
+        rs_fb.comment = source_fb.comment
+        rs_fb.storage_details = source_fb.storage_details
+        rs_fb.submitted_by_id = source_fb.submitted_by_id
+        rs_fb.save()
+        updated.append(label)
+
+    return updated, skipped
+
 def save_feedback_entry(request, feedback_no):
     try:
         with transaction.atomic():
@@ -512,9 +563,34 @@ def save_feedback_entry(request, feedback_no):
                 cache.delete(CACHE_KEY)
                 log_msg = f"Feedback for {parent_no}. Changes: {', '.join(diff_logs)}"
                 log_audit(request, "Updated", log_msg)
-                return True, f"Feedback for {parent_no} successfully updated."
+
+            # --- RS: also apply to the RS records under the same CMF that have no status yet ---
+            rs_updated, rs_skipped = [], []
+            apply_to_rs = (
+                data.get('update_rs') == '1'
+                and fb_instance.cm_no_id is not None
+                and status_clean not in ('', 'pending')
+            )
+            if apply_to_rs:
+                rs_updated, rs_skipped = _apply_to_rs_feedback(fb_instance)
+                if rs_updated:
+                    cache.delete(CACHE_KEY)
+                    log_audit(
+                        request, "Updated",
+                        f"Feedback of CMF {parent_no} also applied to RS: {', '.join(rs_updated)} "
+                        f"(Status: {fb_instance.status})"
+                    )
+
+            # --- Result message ---
+            if not diff_logs and not rs_updated:
+                msg = "No changes were made to the feedback."
             else:
-                return True, "No changes were made to the feedback."
+                msg = f"Feedback for {parent_no} successfully updated."
+                if rs_updated:
+                    msg += f" Also applied to RS: {', '.join(rs_updated)}."
+            if rs_skipped:
+                msg += f" Skipped (status not allowed for their submitted items): {', '.join(rs_skipped)}."
+            return True, msg
 
     except Exception as e:
         return False, f"Error updating feedback: {str(e)}"
