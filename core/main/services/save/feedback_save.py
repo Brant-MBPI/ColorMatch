@@ -97,37 +97,46 @@ def _get_selected_option_names(tracking):
 
 def get_feedback_form_data(feedback_no):
     """
-    Fetches a single feedback record strictly for CMF with all related context,
-    submitted options, and tracking details. Returns {} if not found or if not a CMF.
+    Fetches a single feedback record (CMF or RS) with all related context,
+    submitted options, and tracking details. Returns {} if not found.
     """
     form_data = {}
-    
-    # Strictly fetch CMF feedback records
+
     fb = (
         tbl_feedback_details.objects
-        .select_related('cm_no', 'cm_no__sm')
-        .filter(feedback_no=feedback_no, cm_no__isnull=False)
+        .select_related('cm_no', 'cm_no__sm', 'rs_no', 'rs_no__sm_no', 'rs_no__cm_no')
+        .filter(feedback_no=feedback_no)
+        .filter(Q(cm_no__isnull=False) | Q(rs_no__isnull=False))
         .first()
     )
-    if not fb or not fb.cm_no:
+    if not fb:
         return form_data
 
     cmf = fb.cm_no
+    rs = fb.rs_no if not cmf else None
+    is_rs = rs is not None
 
-    # 1. Fetch related CMF records
-    tracking = (
-        tbl_cmf_pending_completed.objects
-        .filter(cm_no=cmf)
-        .select_related('code')
-        .first()
-    )
-    formula = tbl_cmf_formula.objects.filter(cm_no=cmf).first()
-    dates = tbl_cmf_dates.objects.filter(cm_no=cmf).first()
+    # The CMF used for formula info / color / final formula (an RS can be linked to a CMF)
+    ref_cmf = cmf or (rs.cm_no if rs else None)
+
+    # 1. Fetch related records (RS has its own tracking and dates rows)
+    if is_rs:
+        tracking = tbl_cmf_pending_completed.objects.filter(rs_no=rs).select_related('code').first()
+        dates = tbl_cmf_dates.objects.filter(rs_no=rs).first()
+        if not dates and ref_cmf:
+            dates = tbl_cmf_dates.objects.filter(cm_no=ref_cmf).first()
+    else:
+        tracking = tbl_cmf_pending_completed.objects.filter(cm_no=cmf).select_related('code').first()
+        dates = tbl_cmf_dates.objects.filter(cm_no=cmf).first()
+
+    formula = tbl_cmf_formula.objects.filter(cm_no=ref_cmf).first() if ref_cmf else None
 
     # 2. Resolve Product Code & Lot Number (same hierarchy as cmf_pending_completed)
-    final_formula = tbl_mb_extruder_formula.objects.filter(cm_no=cmf, is_final=True).select_related('code').first()
-    if not final_formula:
-        final_formula = tbl_dc_extruder_formula.objects.filter(cm_no=cmf, is_final=True).select_related('code').first()
+    final_formula = None
+    if ref_cmf:
+        final_formula = tbl_mb_extruder_formula.objects.filter(cm_no=ref_cmf, is_final=True).select_related('code').first()
+        if not final_formula:
+            final_formula = tbl_dc_extruder_formula.objects.filter(cm_no=ref_cmf, is_final=True).select_related('code').first()
 
     final_prod_code = (
         final_formula.code.product_code if final_formula and final_formula.code else
@@ -150,24 +159,36 @@ def get_feedback_form_data(feedback_no):
         tbl_submitted_selected.objects.filter(completed_id=tracking).values_list('option_id__name', flat=True)
     ) if tracking else []
 
-    # 4. Build complete form_data
+    # 4. Header values: CMF or RS
+    if is_rs:
+        matching_no = rs.rs_no or ''
+        customer = rs.customer or (formula.customer if formula else '')
+        sales_person = rs.sm_no.name if rs.sm_no else ''
+    else:
+        matching_no = cmf.cm_no
+        customer = formula.customer if formula else ''
+        sales_person = cmf.sm.name if cmf.sm else ''
+
+    color_desc = (ref_cmf.color_desc if ref_cmf else '') or ''
+
+    # 5. Build complete form_data
     form_data = {
         'feedback_no': fb.feedback_no,
-        'matching_no': cmf.cm_no,
-        'customer': formula.customer if formula else '',
+        'matching_no': matching_no,
+        'customer': customer,
         'date_created': dates.form_made.strftime('%m/%d/%Y') if dates and dates.form_made else '',
         'required_date': dates.date_required if dates else '',
         'date_received': dates.date_received_lab if dates else '',
         'due_date': dates.due_date_lab.strftime('%m/%d/%Y') if dates and dates.due_date_lab else '',
         'finished_product': formula.finished_product if formula else '',
-        'color_description': cmf.color_desc or '',
-        'sales_person': cmf.sm.name if cmf.sm else '',
+        'color_description': color_desc,
+        'sales_person': sales_person,
         'product_code': final_prod_code,
 
         # Right Column tracking & feedback details
         'current_status': 'Completed' if (tracking and tracking.is_completed) else 'Pending',
         'pending_reason': tracking.reason if tracking else '',
-        'code_description': tracking.code_details if tracking else (cmf.color_desc or ''),
+        'code_description': tracking.code_details if tracking else color_desc,
         'lot_no': selected_lot,
         'quantity_kg': fb.quantity_given if fb.quantity_given is not None else '',
         'set_pc': fb.pieces if fb.pieces is not None else '',
@@ -187,57 +208,104 @@ def get_feedback_form_data(feedback_no):
         'submitted_by_id': fb.submitted_by_id,
 
         # Feedback specific editable fields
-        'record_type': 'cmf',
+        'record_type': 'rs' if is_rs else 'cmf',
         'feedback_status': fb.status or 'Pending',
-        'abandoned_reason': fb.abandoned_reason or '',  # <-- ADDED
-        'order_form_no': fb.order_form_no or '',   
+        'abandoned_reason': fb.abandoned_reason or '',
+        'order_form_no': fb.order_form_no or '',
         'date_sample_received': fb.date_sample_received.strftime('%m/%d/%Y') if fb.date_sample_received else '',
         'comments': fb.comment or '',
         'storage_details': fb.storage_details or '',
     }
 
-    # 5. Compute the allowed status choices for this record
+    # 6. Compute the allowed status choices for this record
     form_data['status_choices'] = get_feedback_status_choices(selected_names)
 
     return form_data
-    
+
+
 def get_feedback_queryset():
     """
-    Base queryset for Feedback Records strictly for CMFs.
-    Pulls technical specs, formulas, schedule dates, and pending/completed details.
+    Base queryset for Feedback Records: CMF records and RS records.
+    Each value is read from the CMF side first, then from the RS side.
+    An RS that is linked to a CMF also uses that CMF for color, finished product and final formula.
     """
+    # Final formula codes: by the feedback's CMF, or by the CMF linked to its RS
     mb_final_code = tbl_mb_extruder_formula.objects.filter(
         cm_no=OuterRef('cm_no'), is_final=True
     ).values('code__product_code')[:1]
-
     dc_final_code = tbl_dc_extruder_formula.objects.filter(
         cm_no=OuterRef('cm_no'), is_final=True
     ).values('code__product_code')[:1]
+    rs_mb_final_code = tbl_mb_extruder_formula.objects.filter(
+        cm_no=OuterRef('rs_no__cm_no'), is_final=True
+    ).values('code__product_code')[:1]
+    rs_dc_final_code = tbl_dc_extruder_formula.objects.filter(
+        cm_no=OuterRef('rs_no__cm_no'), is_final=True
+    ).values('code__product_code')[:1]
 
     cmf_formula = tbl_cmf_formula.objects.filter(cm_no=OuterRef('cm_no'))
+    rs_cmf_formula = tbl_cmf_formula.objects.filter(cm_no=OuterRef('rs_no__cm_no'))
+
     cmf_dates = tbl_cmf_dates.objects.filter(cm_no=OuterRef('cm_no'))
+    rs_dates = tbl_cmf_dates.objects.filter(rs_no=OuterRef('rs_no'))
+
     cmf_pending = tbl_cmf_pending_completed.objects.filter(cm_no=OuterRef('cm_no'))
+    rs_pending = tbl_cmf_pending_completed.objects.filter(rs_no=OuterRef('rs_no'))
 
     return (
-        tbl_feedback_details.objects.filter(cm_no__isnull=False)
-        .select_related('cm_no', 'code')
+        tbl_feedback_details.objects.filter(Q(cm_no__isnull=False) | Q(rs_no__isnull=False))
+        .select_related('cm_no', 'rs_no', 'code')
         .annotate(
-            matching_no=F('cm_no__cm_no'),
-            customer=Subquery(cmf_formula.values('customer')[:1], output_field=CharField()),
-            color_desc=F('cm_no__color_desc'),
-            finished_prod=Subquery(cmf_formula.values('finished_product')[:1], output_field=CharField()),
-            matching_type=F('cm_no__matching_type'),
-            required_date=Subquery(cmf_dates.values('date_required')[:1], output_field=CharField()),
-            due_date=Subquery(cmf_dates.values('due_date_lab')[:1], output_field=DateField()),
-            date_submitted=Subquery(cmf_pending.values('date_submitted')[:1], output_field=DateField()),
-            ar_no=Subquery(cmf_pending.values('ar_no')[:1], output_field=CharField()),
+            matching_no=Coalesce(F('cm_no__cm_no'), F('rs_no__rs_no'), output_field=CharField()),
+            customer=Coalesce(
+                Subquery(cmf_formula.values('customer')[:1], output_field=CharField()),
+                F('rs_no__customer'),
+                output_field=CharField(),
+            ),
+            color_desc=Coalesce(
+                F('cm_no__color_desc'), F('rs_no__cm_no__color_desc'),
+                output_field=CharField(),
+            ),
+            finished_prod=Coalesce(
+                Subquery(cmf_formula.values('finished_product')[:1], output_field=CharField()),
+                Subquery(rs_cmf_formula.values('finished_product')[:1], output_field=CharField()),
+                output_field=CharField(),
+            ),
+            # RS records show "RS" in the Type column
+            matching_type=Coalesce(F('cm_no__matching_type'), Value('RS'), output_field=CharField()),
+            required_date=Coalesce(
+                Subquery(cmf_dates.values('date_required')[:1], output_field=CharField()),
+                Subquery(rs_dates.values('date_required')[:1], output_field=CharField()),
+                output_field=CharField(),
+            ),
+            due_date=Coalesce(
+                Subquery(cmf_dates.values('due_date_lab')[:1], output_field=DateField()),
+                Subquery(rs_dates.values('due_date_lab')[:1], output_field=DateField()),
+                output_field=DateField(),
+            ),
+            date_submitted=Coalesce(
+                Subquery(cmf_pending.values('date_submitted')[:1], output_field=DateField()),
+                Subquery(rs_pending.values('date_submitted')[:1], output_field=DateField()),
+                output_field=DateField(),
+            ),
+            ar_no=Coalesce(
+                Subquery(cmf_pending.values('ar_no')[:1], output_field=CharField()),
+                Subquery(rs_pending.values('ar_no')[:1], output_field=CharField()),
+                output_field=CharField(),
+            ),
             prod_code=Coalesce(
                 Subquery(mb_final_code, output_field=CharField()),
                 Subquery(dc_final_code, output_field=CharField()),
+                Subquery(rs_mb_final_code, output_field=CharField()),
+                Subquery(rs_dc_final_code, output_field=CharField()),
                 'code__product_code',
                 output_field=CharField(),
             ),
-            mode=Value('cmf', output_field=CharField()),
+            mode=Case(
+                When(cm_no__isnull=False, then=Value('cmf')),
+                default=Value('rs'),
+                output_field=CharField(),
+            ),
         )
     )
 

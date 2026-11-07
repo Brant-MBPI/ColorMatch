@@ -17,7 +17,14 @@ jQuery(document).ready(function($) {
             {
                 data: "matching_no",
                 className: "ps-3 fw-bold",
-                render: function(data) {
+                render: function(data, type, row) {
+                    if (type !== 'display') return data;
+
+                    if (row.mode === 'rs') {
+                        // RS entries: purple, with a matching badge
+                        return `<span style="color: #7c3aed;">${data}</span>
+                                <span class="badge ms-1" style="font-size: 0.6rem; background-color: #ede9fe; color: #7c3aed; border: 1px solid #c4b5fd;">RS</span>`;
+                    }
                     return `<span class="text-teal">${data}</span>`;
                 }
             },
