@@ -51,6 +51,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    
 ]
 
 STATIC_URL = '/static/'
@@ -88,6 +89,8 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'main.context_processors.sidebar_permissions',
+                "main.context_processors.app_version"
             ],
         },
     },
@@ -106,7 +109,8 @@ DBF_PATHS = {
     'production_items': 'tbl_prod02.dbf',
     'rm_wh': 'tbl_rm_wh.dbf',
     'rm_incoming': 'tbl_incoming.dbf',
-    'customer': 'tbl_customer01.dbf',
+    # Points to: \\system-server\SYSTEM-NEW-OLD\AR\tbl_customer01.dbf
+    'customer': os.path.join('AR', 'tbl_customer01.dbf'),
 }
 
 # Database
@@ -142,20 +146,32 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+APP_VERSION = os.environ.get('APP_VERSION')
+
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Manila'
 
 USE_I18N = True
 
 USE_TZ = True
 
+CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',')
 
 # 1. This silences the Cross-Origin-Opener-Policy warning for HTTP
 SECURE_CROSS_ORIGIN_OPENER_POLICY = None
 
 # 2. This makes WhiteNoise more stable if files are missing or modified
 WHITENOISE_MANIFEST_STRICT = False
+
+# for emailing
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL')

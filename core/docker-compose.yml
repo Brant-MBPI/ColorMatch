@@ -1,30 +1,81 @@
 version: '3.8'
 
 services:
-  db:
-    image: postgres:15
-    container_name: colormatch_db
-    restart: always
-    tty: true
-    volumes:
-      - ./postgres_data:/var/lib/postgresql/data
-    environment:
-      - POSTGRES_DB=db_test_colormatch
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=password
-    ports:
-      - "5435:5432"
+# try remove local container db to use the external db from the system server
+  # db:
+  #   image: postgres:17
+  #   container_name: colormatch_db
+  #   restart: always
+  #   tty: true
+  #   volumes:
+  #     - ../db_data:/var/lib/postgresql/data
+  #   environment:
+  #     - POSTGRES_DB=${DB_NAME}
+  #     - POSTGRES_USER=${DB_USER}
+  #     - POSTGRES_PASSWORD=${DB_PASSWORD}
+  #   ports:
+  #     - "5435:5432"
 
   web:
     build: .
     container_name: colormatch_web
-    restart: always
+    restart: unless-stopped
     command: gunicorn --bind 0.0.0.0:8000 --workers 3 --threads 2 core.wsgi:application
     volumes:
       - .:/app
+      - legacy_data_share:/mnt/legacy_data:ro
     ports:
       - "8080:8000"
     env_file:
       - .env
+    # depends_on:
+    #   - db
+      
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: colormatch_pgadmin
+    restart: always
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}   # Use this to log in to pgAdmin
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}        # Use this to log in to pgAdmin
+      - PGADMIN_LISTEN_PORT=5050
+      - PGADMIN_LISTEN_ADDRESS=0.0.0.0
+    ports:
+      - "7070:80"          # host:container — container still listens on 80
+    # depends_on:
+    #   - db
+
+  tailscale:
+    image: tailscale/tailscale:latest
+    container_name: colormatch_tailscale
+    environment:
+      - TS_AUTHKEY=${TS_AUTHKEY}
+      - TS_HOSTNAME=mbpi-system
+      - TS_STATE_DIR=/var/lib/tailscale
+      - TS_USERSPACE=false
+    volumes:
+      - ../tailscale_data:/var/lib/tailscale
+      - /dev/net/tun:/dev/net/tun
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    network_mode: "service:web"   # shares web container's network namespace
+    restart: always
     depends_on:
-      - db
+      web:
+        condition: service_started
+    command: >
+      sh -c "
+      tailscaled --state=/var/lib/tailscale/tailscaled.state --socket=/var/run/tailscale/tailscaled.sock &
+      TS_PID=$$!;
+      until tailscale --socket=/var/run/tailscale/tailscaled.sock status >/dev/null 2>&1; do sleep 1; done;
+      tailscale --socket=/var/run/tailscale/tailscaled.sock funnel 8000;
+      wait $$TS_PID
+      "
+volumes:
+  legacy_data_share:
+    driver: local
+    driver_opts:
+      type: cifs
+      device: "//${SYS_SERVER_IP}/system-new-old"
+      o: "username=${SYS_SERVER_USER},password=${SYS_SERVER_PASS},vers=3.0,ro,iocharset=utf8,file_mode=0444,dir_mode=0555"
