@@ -176,9 +176,9 @@ def toggle_final_formula(request, formula_type, formula_id):
         # --- PREPARE AUDIT MESSAGE ---
         # Determine formula identifier (Lot for MB, Product Code for DC)
         if formula_type == 'mb':
-            formula_id_display = f"Lot: {header.lot_no or 'N/A'}"
+            formula_id_display = f"Lot: {header.lot_no or 'NA'}"
         else:
-            formula_id_display = f"Code: {header.code.product_code if header.code else 'N/A'}"
+            formula_id_display = f"Code: {header.code.product_code if header.code else 'NA'}"
 
         # Determine parent identifier (CMF No)
         parent_display = header.cm_no.cm_no if header.cm_no else "Unknown"
@@ -274,7 +274,7 @@ def _build_new_records(only_deleted=False):
         if f.cm_no_id:
             formula_map[str(f.cm_no_id)] = f
 
-    # Preload standalone formulas for N/A records
+    # Preload standalone formulas for NA records
     mb_standalone_map = {sa.mb_no_id: sa for sa in tbl_standalone_formula.objects.filter(mb_no__isnull=False)}
     dc_standalone_map = {sa.dc_no_id: sa for sa in tbl_standalone_formula.objects.filter(dc_no__isnull=False)}
 
@@ -298,7 +298,7 @@ def _build_new_records(only_deleted=False):
     # MB Formulas
     for f in mb_qs:
         cm_obj = f.cm_no
-        cmf_no = cm_obj.cm_no if cm_obj else "N/A"
+        cmf_no = cm_obj.cm_no if cm_obj else "NA"
         color = _resolve_color(f, cm_obj)
 
         if cm_obj:
@@ -307,7 +307,7 @@ def _build_new_records(only_deleted=False):
             raw_dosage = f_info.dosage if f_info else None
         else:
             sa_info = mb_standalone_map.get(f.mb_no)
-            customer = sa_info.customer.upper() if (sa_info and sa_info.customer) else "N/A"
+            customer = sa_info.customer.upper() if (sa_info and sa_info.customer) else "NA"
             raw_dosage = sa_info.dosage if sa_info else None
 
         dosage_display = f"{float(raw_dosage):g}%" if raw_dosage is not None else "---"
@@ -318,14 +318,14 @@ def _build_new_records(only_deleted=False):
             "date": f.date,
             "cmf_no": cmf_no,
             "record_type": "cmf",
-            "record_no": cmf_no if cmf_no != "N/A" else "",
+            "record_no": cmf_no if cmf_no != "NA" else "",
             "customer": customer,
             "product_code": f.code.product_code if f.code else "---",
-            "lot_no": f.lot_no or "N/A",
+            "lot_no": f.lot_no or "NA",
             "color": color,
             "dosage": float(raw_dosage) if raw_dosage is not None else None,
             "dosage_display": dosage_display,
-            "html": (f.html or "").strip(),   # empty = no swatch ("N/A" is shown in the table)
+            "html": (f.html or "").strip(),   # empty = no swatch ("NA" is shown in the table)
             "is_final": bool(getattr(f, 'is_final', False)),
             "in_production": bool(getattr(f, 'in_production_formula', False)),   # red dot in the table
             "is_deleted": only_deleted,   # light red row in the table
@@ -335,7 +335,7 @@ def _build_new_records(only_deleted=False):
     # DC Formulas
     for f in dc_qs:
         cm_obj = f.cm_no
-        cmf_no = cm_obj.cm_no if cm_obj else "N/A"
+        cmf_no = cm_obj.cm_no if cm_obj else "NA"
         color = _resolve_color(f, cm_obj)
 
         if cm_obj:
@@ -344,7 +344,7 @@ def _build_new_records(only_deleted=False):
             raw_dosage = f_info.dosage if f_info else None
         else:
             sa_info = dc_standalone_map.get(f.dc_no)
-            customer = sa_info.customer.upper() if (sa_info and sa_info.customer) else "N/A"
+            customer = sa_info.customer.upper() if (sa_info and sa_info.customer) else "NA"
             raw_dosage = sa_info.dosage if sa_info else None
 
         dosage_display = f"{float(raw_dosage):g}%" if raw_dosage is not None else "NA"
@@ -355,10 +355,10 @@ def _build_new_records(only_deleted=False):
             "date": f.date,
             "cmf_no": cmf_no,
             "record_type": "cmf",
-            "record_no": cmf_no if cmf_no != "N/A" else "",
+            "record_no": cmf_no if cmf_no != "NA" else "",
             "customer": customer,
             "product_code": f.code.product_code if f.code else "---",
-            "lot_no": "N/A",
+            "lot_no": "NA",
             "color": color,
             "dosage": float(raw_dosage) if raw_dosage is not None else None,
             "dosage_display": dosage_display,
@@ -381,7 +381,7 @@ def _build_old_records():
     results = []
     for o in old_formula01.objects.filter(colormatch_date__isnull=False).iterator():
         cm = (o.cm_no or "").strip()
-        # No CM number, or only dashes ("-", "--", ...) -> default "N/A"
+        # No CM number, or only dashes ("-", "--", ...) -> default "NA"
         if not cm or not cm.strip("-–—"):
             cm = ""
         raw_ld = o.ld   # dosage for old records is the LD
@@ -392,12 +392,12 @@ def _build_old_records():
             "type": "OLD_MF" if o.source == "master_formula" else "OLD_F",
             "source": o.source,
             "date": o.colormatch_date,   # old records display the colormatch date
-            "cmf_no": cm or "N/A",
+            "cmf_no": cm or "NA",
             "record_type": "cmf",
             "record_no": cm,   # empty when there is no real CM number
             "customer": (o.customer or "").strip().upper() or "---",
             "product_code": (o.product_code or "").strip() or "---",
-            "lot_no": (o.lot_no or "").strip() or "N/A",
+            "lot_no": (o.lot_no or "").strip() or "NA",
             "color": color,
             "dosage": float(raw_ld) if raw_ld is not None else None,
             "dosage_display": f"{float(raw_ld):g}%" if raw_ld is not None else "---",
