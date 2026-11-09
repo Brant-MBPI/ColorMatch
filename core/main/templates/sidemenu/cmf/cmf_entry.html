@@ -322,9 +322,28 @@ CMF Entry
 
                         <!-- MI Customer Resin + Color Guide to be Returned -->
                         <div class="row g-2 mb-2">
-                            <div class="col-6">
+                            <div class="col-6" id="mi_resin_col">
                                 <label class="fw-bold extra-small required-label">MI Customer's Resin:</label>
-                                <input type="text" name="mi_customer_resin" value="{{ form_data.mi_customer_resin|default:'Not Given' }}" class="form-control form-control-sm uniform-input" autocomplete="off" required>
+
+                                <!-- Default: plain text (any resin other than PE / PP) -->
+                                <input type="text" name="mi_customer_resin" id="id_mi_customer_resin" value="{{ form_data.mi_customer_resin|default:'Not Given' }}" class="form-control form-control-sm uniform-input" autocomplete="off" required>
+
+                                <!-- PE / PP: {number} at {2.16 / 5.00 kg} & {190 / 230 °C} -->
+                                <div id="mi_resin_fields" class="input-group input-group-sm flex-nowrap d-none">
+                                    <input type="text" id="id_mi_num" class="form-control uniform-input text-end"
+                                           inputmode="decimal" pattern="\d+(\.\d+)?" title="Numbers only (e.g. 12 or 3.5)"
+                                           placeholder="MI" autocomplete="off" style="min-width: 70px;">
+                                    <span class="input-group-text extra-small fw-bold">at</span>
+                                    <select id="id_mi_load" class="form-select uniform-input" style="max-width: 115px;">
+                                        <option value="2.16 kg">2.16 kg</option>
+                                        <option value="5.00 kg">5.00 kg</option>
+                                    </select>
+                                    <span class="input-group-text extra-small fw-bold">&amp;</span>
+                                    <select id="id_mi_temp" class="form-select uniform-input" style="max-width: 115px;">
+                                        <option value="190 °C">190 °C</option>
+                                        <option value="230 °C">230 °C</option>
+                                    </select>
+                                </div>
                             </div>
                             <div class="col-6">
                                 <label class="fw-bold extra-small d-block mb-1 required-label">Is Color Guide to be Returned:</label>

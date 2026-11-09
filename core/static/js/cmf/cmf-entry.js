@@ -1,4 +1,3 @@
-
 document.addEventListener('DOMContentLoaded', function() {
 
     // --- 2. DOM ELEMENTS ---
@@ -192,6 +191,77 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // --- MI CUSTOMER'S RESIN: PE / PP get structured fields ({number} at {x kg} & {y °C}) ---
+    const resinSelect = document.querySelector('select[name="resin"]');
+    const miCol = document.getElementById('mi_resin_col');
+    const miText = document.getElementById('id_mi_customer_resin');
+    const miFields = document.getElementById('mi_resin_fields');
+    const miNum = document.getElementById('id_mi_num');
+    const miLoad = document.getElementById('id_mi_load');
+    const miTemp = document.getElementById('id_mi_temp');
+
+    // Saved format: number-load-temp (e.g. 12-2.16 kg-230 °C)
+    // The unit parts are optional so older values like 12-2.16-230 are still read back correctly.
+    const MI_PATTERN = /^(\d+(?:\.\d+)?)-(2\.16|5\.00)(?: kg)?-(190|230)(?: °C)?$/;
+    let miParsed = false;
+
+    if (miNum) miNum.addEventListener('keypress', restrictToNumbers);
+
+    // Existing record: split the saved value back into the three fields
+    if (miText && miNum) {
+        const m = miText.value.trim().match(MI_PATTERN);
+        if (m) {
+            miNum.value = m[1];
+            miLoad.value = `${m[2]} kg`;
+            miTemp.value = `${m[3]} °C`;
+            miParsed = true;
+        }
+    }
+
+    const getSelectedResinNames = () => {
+        if (!resinSelect) return [];
+        const ts = resinSelect.tomselect;
+        if (ts) return ts.items.map(v => ((ts.options[v] && ts.options[v].text) || '').trim().toUpperCase());
+        return Array.from(resinSelect.selectedOptions).map(o => o.textContent.trim().toUpperCase());
+    };
+
+    const applyMiMode = (setDefaultTemp) => {
+        if (!miFields || !miText) return;
+
+        const names = getSelectedResinNames();
+        const hasPP = names.some(n => n.includes('PP'));    // PP, PP HOMO, PP BLOCK COPO ...
+        const hasPE = names.some(n => /PE$/.test(n));        // PE, HDPE, LDPE, LLDPE (PET is not polyethylene)
+        const structured = hasPP || hasPE;
+
+        miFields.classList.toggle('d-none', !structured);
+        miText.classList.toggle('d-none', structured);
+        miText.required = !structured;
+        if (miCol) {
+            miCol.classList.toggle('col-6', !structured);
+            miCol.classList.toggle('col-12', structured);   // wider row for the extra fields
+        }
+
+        // Default temperature: PP -> 230 °C, PE -> 190 °C (left alone when both are selected)
+        if (structured && setDefaultTemp && hasPP !== hasPE) {
+            miTemp.value = hasPP ? '230 °C' : '190 °C';
+        }
+    };
+
+    if (resinSelect && miFields) {
+        let miAttempts = 0;
+        const waitResinTS = setInterval(() => {
+            miAttempts++;
+            if (resinSelect.tomselect) {
+                clearInterval(waitResinTS);
+                resinSelect.tomselect.on('change', () => applyMiMode(true));
+                applyMiMode(!miParsed);      // on load, don't override a saved temperature
+            } else if (miAttempts > 50) {
+                clearInterval(waitResinTS);
+                applyMiMode(!miParsed);
+            }
+        }, 100);
+    }
+
     // --- 4. BUTTON LISTENERS ---
 
     if (saveBtn && entryForm) {
@@ -217,6 +287,13 @@ document.addEventListener('DOMContentLoaded', function() {
             const hiddenField = document.getElementById('id_qty_resin_test_hidden');
             if (numInput && hiddenField) {
                 hiddenField.value = `${numInput.value.trim()} ${unitSelect.value}`;
+            }
+
+            // Combine MI Customer's Resin (PE / PP): number-load-temp, or "Not Given" when no number
+            // e.g. 12-2.16 kg-230 °C
+            if (miText && miFields && !miFields.classList.contains('d-none')) {
+                const miNumVal = miNum.value.trim();
+                miText.value = miNumVal ? `${miNumVal}-${miLoad.value}-${miTemp.value}` : 'Not Given';
             }
 
             const hiddenInput = entryForm.querySelector('[name="original_cmf_no"]');
