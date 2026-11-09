@@ -49,9 +49,9 @@ Formula Records
                 <i class="bi bi-list-check"></i> Multi-Select
             </button>
             <div class="dropdown">
-                <button class="btn btn-sm btn-outline-teal px-3 text-nowrap dropdown-toggle" type="button"
+                <button class="btn btn-sm btn-outline-teal active px-3 text-nowrap dropdown-toggle" type="button"
                         id="btnSourceFilter" data-bs-toggle="dropdown" aria-expanded="false" style="min-width: 150px;">
-                    <i class="bi bi-funnel"></i> <span id="sourceFilterLabel">All Formulas</span>
+                    <i class="bi bi-funnel"></i> <span id="sourceFilterLabel">New only</span>
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end source-filter-menu">
                     <li><a class="dropdown-item source-filter-item active" href="#" data-value="">All Formulas</a></li>
@@ -166,7 +166,7 @@ $(document).ready(function() {
     let selectedIds = new Set();
     let onlyFinalFilter = false;
     let onlyProductionFilter = false;
-    let sourceFilter = '';
+    let sourceFilter = 'new';
     let onlyDeletedFilter = false;
     let forceRefresh = false;
 
