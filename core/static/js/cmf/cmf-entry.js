@@ -191,7 +191,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // --- MI CUSTOMER'S RESIN: PE / PP get structured fields ({number} at {x kg} & {y °C}) ---
+        // --- MI CUSTOMER'S RESIN: structured fields ({number} at {x kg} & {y °C}) ---
     const resinSelect = document.querySelector('select[name="resin"]');
     const miCol = document.getElementById('mi_resin_col');
     const miText = document.getElementById('id_mi_customer_resin');
@@ -200,21 +200,30 @@ document.addEventListener('DOMContentLoaded', function() {
     const miLoad = document.getElementById('id_mi_load');
     const miTemp = document.getElementById('id_mi_temp');
 
-    // Saved format: number-load-temp (e.g. 12-2.16 kg-230 °C)
-    // The unit parts are optional so older values like 12-2.16-230 are still read back correctly.
-    const MI_PATTERN = /^(\d+(?:\.\d+)?)-(2\.16|5\.00)(?: kg)?-(190|230)(?: °C)?$/;
-    let miParsed = false;
+    let miForceStructured = false;   // saved value already has the "number-load-temp" format
 
     if (miNum) miNum.addEventListener('keypress', restrictToNumbers);
 
+    // Select the dropdown option whose number matches (2.16 kg / 5.00 kg, 190 °C / 230 °C)
+    const selectByNumber = (select, raw) => {
+        const wanted = parseFloat(raw);
+        const opt = Array.from(select.options).find(o => parseFloat(o.value) === wanted);
+        if (!opt) return false;
+        select.value = opt.value;
+        return true;
+    };
+
     // Existing record: split the saved value back into the three fields
+    // Reads 12-2.16 kg-230 °C and the older 12-2.16-230 alike
     if (miText && miNum) {
-        const m = miText.value.trim().match(MI_PATTERN);
-        if (m) {
-            miNum.value = m[1];
-            miLoad.value = `${m[2]} kg`;
-            miTemp.value = `${m[3]} °C`;
-            miParsed = true;
+        const parts = miText.value.split('-').map(s => s.trim());
+        if (parts.length === 3 && /^\d+(\.\d+)?$/.test(parts[0])) {
+            const loadNum = parts[1].match(/\d+(\.\d+)?/);
+            const tempNum = parts[2].match(/\d+(\.\d+)?/);
+            if (loadNum && tempNum && selectByNumber(miLoad, loadNum[0]) && selectByNumber(miTemp, tempNum[0])) {
+                miNum.value = parts[0];
+                miForceStructured = true;
+            }
         }
     }
 
@@ -231,7 +240,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const names = getSelectedResinNames();
         const hasPP = names.some(n => n.includes('PP'));    // PP, PP HOMO, PP BLOCK COPO ...
         const hasPE = names.some(n => /PE$/.test(n));        // PE, HDPE, LDPE, LLDPE (PET is not polyethylene)
-        const structured = hasPP || hasPE;
+
+        // PE / PP selected, or the saved value already has the structured format
+        const structured = hasPP || hasPE || miForceStructured;
 
         miFields.classList.toggle('d-none', !structured);
         miText.classList.toggle('d-none', structured);
@@ -248,16 +259,22 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     if (resinSelect && miFields) {
+        // The user changes the resin: from now on the resin decides, not the saved value
+        const onResinChange = () => {
+            miForceStructured = false;
+            applyMiMode(true);
+        };
+
         let miAttempts = 0;
         const waitResinTS = setInterval(() => {
             miAttempts++;
             if (resinSelect.tomselect) {
                 clearInterval(waitResinTS);
-                resinSelect.tomselect.on('change', () => applyMiMode(true));
-                applyMiMode(!miParsed);      // on load, don't override a saved temperature
+                resinSelect.tomselect.on('change', onResinChange);
+                applyMiMode(false);      // on load, keep the saved load / temperature
             } else if (miAttempts > 50) {
                 clearInterval(waitResinTS);
-                applyMiMode(!miParsed);
+                applyMiMode(false);
             }
         }, 100);
     }
