@@ -1,4 +1,3 @@
-
 document.addEventListener('DOMContentLoaded', function() {
 
     // --- 2. DOM ELEMENTS ---
@@ -192,6 +191,94 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+        // --- MI CUSTOMER'S RESIN: structured fields ({number} at {x kg} & {y °C}) ---
+    const resinSelect = document.querySelector('select[name="resin"]');
+    const miCol = document.getElementById('mi_resin_col');
+    const miText = document.getElementById('id_mi_customer_resin');
+    const miFields = document.getElementById('mi_resin_fields');
+    const miNum = document.getElementById('id_mi_num');
+    const miLoad = document.getElementById('id_mi_load');
+    const miTemp = document.getElementById('id_mi_temp');
+
+    let miForceStructured = false;   // saved value already has the "number-load-temp" format
+
+    if (miNum) miNum.addEventListener('keypress', restrictToNumbers);
+
+    // Select the dropdown option whose number matches (2.16 kg / 5.00 kg, 190 °C / 230 °C)
+    const selectByNumber = (select, raw) => {
+        const wanted = parseFloat(raw);
+        const opt = Array.from(select.options).find(o => parseFloat(o.value) === wanted);
+        if (!opt) return false;
+        select.value = opt.value;
+        return true;
+    };
+
+    // Existing record: split the saved value back into the three fields
+    // Reads 12-2.16 kg-230 °C and the older 12-2.16-230 alike
+    if (miText && miNum) {
+        const parts = miText.value.split('-').map(s => s.trim());
+        if (parts.length === 3 && /^\d+(\.\d+)?$/.test(parts[0])) {
+            const loadNum = parts[1].match(/\d+(\.\d+)?/);
+            const tempNum = parts[2].match(/\d+(\.\d+)?/);
+            if (loadNum && tempNum && selectByNumber(miLoad, loadNum[0]) && selectByNumber(miTemp, tempNum[0])) {
+                miNum.value = parts[0];
+                miForceStructured = true;
+            }
+        }
+    }
+
+    const getSelectedResinNames = () => {
+        if (!resinSelect) return [];
+        const ts = resinSelect.tomselect;
+        if (ts) return ts.items.map(v => ((ts.options[v] && ts.options[v].text) || '').trim().toUpperCase());
+        return Array.from(resinSelect.selectedOptions).map(o => o.textContent.trim().toUpperCase());
+    };
+
+    const applyMiMode = (setDefaultTemp) => {
+        if (!miFields || !miText) return;
+
+        const names = getSelectedResinNames();
+        const hasPP = names.some(n => n.includes('PP'));    // PP, PP HOMO, PP BLOCK COPO ...
+        const hasPE = names.some(n => /PE$/.test(n));        // PE, HDPE, LDPE, LLDPE (PET is not polyethylene)
+
+        // PE / PP selected, or the saved value already has the structured format
+        const structured = hasPP || hasPE || miForceStructured;
+
+        miFields.classList.toggle('d-none', !structured);
+        miText.classList.toggle('d-none', structured);
+        miText.required = !structured;
+        if (miCol) {
+            miCol.classList.toggle('col-6', !structured);
+            miCol.classList.toggle('col-12', structured);   // wider row for the extra fields
+        }
+
+        // Default temperature: PP -> 230 °C, PE -> 190 °C (left alone when both are selected)
+        if (structured && setDefaultTemp && hasPP !== hasPE) {
+            miTemp.value = hasPP ? '230 °C' : '190 °C';
+        }
+    };
+
+    if (resinSelect && miFields) {
+        // The user changes the resin: from now on the resin decides, not the saved value
+        const onResinChange = () => {
+            miForceStructured = false;
+            applyMiMode(true);
+        };
+
+        let miAttempts = 0;
+        const waitResinTS = setInterval(() => {
+            miAttempts++;
+            if (resinSelect.tomselect) {
+                clearInterval(waitResinTS);
+                resinSelect.tomselect.on('change', onResinChange);
+                applyMiMode(false);      // on load, keep the saved load / temperature
+            } else if (miAttempts > 50) {
+                clearInterval(waitResinTS);
+                applyMiMode(false);
+            }
+        }, 100);
+    }
+
     // --- 4. BUTTON LISTENERS ---
 
     if (saveBtn && entryForm) {
@@ -217,6 +304,13 @@ document.addEventListener('DOMContentLoaded', function() {
             const hiddenField = document.getElementById('id_qty_resin_test_hidden');
             if (numInput && hiddenField) {
                 hiddenField.value = `${numInput.value.trim()} ${unitSelect.value}`;
+            }
+
+            // Combine MI Customer's Resin (PE / PP): number-load-temp, or "Not Given" when no number
+            // e.g. 12-2.16 kg-230 °C
+            if (miText && miFields && !miFields.classList.contains('d-none')) {
+                const miNumVal = miNum.value.trim();
+                miText.value = miNumVal ? `${miNumVal}-${miLoad.value}-${miTemp.value}` : 'Not Given';
             }
 
             const hiddenInput = entryForm.querySelector('[name="original_cmf_no"]');

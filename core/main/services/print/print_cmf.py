@@ -1,5 +1,6 @@
 # print_cmf
 import os
+import re
 # import tempfile
 # import threading
 # import uuid
@@ -24,6 +25,7 @@ from main.models import (
 # _excel_lock = threading.Lock()
 
 TEMPLATE_PATH = os.path.join('main', 'templates', 'print_excel', 'new_cmf_template.xlsx')
+
 
 
 def _fetch_cmf_data(cm_no):
@@ -260,6 +262,17 @@ def _fetch_cmf_data(cm_no):
 
 # print_cmf_preview = xframe_options_exempt(print_cmf_preview)
 
+def format_mi_resin(raw):
+    """'12-2.16 kg-230 °C' -> '12 at 2.16 kg & 230 °C'.
+    Also reads the older '12-2.16-230'. Anything else ('Not Given', plain text) passes through."""
+    raw = (raw or '').strip()
+    m = re.match(
+        r'^(\d+(?:\.\d+)?)\s*-\s*(\d+(?:\.\d+)?)\s*(?:kg)?\s*-\s*(\d+(?:\.\d+)?)\s*(?:°\s*C)?$',
+        raw, re.I)
+    if not m:
+        return raw
+    num, load, temp = m.groups()
+    return f"{num} at {float(load):.2f} kg & {temp} °C"
 
 def get_cmf_print_context(cm_no):
     """Builds the full context dict for the HTML/CSS CMF print template."""
@@ -285,9 +298,9 @@ def get_cmf_print_context(cm_no):
     standard_procs = ['injection', 'blow-molding', 'film', 'pipe-extrusion']
     other_procs = [p for p in process_list if p not in standard_procs]
 
-    # --- Other Specification ---
-    standard_specs = ['Food Contact', 'Sunlight Exposure']
-    other_specs = [s for s in spec_list if s not in standard_specs]
+        # --- Other Specification ---
+    spec_lower = {s.lower() for s in spec_list}
+    other_specs = [s for s in spec_list if s.lower() not in ('food contact', 'outdoor use', 'indoor use')]
 
     return {
         'cm_no': cmf.cm_no,
@@ -338,14 +351,16 @@ def get_cmf_print_context(cm_no):
         'resin_provided_yes': cmf.is_resin_provided is True,
         'resin_provided_no': cmf.is_resin_provided is False,
 
-        'mi_customer_resin': cmf.mi_c_resin,
+        'mi_customer_resin': format_mi_resin(cmf.mi_c_resin),
 
         'guide_return_yes': cmf.is_guide_to_return is True,
         'guide_return_no': cmf.is_guide_to_return is False,
 
-        'spec_food_contact': 'Food Contact' in spec_list,
-        'spec_sunlight': 'Sunlight Exposure' in spec_list,
-        'spec_others': bool(other_specs),
+        # replaces spec_food_contact / spec_sunlight / spec_others
+        'spec_food_yes':    'food contact' in spec_lower,
+        'spec_food_no':     'food contact' not in spec_lower,
+        'spec_outdoor_yes': 'outdoor use' in spec_lower,
+        'spec_outdoor_no':  'outdoor use' not in spec_lower,
         'spec_others_value': ", ".join(other_specs),
 
         'temperature': cmf.temperature,
